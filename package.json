@@ -1,0 +1,20 @@
+{
+  "name": "systemjs-builder",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "rsvp": "^3.0.6",
+    "systemjs": "^0.6.0",
+    "traceur": "^0.0.41"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
