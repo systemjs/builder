@@ -1,22 +1,24 @@
+// Converts globals into a form that will define the module onto the loader
+
+// Todo:
+// - support "init" as argument to retrieveGlobal
+// - do a global scope rewriting on the source so "var" declarations assign to global
+
+
+function globalOutput(name, deps, exportName, init, source) {
+  return 'System.defined["' + name + '"] = {\n'
+    + '  deps: ' + JSON.stringify(deps) + ',\n'
+    + '  execute: function(__require, __exports, __moduleName) {\n'
+    + '    System.get("@@global-helpers").prepareGlobal(__moduleName, ' + JSON.stringify(deps) + ');\n'
+    + '    ' + source.replace(/\n/g, '\n    ') + '\n'
+    + (exportName ? '    this["' + exportName + '"] = ' + exportName + ';\n' : '')
+    + '    return System.get("@@global-helpers").retrieveGlobal(__moduleName, ' + (exportName ? '"' + exportName + '"' : 'false') + (init ? ', ' + init.toString().replace(/\n/g, '\n      ') : '') + ');\n'
+    + '  }\n'
+    + '};\n';
+}
+
 exports.compile = function(load) {
-
-  // NB need to add an Esprima parse, to detect global variable writes
-  //    and convert them into the output
-  // Also need to support meta.init
-
-  // Todo meta.exports
-
-  var defineStart =
-    'System.defined["' + load.name + '"] = {\n' +
-    '  deps: ' + JSON.stringify(load.metadata.deps) + ',\n' + 
-    '  execute: function() {\n' + 
-    '    '
-    '  }\n' +
-    '}\n';
-
-
   return Promise.resolve({
-    source: 'System.defined["' + load.name + '"] = {\n'+
-            load.source.replace(anonRegisterRegEx, 'System.register("' + load.name + '", [')
+    source: globalOutput(load.name, load.metadata.deps, load.metadata.exports, load.metadata.init, load.source)
   });
 }

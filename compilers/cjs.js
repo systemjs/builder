@@ -1,11 +1,28 @@
+var path = require('path');
+
+// converts CJS into something that will define itself onto the loader
+
+function cjsOutput(name, deps, address, source) {
+  var dirname = path.dirname(address);
+
+  return 'System.defined["' + name + '"] = {\n'
+    + '  deps: ' + JSON.stringify(deps) + ',\n'
+    + '  executingRequire: true,\n'
+    + '  execute: function(require, exports, __moduleName) {\n'
+    + '    var global = System.global;\n'
+    + '    global.define = undefined;\n'
+    + '    var module = { exports: exports };\n'
+    + '    var process = System.get("@@nodeProcess");\n'
+    // + '    var __filename = "' + address + '";\n'
+    // + '    var __dirname = "' + dirname + '";\n'
+    + '    ' + source.replace(/\n/g, '\n    ') + '\n'
+    + '    return module.exports;\n'
+    + '  }\n'
+    + '};\n'
+}
+
 exports.compile = function(load) {
-
-  // TODO environment variable creation for define wrapper as in extension
-  // THEN we are there
-
-  var anonRegisterRegEx = /System\.register\(\[/g;
-
   return Promise.resolve({
-    source: load.source.replace(anonRegisterRegEx, 'System.register("' + load.name + '", [')
+    source: cjsOutput(load.name, load.metadata.deps, load.address, load.source)
   });
 }

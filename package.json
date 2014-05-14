@@ -11,7 +11,9 @@
     "systemjs": "^0.6.0",
     "traceur": "^0.0.41"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "es6-module-loader": "^0.6.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

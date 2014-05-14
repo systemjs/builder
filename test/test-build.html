@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="../bower_components/qunit/qunit/qunit.css"/>
+  </head>
+  <body>
+
+    <h1 id="qunit-header">SystemJS Test Suite</h1>
+
+    <h2 id="qunit-banner"></h2>
+    <div id="qunit-testrunner-toolbar"></div>
+    <h2 id="qunit-userAgent"></h2>
+    <ol id="qunit-tests"></ol>
+    <div id="qunit-test-area"></div>
+
+    <script src="../node_modules/es6-module-loader/dist/es6-module-loader.js"></script>
+    <script src="../node_modules/systemjs/dist/system.js" type="text/javascript"></script>
+
+    <script src="../bower_components/qunit/qunit/qunit.js"></script>
+
+    <script>
+      QUnit.config.testTimeout = 500;
+
+      QUnit.module("SystemJS Built Bundle");
+
+      function err(e) {
+        setTimeout(function() {
+          throw e;
+        });
+      }
+      System.bundles['tree-build'] = ['tree/third', 'tree/cjs', 'tree/jquery', 'tree/second', 'tree/global', 'tree/amd', 'tree/first'];
+
+      asyncTest('Loading AMD from a bundle', function() {
+        System['import']('tree/amd').then(function(m) {
+          ok(m.is == 'amd');
+          start();
+        }, err);
+      });
+
+      asyncTest('Loading CommonJS from a bundle', function() {
+        System['import']('tree/cjs').then(function(m) {
+          ok(m.cjs === true);
+          start();
+        }, err);
+      });
+
+      asyncTest('Loading a Global from a bundle', function() {
+        System['import']('tree/global').then(function(m) {
+          ok(m === 'output');
+          start();
+        }, err);
+      });
+
+      asyncTest('Loading named System.register', function() {
+        System['import']('tree/third').then(function(m) {
+          ok(m.some == 'exports');
+          start();
+        }, err);
+      });
+
+      asyncTest('Loading System.register from ES6', function() {
+        System['import']('tree/first').then(function(m) {
+          ok(m.p == 5);
+          start();
+        });
+      });
+
+    </script>
+	</body>
+</html>
