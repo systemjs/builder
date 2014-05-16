@@ -35,6 +35,9 @@ exports.build = function(moduleName, config, outFile) {
 
   var concatOutput = ['"format register";\n'];
 
+  var System = loader.global.System;
+  loader.global.System = loader;
+
   return loader.import(moduleName).then(function() {
     // we now have the full tree at loader.loads
     return visitLoadTree(moduleName, function(load) {
@@ -65,14 +68,18 @@ exports.build = function(moduleName, config, outFile) {
           concatOutput.push(result.source);
         });
       }
-      else
+      else {
+        console.log(load);
         throw "unknown format " + load.metadata.format;
+      }
     })
   })
   .then(function() {
+    loader.global.System = System;
     return asp(fs.writeFile)(outFile, concatOutput.join('\n'));
   })
   .catch(function(e) {
+    loader.global.System = System;
     setTimeout(function() {
       throw e;
     })

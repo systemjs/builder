@@ -14,11 +14,13 @@ System.defined["tree/cjs"] = {
   executingRequire: true,
   execute: function(require, exports, __moduleName) {
     var global = System.global;
+    var __define = global.define;
     global.define = undefined;
     var module = { exports: exports };
     var process = System.get("@@nodeProcess");
     exports.cjs = true;
     
+    global.define = __define;
     return module.exports;
   }
 };
