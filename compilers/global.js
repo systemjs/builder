@@ -6,15 +6,12 @@
 
 
 function globalOutput(name, deps, exportName, init, source) {
-  return 'System.defined["' + name + '"] = {\n'
-    + '  deps: ' + JSON.stringify(deps) + ',\n'
-    + '  execute: function(__require, __exports, __moduleName) {\n'
-    + '    System.get("@@global-helpers").prepareGlobal(__moduleName, ' + JSON.stringify(deps) + ');\n'
-    + '    ' + source.replace(/\n/g, '\n    ') + '\n'
-    + (exportName ? '    this["' + exportName + '"] = ' + exportName + ';\n' : '')
-    + '    return System.get("@@global-helpers").retrieveGlobal(__moduleName, ' + (exportName ? '"' + exportName + '"' : 'false') + (init ? ', ' + init.toString().replace(/\n/g, '\n      ') : '') + ');\n'
-    + '  }\n'
-    + '};\n';
+  return 'System.register("' + name + '", ' + JSON.stringify(deps) + ', false, function(__require, __exports, __moduleName) {\n'
+    + '  System.get("@@global-helpers").prepareGlobal(__moduleName, ' + JSON.stringify(deps) + ');\n'
+    + '  ' + source.replace(/\n/g, '\n    ') + '\n'
+    + (exportName ? '  this["' + exportName + '"] = ' + exportName + ';\n' : '')
+    + '  return System.get("@@global-helpers").retrieveGlobal(__moduleName, ' + (exportName ? '"' + exportName + '"' : 'false') + (init ? ', ' + init.toString().replace(/\n/g, '\n      ') : '') + ');\n'
+    + '});\n';
 }
 
 exports.compile = function(load) {

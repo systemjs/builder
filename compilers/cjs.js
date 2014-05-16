@@ -5,22 +5,18 @@ var path = require('path');
 function cjsOutput(name, deps, address, source) {
   var dirname = path.dirname(address);
 
-  return 'System.defined["' + name + '"] = {\n'
-    + '  deps: ' + JSON.stringify(deps) + ',\n'
-    + '  executingRequire: true,\n'
-    + '  execute: function(require, exports, __moduleName) {\n'
-    + '    var global = System.global;\n'
-    + '    var __define = global.define;\n'
-    + '    global.define = undefined;\n'
-    + '    var module = { exports: exports };\n'
-    + '    var process = System.get("@@nodeProcess");\n'
+  return 'System.register("' + name + '", ' + JSON.stringify(deps) + ', true, function(require, exports, __moduleName) {\n'
+    + '  var global = System.global;\n'
+    + '  var __define = global.define;\n'
+    + '  global.define = undefined;\n'
+    + '  var module = { exports: exports };\n'
+    + '  var process = System.get("@@nodeProcess");\n'
     // + '    var __filename = "' + address + '";\n'
     // + '    var __dirname = "' + dirname + '";\n'
-    + '    ' + source.replace(/\n/g, '\n    ') + '\n'
-    + '    global.define = __define;\n'
-    + '    return module.exports;\n'
-    + '  }\n'
-    + '};\n'
+    + '  ' + source.replace(/\n/g, '\n  ') + '\n'
+    + '  global.define = __define;\n'
+    + '  return module.exports;\n'
+    + '});\n'
 }
 
 exports.compile = function(load) {

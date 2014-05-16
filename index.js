@@ -86,7 +86,9 @@ exports.build = function(moduleName, config, outFile) {
   });
 }
 
-exports.createTraceTree = function(moduleName) {
+exports.createTraceTree = function(moduleName, config) {
+  if (config)
+    loader.config(config);
   return loader.import(moduleName).then(function() {
     var traceTree = {};
     return visitLoadTree(moduleName, function(load) {
