@@ -14,7 +14,9 @@ System.register("tree/cjs", [], true, function(require, exports, __moduleName) {
   var __define = global.define;
   global.define = undefined;
   var module = { exports: exports };
-  var process = System.get("@@nodeProcess");
+  var process = System.get("@@nodeProcess")["default"];
+    var __filename = "tree/cjs.js";
+    var __dirname = "tree";
   exports.cjs = true;
   
   global.define = __define;

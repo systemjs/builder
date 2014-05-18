@@ -11,6 +11,6 @@ builder.build('tree/first', {
   console.log(e);
 });
 
-builder.createTraceTree('tree/first').then(function(traceTree) {
+builder.trace('tree/first').then(function(traceTree) {
   console.log(JSON.stringify(traceTree, null, 2));
 });

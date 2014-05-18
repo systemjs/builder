@@ -11,8 +11,6 @@ var cjsCompiler = require('./compilers/cjs');
 var globalCompiler = require('./compilers/global');
 
 // TODO source maps
-
-
 var loader = new Loader(System);
 loader.baseURL = System.baseURL;
 loader.paths = { '*': '*.js' };
@@ -30,77 +28,87 @@ loader.pluginLoader = pluginLoader;
 
 exports.build = function(moduleName, config, outFile) {
 
-  loader.config(config);
-  pluginLoader.config(config);
+  return exports.trace(moduleName, config)
+  .then(function(trace) {
+    return exports.buildTree(trace.tree, trace.moduleName, outFile)
+  });
 
+}
+
+exports.buildTree = function(tree, moduleName, outFile) {
   var concatOutput = ['"format register";\n'];
+  return visitTree(tree, moduleName, function(load) {
+    if (load.metadata.format == 'es6') {
+      var result = traceur.compile(load.source, {
+        moduleName: load.name,
+        modules: 'instantiate'
+      });
+      concatOutput.push(result.js);
+    }
+    else if (load.metadata.format == 'register') {
+      return registerCompiler.compile(load, loader).then(function(result) {
+        concatOutput.push(result.source);
+      });
+    }
+    else if (load.metadata.format == 'amd') {
+      return amdCompiler.compile(load, loader).then(function(result) {
+        concatOutput.push(result.source);
+      });
+    }
+    else if (load.metadata.format == 'cjs') {
+      return cjsCompiler.compile(load, loader).then(function(result) {
+        concatOutput.push(result.source);
+      });
+    }
+    else if (load.metadata.format == 'global') {
+      return globalCompiler.compile(load, loader).then(function(result) {
+        concatOutput.push(result.source);
+      });
+    }
+    else {
+      throw "unknown format " + load.metadata.format;
+    }
+  })
+  .then(function() {
+    return asp(fs.writeFile)(outFile, concatOutput.join('\n'));
+  });
+}
+
+exports.trace = function(moduleName, config) {
+  if (config) {
+    loader.config(config);
+    pluginLoader.config(config);
+  }
 
   var System = loader.global.System;
   loader.global.System = loader;
 
-  return loader.import(moduleName).then(function() {
-    // we now have the full tree at loader.loads
-    return visitLoadTree(moduleName, function(load) {
-      if (load.metadata.format == 'es6') {
-        var result = traceur.compile(load.source, {
-          moduleName: load.name,
-          modules: 'instantiate'
-        });
-        concatOutput.push(result.js);
-      }
-      else if (load.metadata.format == 'register') {
-        return registerCompiler.compile(load).then(function(result) {
-          concatOutput.push(result.source);
-        });
-      }
-      else if (load.metadata.format == 'amd') {
-        return amdCompiler.compile(load).then(function(result) {
-          concatOutput.push(result.source);
-        });
-      }
-      else if (load.metadata.format == 'cjs') {
-        return cjsCompiler.compile(load).then(function(result) {
-          concatOutput.push(result.source);
-        });
-      }
-      else if (load.metadata.format == 'global') {
-        return globalCompiler.compile(load).then(function(result) {
-          concatOutput.push(result.source);
-        });
-      }
-      else {
-        console.log(load);
-        throw "unknown format " + load.metadata.format;
-      }
-    })
+  var traceTree = {};
+
+  return loader.import(moduleName)
+  .then(function() {
+    return loader.normalize(moduleName);
+  })
+  .then(function(_moduleName) {
+    moduleName = _moduleName;
+    loader.global.System = System;
+    return visitTree(loader.loads, moduleName, function(load) {
+      traceTree[load.name] = load;
+    });
   })
   .then(function() {
-    loader.global.System = System;
-    return asp(fs.writeFile)(outFile, concatOutput.join('\n'));
+    return {
+      moduleName: moduleName,
+      tree: traceTree
+    };
   })
   .catch(function(e) {
     loader.global.System = System;
-    setTimeout(function() {
-      throw e;
-    })
+    throw e;
   });
 }
 
-exports.createTraceTree = function(moduleName, config) {
-  if (config)
-    loader.config(config);
-  return loader.import(moduleName).then(function() {
-    var traceTree = {};
-    return visitLoadTree(moduleName, function(load) {
-      traceTree[load.name] = load.dependencies.map(function(dep) { return dep.value; });
-    })
-    .then(function() {
-      return traceTree;
-    });
-  });
-}
-
-function visitLoadTree(moduleName, visit, seen) {
+function visitTree(tree, moduleName, visit, seen) {
   seen = seen || [];
 
   if (seen.indexOf(moduleName) != -1)
@@ -108,11 +116,14 @@ function visitLoadTree(moduleName, visit, seen) {
 
   seen.push(moduleName);
 
-  var load = loader.loads[moduleName];
+  var load = tree[moduleName];
+
+  if (!load)
+    return;
 
   // visit the deps first
-  return Promise.all(load.dependencies.map(function(dep) {
-    return Promise.resolve(visitLoadTree(dep.value, visit, seen));
+  return Promise.all(load.deps.map(function(dep) {
+    return Promise.resolve(visitTree(tree, load.depMap[dep], visit, seen));
   })).then(function() {
     // if we are the bottom of the tree, visit
     return visit(load);
