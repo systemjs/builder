@@ -8,6 +8,9 @@ exports.compile = function(load) {
   // NB need to handle naming the module itself as the last defined
   // TODO convert into System.register dynamic form rather
 
+
+  // Turns define(...) into System.register(...)
+
   var match;
 
   var parts = [];
