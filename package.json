@@ -9,7 +9,7 @@
   "dependencies": {
     "rsvp": "^3.0.6",
     "systemjs": "^0.6.0",
-    "traceur": "0.0.43"
+    "traceur": "git+ssh://git@github.com/google/traceur-compiler.git"
   },
   "devDependencies": {
     "es6-module-loader": "^0.6.0"
