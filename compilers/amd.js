@@ -5,7 +5,7 @@ exports.compile = function(load) {
   
 
 
-  // NB need to handle naming the module itself as the last defined
+  
   // TODO convert into System.register dynamic form rather
 
 
@@ -21,7 +21,14 @@ exports.compile = function(load) {
 
   while (match = amdRegEx.exec(load.source)) {
     if (match[3]) {
-      lastName = match[3].substr(1, match[3].length - 2);
+      // named -> just rename it
+      // NB need to handle naming the module itself as the last defined
+      // lastName = match[3].split(/["']/)[1];
+      var nameIndex = amdRegEx.lastIndex - match[0].length + match[1].length;
+      parts.push(load.source.substr(lastIndex, nameIndex));
+      parts.push('"' + load.name + '", ');
+      parts.push(load.source.substr(nameIndex + match[3].length, amdRegEx.lastIndex - nameIndex - match[3].length));
+      lastIndex = amdRegEx.lastIndex;      
     }
     else {
       var nameIndex = amdRegEx.lastIndex - match[0].length + match[1].length;
