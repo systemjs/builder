@@ -1,7 +1,8 @@
 var Promise = require('rsvp').Promise;
+
+var traceur = require('traceur');
 var System = exports.System = require('systemjs');
 var fs = require('fs');
-var traceur = require('traceur');
 
 var asp = require('rsvp').denodeify;
 
