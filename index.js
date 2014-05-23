@@ -39,7 +39,10 @@ exports.build = function(moduleName, config, outFile) {
 exports.buildTree = function(tree, moduleName, outFile) {
   var concatOutput = ['"format register";\n'];
   return visitTree(tree, moduleName, function(load) {
-    if (load.metadata.format == 'es6') {
+    if (load.metadata.build == false) {
+      return;
+    }
+    else if (load.metadata.format == 'es6') {
       var result = traceur.compile(load.source, {
         moduleName: load.name,
         modules: 'instantiate'

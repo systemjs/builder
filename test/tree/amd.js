@@ -1,3 +1,3 @@
-define(['./global'], function() {
+define(['./global', './some!./plugin'], function() {
   return { is: 'amd' };
 });

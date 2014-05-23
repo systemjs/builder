@@ -30,6 +30,20 @@ System.register("tree/jquery", [], false, function(__require, __exports, __modul
   return System.get("@@global-helpers").retrieveGlobal(__moduleName, false);
 });
 
+System.register("tree/plugin", [], true, function(require, exports, __moduleName) {
+  var global = System.global;
+  var __define = global.define;
+  global.define = undefined;
+  var module = { exports: exports };
+  var process = System.get("@@nodeProcess")["default"];
+    var __filename = "tree/plugin.js";
+    var __dirname = "tree";
+  exports.build = false;
+  
+  global.define = __define;
+  return module.exports;
+});
+
 System.register("tree/second", ["./third", "./cjs"], function($__0) {
   "use strict";
   var __moduleName = "tree/second";
@@ -63,7 +77,7 @@ System.register("tree/global", ["./jquery"], false, function(__require, __export
   return System.get("@@global-helpers").retrieveGlobal(__moduleName, "jquery.test");
 });
 
-define("tree/amd", ['./global'], function() {
+define("tree/amd", ['./global', './some!./plugin'], function() {
   return { is: 'amd' };
 });
 
