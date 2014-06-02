@@ -78,6 +78,52 @@ exports.buildTree = function(tree, moduleName, outFile) {
   });
 }
 
+exports.config = function(config) {
+  loader.config(config);
+  pluginLoader.config(config);
+}
+
+exports.intersectTrees = function(tree1, tree2) {
+  var intersectTree = {};
+
+  var tree1Names = [];
+  for (var name in tree1)
+    tree1Names.push(name);
+
+  for (var name in tree2) {
+    if (tree1Names.indexOf(name) == -1)
+      continue;
+    
+    intersectTree[name] = tree1[name];
+  }
+
+  return intersectTree;
+}
+
+exports.addTrees = function(tree1, tree2) {
+  var unionTree = {};
+
+  for (var name in tree2)
+    unionTree[name] = tree2[name];
+
+  for (var name in tree1)
+    unionTree[name] = tree1[name];
+
+  return unionTree;
+}
+
+exports.subtractTrees = function(tree1, tree2) {
+  var subtractTree = {};
+
+  for (var name in tree1)
+    subtractTree[name] = tree1[name];
+
+  for (var name in tree2)
+    delete subtractTree[name];
+
+  return subtractTree;
+}
+
 exports.trace = function(moduleName, config) {
   if (config) {
     loader.config(config);
@@ -123,7 +169,7 @@ function visitTree(tree, moduleName, visit, seen) {
   var load = tree[moduleName];
 
   if (!load)
-    return;
+    return Promise.resolve()
 
   // visit the deps first
   return Promise.all(load.deps.map(function(dep) {

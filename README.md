@@ -71,12 +71,16 @@ System.register("some/cjs", [], true, function(require, exports, __moduleName) {
 The `true` boolean argument in the above indicates that CommonJS requires are execution driving,
 as opposed to AMD which delays execution until all dependencies have been executed.
 
-Basic Use
+Usage
 ---
+
+### Install
 
 ```javascript
   npm install systemjs-builder
 ```
+
+### Basic Use
 
 ```javascript
   var builder = require('systemjs-builder');
@@ -99,4 +103,42 @@ Basic Use
     console.log(err);
   });
 ```
+
+### Advanced build
+
+The trace trees can be adjusted between tracing and building allowing for custom build layer creation.
+
+Some simple trace tree operators are provided for subtraction addition and intersection.
+
+In this example we build `app/core` excluding `app/corelibs`:
+
+```javascript
+  var builder = require('systemjs-builder');
+
+  builder.config({
+    baseURL: '...',
+    map: {
+
+    }, // etc. config
+  });
+
+  builder.trace('app/main')
+  .then(function(appTree) {
+
+    return builder.trace('app/corelibs')
+    .then(function(coreTree) {
+      return builder.subtractTrees(appTree, coreTree);
+    });
+  })
+  .then(function(appMinusCoreTree) {
+    return builder.buildTree(appMinusCoreTree, 'app/main', 'output-file.js');
+  });
+```
+
+Additional tree functions include `addTrees` and `intersectTrees`.
+
+License
+---
+
+MIT
 
