@@ -22,7 +22,7 @@ builder.trace('tree/first').then(function(traceTree) {
 })
 .then(function(traceTree) {
   return builder.buildTree(
-    builder.subtractTrees(treeFirst, traceTree.tree), 'tree/first', 'excluded.js'
+    builder.subtractTrees(treeFirst, traceTree.tree), 'excluded.js'
   );
 })
 .catch(function(e) {

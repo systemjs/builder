@@ -110,6 +110,10 @@ The trace trees can be adjusted between tracing and building allowing for custom
 
 Some simple trace tree operators are provided for subtraction addition and intersection.
 
+Tree operations include `addTrees`, `subtractTrees`, `intersectTrees` and `extractTree`.
+
+#### Example - Exclusion
+
 In this example we build `app/core` excluding `app/corelibs`:
 
 ```javascript
@@ -131,11 +135,45 @@ In this example we build `app/core` excluding `app/corelibs`:
     });
   })
   .then(function(appMinusCoreTree) {
-    return builder.buildTree(appMinusCoreTree, 'app/main', 'output-file.js');
+    return builder.buildTree(appMinusCoreTree, 'output-file.js');
   });
 ```
 
-Additional tree functions include `addTrees` and `intersectTrees`.
+#### Example - Common Libraries
+
+In this example we build `app/first` and `app/second` creating a separate `app/shared` library:
+
+```javascript
+  var builder = require('systemjs-builder');
+
+  builder.config({
+    // ...
+  });
+
+  var firstTree, secondTree, commonTree;
+
+  builder.trace('app/first')
+  .then(function(tree) {
+    firstTree = tree;
+    
+    return builder.trace('app/second');
+  })
+  .then(function(tree) {
+    secondTree = tree;
+    commonTree = builder.intersectTrees(firstTree, secondTree);
+
+    firstTree = builder.subtractTrees(firstTree, commonTree);
+    secondTree = builder.subtractTrees(secondTree, commonTree);
+
+    return builder.buildTree(firstTree, 'first-bundle.js');
+  })
+  .then(function() {
+    return builder.buildTree(secondTree, 'second-bundle.js');
+  })
+  .then(function() {
+    return builder.buildTree(commonTree, 'shared-bundle.js');
+  });
+```
 
 License
 ---

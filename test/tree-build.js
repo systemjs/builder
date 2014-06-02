@@ -1,5 +1,47 @@
 "format register";
 
+System.register("tree/second", ["./third", "./cjs"], function($__0) {
+  "use strict";
+  var __moduleName = "tree/second";
+  var q;
+  return {
+    exports: {
+      get q() {
+        return q;
+      },
+      set q(value) {
+        q = value;
+      }
+    },
+    execute: function() {
+      ;
+      ;
+      q = 4;
+    }
+  };
+});
+
+System.register("tree/first", ["./second", "./amd"], function($__0) {
+  "use strict";
+  var __moduleName = "tree/first";
+  var p;
+  return {
+    exports: {
+      get p() {
+        return p;
+      },
+      set p(value) {
+        p = value;
+      }
+    },
+    execute: function() {
+      ;
+      ;
+      p = 5;
+    }
+  };
+});
+
 System.register("tree/third", [], function(deps) {
   return {
     exports: {
@@ -44,27 +86,6 @@ System.register("tree/plugin", [], true, function(require, exports, __moduleName
   return module.exports;
 });
 
-System.register("tree/second", ["./third", "./cjs"], function($__0) {
-  "use strict";
-  var __moduleName = "tree/second";
-  var q;
-  return {
-    exports: {
-      get q() {
-        return q;
-      },
-      set q(value) {
-        q = value;
-      }
-    },
-    execute: function() {
-      ;
-      ;
-      q = 4;
-    }
-  };
-});
-
 System.register("tree/global", ["./jquery"], false, function(__require, __exports, __moduleName) {
   System.get("@@global-helpers").prepareGlobal(__moduleName, ["./jquery"]);
   "deps ./jquery";
@@ -81,24 +102,3 @@ define("tree/amd", ['./global', './some!./plugin'], function() {
   return { is: 'amd' };
 });
 
-
-System.register("tree/first", ["./second", "./amd"], function($__0) {
-  "use strict";
-  var __moduleName = "tree/first";
-  var p;
-  return {
-    exports: {
-      get p() {
-        return p;
-      },
-      set p(value) {
-        p = value;
-      }
-    },
-    execute: function() {
-      ;
-      ;
-      p = 5;
-    }
-  };
-});

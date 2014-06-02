@@ -31,14 +31,20 @@ exports.build = function(moduleName, config, outFile) {
 
   return exports.trace(moduleName, config)
   .then(function(trace) {
-    return exports.buildTree(trace.tree, trace.moduleName, outFile)
+    return exports.buildTree(trace.tree, outFile)
   });
-
 }
 
-exports.buildTree = function(tree, moduleName, outFile) {
+exports.buildTree = function(tree, outFile) {
   var concatOutput = ['"format register";\n'];
-  return visitTree(tree, moduleName, function(load) {
+
+  var treeNames = [];
+
+  for (var moduleName in tree)
+    treeNames.push(moduleName);
+
+  return Promise.all(treeNames.map(function(name) {
+    var load = tree[name];
     if (load.metadata.build == false) {
       return;
     }
@@ -72,9 +78,9 @@ exports.buildTree = function(tree, moduleName, outFile) {
     else {
       throw "unknown format " + load.metadata.format;
     }
-  })
+  }))
   .then(function() {
-    return asp(fs.writeFile)(outFile, concatOutput.join('\n'));
+    return asp(fs.writeFile)(outFile, concatOutput.join('\n'));  
   });
 }
 
@@ -83,6 +89,7 @@ exports.config = function(config) {
   pluginLoader.config(config);
 }
 
+// returns a new tree containing tree1 n tree2
 exports.intersectTrees = function(tree1, tree2) {
   var intersectTree = {};
 
@@ -100,6 +107,7 @@ exports.intersectTrees = function(tree1, tree2) {
   return intersectTree;
 }
 
+// returns a new tree containing tree1 + tree2
 exports.addTrees = function(tree1, tree2) {
   var unionTree = {};
 
@@ -112,6 +120,7 @@ exports.addTrees = function(tree1, tree2) {
   return unionTree;
 }
 
+// returns a new tree containing tree1 - tree2
 exports.subtractTrees = function(tree1, tree2) {
   var subtractTree = {};
 
@@ -122,6 +131,17 @@ exports.subtractTrees = function(tree1, tree2) {
     delete subtractTree[name];
 
   return subtractTree;
+}
+
+// copies a subtree out of the tree
+exports.extractTree = function(tree, moduleName) {
+  var outTree = {};
+  return visitTree(tree, moduleName, function(load) {
+    outTree[load.name] = load;
+  })
+  .then(function() {
+    return outTree;
+  });
 }
 
 exports.trace = function(moduleName, config) {
