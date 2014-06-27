@@ -8,7 +8,9 @@ builder.build('tree/first', {
   console.log('Done');
 })
 .catch(function(e) {
-  console.log(e);
+  setTimeout(function() {
+    throw e;
+  });
 });
 
 var treeFirst;
@@ -26,5 +28,7 @@ builder.trace('tree/first').then(function(traceTree) {
   );
 })
 .catch(function(e) {
-  console.log(e);
+  setTimeout(function() {
+    throw e;
+  });
 });
