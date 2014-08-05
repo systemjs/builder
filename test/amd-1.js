@@ -12,6 +12,7 @@ System.register("tree/second", ["./third", "./cjs"], function($__export) {
   };
 });
 
+
 System.register("tree/first", ["./second", "./amd"], function($__export) {
   "use strict";
   var __moduleName = "tree/first";
@@ -81,7 +82,12 @@ System.register("tree/global", ["./jquery"], false, function(__require, __export
   return System.get("@@global-helpers").retrieveGlobal(__module.id, "jquery.test");
 });
 
-define("tree/amd", ['./global', './some!./plugin'], function() {
-  return { is: 'amd' };
+System.register("tree/amd", ['./global', './some!./plugin'], false, function(__require, __exports, __module) {
+  return (function() {
+    return {is: 'amd'};
+  })(__require('./global'), __require('./some!./plugin'));
 });
 
+System.register("tree/amd-3", ["./first"], false, function(req, exports, module) {
+  module.exports = req('./first');
+});

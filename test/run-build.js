@@ -1,5 +1,9 @@
 var builder = require('../index');
 
+builder.build('tree/amd-3', { baseURL: '.' }, 'amd-1.js').then(function() {
+  console.log('amd4 done');
+}).catch(console.error.bind(console));
+/*
 console.log('Running a multi-format build...');
 builder.build('tree/first', {
   baseURL: '.'
@@ -31,4 +35,4 @@ builder.trace('tree/first').then(function(traceTree) {
   setTimeout(function() {
     throw e;
   });
-});
+});*/

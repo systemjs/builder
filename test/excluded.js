@@ -1,61 +1,45 @@
 "format register";
 
-System.register("tree/second", ["./third", "./cjs"], function($__0) {
+System.register("tree/second", ["./third", "./cjs"], function($__export) {
   "use strict";
   var __moduleName = "tree/second";
   var q;
   return {
-    exports: {
-      get q() {
-        return q;
-      },
-      set q(value) {
-        q = value;
-      }
-    },
+    setters: [function(m) {}, function(m) {}],
     execute: function() {
-      ;
-      ;
-      q = 4;
+      q = $__export("q", 4);
     }
   };
 });
 
-System.register("tree/first", ["./second", "./amd"], function($__0) {
+System.register("tree/first", ["./second", "./amd"], function($__export) {
   "use strict";
   var __moduleName = "tree/first";
-  var p;
+  var dep,
+      p;
   return {
-    exports: {
-      get p() {
-        return p;
-      },
-      set p(value) {
-        p = value;
-      }
-    },
+    setters: [function(m) {
+      dep = m.dep;
+    }, function(m) {}],
     execute: function() {
-      ;
-      ;
-      p = 5;
+      p = $__export("p", 5);
     }
   };
 });
 
-System.register("tree/third", [], function(deps) {
+System.register("tree/third", [], function($__export) {
   return {
-    exports: {
-      some: 'exports'
-    },
-    execute: function() {}
+    setters: [],
+    execute: function() {
+      $__export('some', 'exports');
+    }
   };
 });
 
-System.register("tree/cjs", [], true, function(require, exports, __moduleName) {
+System.register("tree/cjs", [], true, function(require, exports, module) {
   var global = System.global;
   var __define = global.define;
   global.define = undefined;
-  var module = { exports: exports };
   var process = System.get("@@nodeProcess")["default"];
     var __filename = "tree/cjs.js";
     var __dirname = "tree";
