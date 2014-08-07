@@ -1,14 +1,14 @@
 var traceur = require('traceur');
-var System = require('systemjs');
 
-var ScopeTransformer = traceur.get('codegeneration/ScopeTransformer').ScopeTransformer;
-var parseExpression = traceur.get('codegeneration/PlaceholderParser').parseExpression;
+var ScopeTransformer = traceur.System.get('traceur@0.0.56/src/codegeneration/ScopeTransformer').ScopeTransformer;
+var parseExpression = traceur.System.get('traceur@0.0.56/src/codegeneration/PlaceholderParser').parseExpression;
 
 var compiler = new traceur.Compiler();
 var options = {
   modules: 'instantiate'
   // sourceMaps: true,
   // filename: load.address,
+  // moduleName
 };
 
 function FindRequireTransformer(requireName) {
@@ -117,9 +117,10 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
 
 // AMD System.register transpiler
 // This is the second of the two pass transform
-function AMDDefineRegisterTransformer(load, isAnon) {
+function AMDDefineRegisterTransformer(load, isAnon, depMap) {
   this.load = load;
   this.isAnon = isAnon;
+  this.depMap = depMap
   return ScopeTransformer.call(this, 'define');
 }
 AMDDefineRegisterTransformer.prototype = Object.create(ScopeTransformer.prototype);
@@ -127,6 +128,7 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
   if (tree.operand.identifierToken.value != 'define')
     return ScopeTransformer.prototype.transformCallExpression.call(this, tree);
 
+  var self = this;
   var args = tree.args.args;
   /*
     define(['some', 'deps', 'require'], function(some, deps, require) {
@@ -182,7 +184,10 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
       var requireIndex, exportsIndex, moduleIndex;
 
       var depNames = deps.elements.map(function(dep) {
-        return dep.literalToken.processedValue;
+        var depValue = dep.literalToken.processedValue
+        if (self.depMap[depValue])
+          depValue = self.depMap[depValue];
+        return depValue;
       });
 
       var depCalls = depNames.map(function(depName) {
@@ -251,7 +256,9 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
   if (args[0].type == 'FUNCTION_EXPRESSION') {
 
     // system loader already extracted the deps for us
-    var requires = this.load.deps;
+    var requires = this.load.deps.map(function(dep) {
+      return self.depMap[dep] || dep;
+    });
 
     return parseExpression([
       'System.register("' + this.load.name + '", ' + JSON.stringify(requires) + ', false, ',
@@ -287,14 +294,16 @@ System.instantiate = function(load) {
 
 
 // converts anonymous AMDs into named AMD for the module
-exports.compile = function(load) {
+exports.compile = function(load, normalize, loader) {
 
   var output = compiler.stringToTree({content: load.source, options: options});
   if (output.errors.length)
     return Promise.reject(output.errors);
-  var transformer = new AMDDefineRegisterTransformer(load, load.metadata.isAnon);
+  var transformer = new AMDDefineRegisterTransformer(load, load.metadata.isAnon, normalize ? load.depMap : {});
   output.tree = transformer.transformAny(output.tree);
   output = compiler.treeToString(output);
+  if (output.errors.length)
+    return Promise.reject(output.errors);
 
   return Promise.resolve({
     source: output.js

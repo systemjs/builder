@@ -34,17 +34,9 @@ System.register("tree/second", ["tree/third", "tree/cjs"], function($__export) {
   };
 });
 
-System.register("tree/first", ["tree/second", "tree/amd"], function($__export) {
-  "use strict";
-  var __moduleName = "tree/first";
-  var dep,
-      p;
-  return {
-    setters: [function(m) {
-      dep = m.dep;
-    }, function(m) {}],
-    execute: function() {
-      p = $__export("p", 5);
-    }
-  };
+function factory(second) {
+  return second;
+}
+System.register("tree/amd-4", ['./second'], false, function(__require, __exports, __module) {
+  return (factory)(__require('./second'));
 });

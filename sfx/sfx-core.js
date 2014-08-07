@@ -330,7 +330,17 @@
     }
     // otherwise, self execute
     else {
-      declare({ register: register, get: load, global: global });
+      declare(System = {
+        register: register, 
+        get: load, 
+        set: function(name, module) {
+          modules[name] = module; 
+        },
+        newModule: function(module) {
+          return module;
+        },
+        global: global 
+      });
       load(main);
     }
   };
