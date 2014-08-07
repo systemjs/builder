@@ -40,6 +40,15 @@ function AMDDependenciesTransformer(load) {
   return ScopeTransformer.call(this, 'define');
 }
 AMDDependenciesTransformer.prototype = Object.create(ScopeTransformer.prototype);
+AMDDependenciesTransformer.prototype.filterAMDDeps = function(deps) {
+  var newDeps = [];
+  deps.forEach(function(dep) {
+    if (['require', 'exports', 'module'].indexOf(dep) != -1)
+      return;
+    newDeps.push(dep);
+  });
+  return newDeps;
+}
 AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
   if (tree.operand.identifierToken.value != 'define')
     return;
@@ -89,9 +98,9 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
     depTree = args[1];
 
   if (depTree) {
-    this.deps = depTree.elements.map(function(dep) {
+    this.deps = this.filterAMDDeps(depTree.elements.map(function(dep) {
       return dep.literalToken.processedValue;
-    });
+    }));
     return;
   }
 
@@ -111,7 +120,7 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
     // the function reqName, noting the require
     var findRequires = new FindRequireTransformer(reqName);
     findRequires.transformAny(cjsFactory.body);
-    this.deps = findRequires.requires;
+    this.deps = this.filterAMDDeps(findRequires.requires);
   }
 }
 

@@ -73,6 +73,9 @@ function compileLoad(load, sfx, compilers) {
       return result.source;
     });
   }
+  else if (load.metadata.format == 'defined') {
+    return '';
+  }
   else {
     throw "unknown format " + load.metadata.format;
   }

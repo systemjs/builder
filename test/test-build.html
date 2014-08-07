@@ -34,6 +34,7 @@
       asyncTest('Loading AMD from a bundle', function() {
         System['import']('tree/amd').then(function(m) {
           ok(m.is == 'amd');
+          ok(m.text == 'This is some text');
           start();
         }, err);
       });
