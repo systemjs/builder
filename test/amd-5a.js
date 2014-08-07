@@ -87,3 +87,13 @@ System.register("tree/first", ["tree/second", "tree/amd"], function($__export) {
     }
   };
 });
+
+function factory(first) {
+  return {
+    jquery: '1',
+    first: first
+  };
+}
+System.register("jquery", ['./first'], false, function(__require, __exports, __module) {
+  return (factory)(__require('./first'));
+});

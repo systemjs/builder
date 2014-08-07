@@ -87,3 +87,7 @@ System.register("tree/first", ["tree/second", "tree/amd"], function($__export) {
     }
   };
 });
+
+System.register("tree/amd-3", ["./first"], false, function(req, exports, module) {
+  module.exports = req('./first');
+});

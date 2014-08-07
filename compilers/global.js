@@ -5,17 +5,94 @@
 // - do a global scope rewriting on the source so "var" declarations assign to global
 
 
+// RATHER than prepare and retrieve, detect the globals written and treat as exports
+// init can be inlined
+
+
 function globalOutput(name, deps, exportName, init, source) {
-  return 'System.register("' + name + '", ' + JSON.stringify(deps) + ', false, function(__require, __exports, __moduleName) {\n'
-    + '  System.get("@@global-helpers").prepareGlobal(__moduleName, ' + JSON.stringify(deps) + ');\n'
+  return 'System.register("' + name + '", ' + JSON.stringify(deps) + ', false, function(__require, __exports, __module) {\n'
+    + '  System.get("@@global-helpers").prepareGlobal(__module.id, ' + JSON.stringify(deps) + ');\n'
     + '  ' + source.replace(/\n/g, '\n    ') + '\n'
     + (exportName ? '  this["' + exportName + '"] = ' + exportName + ';\n' : '')
-    + '  return System.get("@@global-helpers").retrieveGlobal(__moduleName, ' + (exportName ? '"' + exportName + '"' : 'false') + (init ? ', ' + init.toString().replace(/\n/g, '\n      ') : '') + ');\n'
+    + '  return System.get("@@global-helpers").retrieveGlobal(__module.id, ' + (exportName ? '"' + exportName + '"' : 'false') + (init ? ', ' + init.toString().replace(/\n/g, '\n      ') : '') + ');\n'
     + '});\n';
 }
 
-exports.compile = function(load) {
+exports.compile = function(load, normalize) {
+  var deps = normalize ? load.metadata.deps.map(function(dep) { return load.depMap[dep]; }) : load.metadata.deps;
+
+  load.source
+
   return Promise.resolve({
-    source: globalOutput(load.name, load.metadata.deps, load.metadata.exports, load.metadata.init, load.source)
+    source: globalOutput(load.name, deps, load.metadata.exports, load.metadata.init, load.source)
   });
+}
+
+exports.sfx = function(loader) {
+
+  return '(function() {\n'
+  + '  var loader = System;\n'
+  + '  var hasOwnProperty = loader.global.hasOwnProperty;\n'
+  + '  var moduleGlobals = {};\n'
+  + '  var curGlobalObj;\n'
+  + '  var ignoredGlobalProps;\n'
+  + '  if (typeof indexOf == \'undefined\')\n'
+  + '    indexOf = Array.prototype.indexOf;\n'
+  + '  System.set("@@global-helpers", System.newModule({\n'
+  + '    prepareGlobal: function(moduleName, deps) {\n'
+  + '      for (var i = 0; i < deps.length; i++) {\n'
+  + '        var moduleGlobal = moduleGlobals[deps[i]];\n'
+  + '        if (moduleGlobal)\n'
+  + '          for (var m in moduleGlobal)\n'
+  + '            loader.global[m] = moduleGlobal[m];\n'
+  + '      }\n'
+  + '      curGlobalObj = {};\n'
+  + '      ignoredGlobalProps = ["indexedDB", "sessionStorage", "localStorage", "clipboardData", "frames", "webkitStorageInfo"];\n'
+  + '      for (var g in loader.global) {\n'
+  + '        if (indexOf.call(ignoredGlobalProps, g) != -1) { continue; }\n'
+  + '        if (!hasOwnProperty || loader.global.hasOwnProperty(g)) {\n'
+  + '          try {\n'
+  + '            curGlobalObj[g] = loader.global[g];\n'
+  + '          } catch (e) {\n'
+  + '            ignoredGlobalProps.push(g);\n'
+  + '          }\n'
+  + '        }\n'
+  + '      }\n'
+  + '    },\n'
+  + '    retrieveGlobal: function(moduleName, exportName, init) {\n'
+  + '      var singleGlobal;\n'
+  + '      var multipleExports;\n'
+  + '      var exports = {};\n'
+  + '      if (init) {\n'
+  + '        var depModules = [];\n'
+  + '        for (var i = 0; i < deps.length; i++)\n'
+  + '          depModules.push(require(deps[i]));\n'
+  + '        singleGlobal = init.apply(loader.global, depModules);\n'
+  + '      }\n'
+  + '      else if (exportName) {\n'
+  + '        var firstPart = exportName.split(".")[0];\n'
+  + '        singleGlobal = eval.call(loader.global, exportName);\n'
+  + '        exports[firstPart] = loader.global[firstPart];\n'
+  + '      }\n'
+  + '      else {\n'
+  + '        for (var g in loader.global) {\n'
+  + '          if (indexOf.call(ignoredGlobalProps, g) != -1)\n'
+  + '            continue;\n'
+  + '          if ((!hasOwnProperty || loader.global.hasOwnProperty(g)) && g != loader.global && curGlobalObj[g] != loader.global[g]) {\n'
+  + '            exports[g] = loader.global[g];\n'
+  + '            if (singleGlobal) {\n'
+  + '              if (singleGlobal !== loader.global[g])\n'
+  + '                multipleExports = true;\n'
+  + '            }\n'
+  + '            else if (singleGlobal !== false) {\n'
+  + '              singleGlobal = loader.global[g];\n'
+  + '            }\n'
+  + '          }\n'
+  + '        }\n'
+  + '      }\n'
+  + '      moduleGlobals[moduleName] = exports;\n'
+  + '      return multipleExports ? exports : singleGlobal;\n'
+  + '    }\n'
+  + '  }));\n'
+  + '})();\n'
 }

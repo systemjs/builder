@@ -1,15 +1,17 @@
 var Promise = require('rsvp').Promise;
 
-var traceur = require('traceur');
 var System = exports.System = require('systemjs');
 var fs = require('fs');
 
 var asp = require('rsvp').denodeify;
 
+var es6Compiler = require('./compilers/es6');
 var registerCompiler = require('./compilers/register');
 var amdCompiler = require('./compilers/amd');
 var cjsCompiler = require('./compilers/cjs');
 var globalCompiler = require('./compilers/global');
+
+var path = require('path');
 
 // TODO source maps
 var loader = new Loader(System);
@@ -35,50 +37,107 @@ exports.build = function(moduleName, config, outFile) {
   });
 }
 
+function compileLoad(load, sfx, compilers) {
+  // note which compilers we used
+  compilers = compilers || {};
+  if (load.metadata.build == false) {
+    return;
+  }
+  else if (load.metadata.format == 'es6') {
+    compilers['es6'] = true;
+    return es6Compiler.compile(load, sfx, loader).then(function(result) {
+      return result.source;
+    });
+  }
+  else if (load.metadata.format == 'register') {
+    compilers['register'] = true;
+    return registerCompiler.compile(load, sfx, loader).then(function(result) {
+      return result.source;
+    });
+  }
+  else if (load.metadata.format == 'amd') {
+    compilers['amd'] = true;
+    return amdCompiler.compile(load, sfx, loader).then(function(result) {
+      return result.source;
+    });
+  }
+  else if (load.metadata.format == 'cjs') {
+    compilers['cjs'] = true;
+    return cjsCompiler.compile(load, sfx, loader).then(function(result) {
+      return result.source;
+    });
+  }
+  else if (load.metadata.format == 'global') {
+    compilers['global'] = true;
+    return globalCompiler.compile(load, sfx, loader).then(function(result) {
+      return result.source;
+    });
+  }
+  else {
+    throw "unknown format " + load.metadata.format;
+  }
+}
+
 exports.buildTree = function(tree, outFile) {
   var concatOutput = ['"format register";\n'];
 
-  var treeNames = [];
-
-  for (var moduleName in tree)
-    treeNames.push(moduleName);
-
-  return Promise.all(treeNames.map(function(name) {
+  return Promise.all(Object.keys(tree).map(function(name) {
     var load = tree[name];
-    if (load.metadata.build == false) {
-      return;
-    }
-    else if (load.metadata.format == 'es6') {
-      var result = traceur.compile(load.source, {
-        moduleName: load.name,
-        modules: 'instantiate'
-      });
-      concatOutput.push(result.js);
-    }
-    else if (load.metadata.format == 'register') {
-      return registerCompiler.compile(load, loader).then(function(result) {
-        concatOutput.push(result.source);
-      });
-    }
-    else if (load.metadata.format == 'amd') {
-      return amdCompiler.compile(load, loader).then(function(result) {
-        concatOutput.push(result.source);
-      });
-    }
-    else if (load.metadata.format == 'cjs') {
-      return cjsCompiler.compile(load, loader).then(function(result) {
-        concatOutput.push(result.source);
-      });
-    }
-    else if (load.metadata.format == 'global') {
-      return globalCompiler.compile(load, loader).then(function(result) {
-        concatOutput.push(result.source);
-      });
-    }
-    else {
-      throw "unknown format " + load.metadata.format;
-    }
+
+    return Promise.resolve(compileLoad(load))
+    .then(concatOutput.push.bind(concatOutput));
   }))
+  .then(function() {
+    return asp(fs.writeFile)(outFile, concatOutput.join('\n'));  
+  });
+}
+
+exports.buildSFX = function(moduleName, config, outFile) {
+  var concatOutput = [];
+  var compilers = {};
+  return exports.trace(moduleName, config)
+  .then(function(trace) {
+    var tree = trace.tree;
+    moduleName = trace.moduleName;
+    return Promise.all(Object.keys(tree).map(function(name) {
+      var load = tree[name];
+      return Promise.resolve(compileLoad(load, true, compilers))
+      .then(concatOutput.push.bind(concatOutput));
+    }));
+  })
+  // next add sfx headers for formats at the beginning
+  .then(function() {
+    if (compilers.register && registerCompiler.sfx)
+      return registerCompiler.sfx(loader);
+  })
+  .then(function(result) {
+    concatOutput.unshift(result || '');
+    if (compilers.amd && amdCompiler.sfx)
+      return amdCompiler.sfx(loader);
+  })
+  .then(function(result) {
+    concatOutput.unshift(result || '');
+    if (compilers.cjs && cjsCompiler.sfx)
+      return cjsCompiler.sfx(loader);
+  })
+  .then(function(result) {
+    concatOutput.unshift(result || '');
+    if (compilers.global && globalCompiler.sfx)
+      return globalCompiler.sfx(loader);
+  })
+  // next wrap with the core code
+  .then(function(result) {
+    concatOutput.push(result || '');
+    return asp(fs.readFile)(path.resolve(__dirname, './sfx/sfx-core.js'));
+  })
+  .then(function(sfxcore) {
+    concatOutput.unshift("('" + moduleName + "', function(System) {\n");
+    concatOutput.unshift(sfxcore);
+  })
+  .then(function(result) {
+    concatOutput.push("});");
+  })
+  // finally write
   .then(function() {
     return asp(fs.writeFile)(outFile, concatOutput.join('\n'));  
   });

@@ -1,8 +1,8 @@
-System.register([], function(deps) {
+System.register([], function($__export) {
   return {
-    exports: {
-      some: 'exports'
-    },
-    execute: function() {}
+    setters: [],
+    execute: function() {
+      $__export('some', 'exports');
+    }
   };
 });
