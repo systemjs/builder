@@ -175,9 +175,6 @@
       if (depModule) {
         depExports = depModule.exports;
       }
-      else if (depEntry && !depEntry.declarative) {
-        depExports = { 'default': depEntry.module.exports, __useDefault: true };
-      }
       // in the module registry
       else if (!depEntry) {
         depExports = load(depName);
@@ -352,3 +349,185 @@
 /* ('mainModule', function(System) {
   System.register(...);
 }); */
+('tree/amd-1', function(System) {
+
+
+
+
+
+System.register("tree/third", [], function($__export) {
+  return {
+    setters: [],
+    execute: function() {
+      $__export('some', 'exports');
+    }
+  };
+});
+
+System.register("tree/jquery", [], false, function(__require, __exports, __module) {
+  System.get("@@global-helpers").prepareGlobal(__module.id, []);
+  (function() {  this.jquery = {};
+      
+  }).call(System.global);  return System.get("@@global-helpers").retrieveGlobal(__module.id, false);
+});
+
+System.register("tree/second", ["tree/third", "tree/cjs"], function($__export) {
+  "use strict";
+  var __moduleName = "tree/second";
+  var q;
+  return {
+    setters: [function(m) {}, function(m) {}],
+    execute: function() {
+      q = $__export("q", 4);
+    }
+  };
+});
+
+System.register("tree/global", ["tree/jquery"], false, function(__require, __exports, __module) {
+  System.get("@@global-helpers").prepareGlobal(__module.id, ["tree/jquery"]);
+  (function() {  "deps ./jquery";
+      "exports jquery.test";
+      
+      this.jquery = this.jquery || {};
+      this.jquery.test = 'output';
+      
+  this["jquery.test"] = jquery.test;
+  }).call(System.global);  return System.get("@@global-helpers").retrieveGlobal(__module.id, "jquery.test");
+});
+
+System.register("tree/amd", ['./global', './some!./plugin', './text.txt!./text-plugin'], false, function(__require, __exports, __module) {
+  return (function(a, b, c) {
+    return {
+      is: 'amd',
+      text: c
+    };
+  }).call(this, __require('./global'), __require('./some!./plugin'), __require('./text.txt!./text-plugin'));
+});
+
+System.register("tree/first", ["tree/second", "tree/amd"], function($__export) {
+  "use strict";
+  var __moduleName = "tree/first";
+  var dep,
+      p;
+  return {
+    setters: [function(m) {
+      dep = m.dep;
+    }, function(m) {}],
+    execute: function() {
+      p = $__export("p", 5);
+    }
+  };
+});
+
+System.register("tree/amd-1", ['./first', './second'], false, function(__require, __exports, __module) {
+  return (function(first, second, require, module) {
+    module.exports = {
+      first: first,
+      second: require('./second')
+    };
+  }).call(this, __require('./first'), __require('./second'), __require, __module);
+});
+
+System.register("tree/cjs", [], true, function(require, exports, module) {
+  var global = System.global;
+  var __define = global.define;
+  global.define = undefined;
+  var __filename = "tree/cjs.js";
+  var __dirname = "tree";
+  exports.cjs = true;
+  
+  global.define = __define;
+  return module.exports;
+});
+
+System.register("tree/plugin", [], true, function(require, exports, module) {
+  var global = System.global;
+  var __define = global.define;
+  global.define = undefined;
+  var __filename = "tree/plugin.js";
+  var __dirname = "tree";
+  exports.build = false;
+  
+  global.define = __define;
+  return module.exports;
+});
+
+System.register("tree/text.txt!tree/text-plugin", [], true, function(require, exports, module) {
+  var global = System.global;
+  var __define = global.define;
+  global.define = undefined;
+  var __filename = "tree/text.txt";
+  var __dirname = "tree";
+  module.exports = "This is some text";
+  
+  global.define = __define;
+  return module.exports;
+});
+
+(function() {
+  var loader = System;
+  var hasOwnProperty = loader.global.hasOwnProperty;
+  var moduleGlobals = {};
+  var curGlobalObj;
+  var ignoredGlobalProps;
+  if (typeof indexOf == 'undefined')
+    indexOf = Array.prototype.indexOf;
+  System.set("@@global-helpers", System.newModule({
+    prepareGlobal: function(moduleName, deps) {
+      for (var i = 0; i < deps.length; i++) {
+        var moduleGlobal = moduleGlobals[deps[i]];
+        if (moduleGlobal)
+          for (var m in moduleGlobal)
+            loader.global[m] = moduleGlobal[m];
+      }
+      curGlobalObj = {};
+      ignoredGlobalProps = ["indexedDB", "sessionStorage", "localStorage", "clipboardData", "frames", "webkitStorageInfo"];
+      for (var g in loader.global) {
+        if (indexOf.call(ignoredGlobalProps, g) != -1) { continue; }
+        if (!hasOwnProperty || loader.global.hasOwnProperty(g)) {
+          try {
+            curGlobalObj[g] = loader.global[g];
+          } catch (e) {
+            ignoredGlobalProps.push(g);
+          }
+        }
+      }
+    },
+    retrieveGlobal: function(moduleName, exportName, init) {
+      var singleGlobal;
+      var multipleExports;
+      var exports = {};
+      if (init) {
+        var depModules = [];
+        for (var i = 0; i < deps.length; i++)
+          depModules.push(require(deps[i]));
+        singleGlobal = init.apply(loader.global, depModules);
+      }
+      else if (exportName) {
+        var firstPart = exportName.split(".")[0];
+        singleGlobal = eval.call(loader.global, exportName);
+        exports[firstPart] = loader.global[firstPart];
+      }
+      else {
+        for (var g in loader.global) {
+          if (indexOf.call(ignoredGlobalProps, g) != -1)
+            continue;
+          if ((!hasOwnProperty || loader.global.hasOwnProperty(g)) && g != loader.global && curGlobalObj[g] != loader.global[g]) {
+            exports[g] = loader.global[g];
+            if (singleGlobal) {
+              if (singleGlobal !== loader.global[g])
+                multipleExports = true;
+            }
+            else if (singleGlobal !== false) {
+              singleGlobal = loader.global[g];
+            }
+          }
+        }
+      }
+      moduleGlobals[moduleName] = exports;
+      return multipleExports ? exports : singleGlobal;
+    }
+  }));
+})();
+
+});

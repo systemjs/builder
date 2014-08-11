@@ -10,49 +10,11 @@ System.register("tree/third", [], function($__export) {
   };
 });
 
-System.register("tree/cjs", [], true, function(require, exports, module) {
-  var global = System.global;
-  var __define = global.define;
-  global.define = undefined;
-  var process = System.get("@@nodeProcess")["default"];
-    var __filename = "tree/cjs.js";
-    var __dirname = "tree";
-  exports.cjs = true;
-  
-  global.define = __define;
-  return module.exports;
-});
-
 System.register("tree/jquery", [], false, function(__require, __exports, __module) {
   System.get("@@global-helpers").prepareGlobal(__module.id, []);
-  this.jquery = {};
-    
-  return System.get("@@global-helpers").retrieveGlobal(__module.id, false);
-});
-
-System.register("tree/plugin", [], true, function(require, exports, module) {
-  var global = System.global;
-  var __define = global.define;
-  global.define = undefined;
-  var process = System.get("@@nodeProcess")["default"];
-    var __filename = "tree/plugin.js";
-    var __dirname = "tree";
-  exports.build = false;
-  
-  global.define = __define;
-  return module.exports;
-});
-
-System.register("tree/text.txt!tree/text-plugin", [], true, function(require, exports, module) {
-  var global = System.global;
-  var __define = global.define;
-  global.define = undefined;
-  var process = System.get("@@nodeProcess")["default"];
-    var __filename = "tree/text.txt";
-    var __dirname = "tree";
-  module.exports = "This is some text";
-  global.define = __define;
-  return module.exports;
+  (function() {  this.jquery = {};
+      
+  }).call(System.global);  return System.get("@@global-helpers").retrieveGlobal(__module.id, false);
 });
 
 System.register("tree/second", ["tree/third", "tree/cjs"], function($__export) {
@@ -69,14 +31,14 @@ System.register("tree/second", ["tree/third", "tree/cjs"], function($__export) {
 
 System.register("tree/global", ["./jquery"], false, function(__require, __exports, __module) {
   System.get("@@global-helpers").prepareGlobal(__module.id, ["./jquery"]);
-  "deps ./jquery";
-    "exports jquery.test";
-    
-    this.jquery = this.jquery || {};
-    this.jquery.test = 'output';
-    
+  (function() {  "deps ./jquery";
+      "exports jquery.test";
+      
+      this.jquery = this.jquery || {};
+      this.jquery.test = 'output';
+      
   this["jquery.test"] = jquery.test;
-  return System.get("@@global-helpers").retrieveGlobal(__module.id, "jquery.test");
+  }).call(System.global);  return System.get("@@global-helpers").retrieveGlobal(__module.id, "jquery.test");
 });
 
 System.register("tree/amd", ['./global', './some!./plugin', './text.txt!./text-plugin'], false, function(__require, __exports, __module) {
@@ -85,7 +47,7 @@ System.register("tree/amd", ['./global', './some!./plugin', './text.txt!./text-p
       is: 'amd',
       text: c
     };
-  })(__require('./global'), __require('./some!./plugin'), __require('./text.txt!./text-plugin'));
+  }).call(this, __require('./global'), __require('./some!./plugin'), __require('./text.txt!./text-plugin'));
 });
 
 System.register("tree/first", ["tree/second", "tree/amd"], function($__export) {
@@ -101,4 +63,39 @@ System.register("tree/first", ["tree/second", "tree/amd"], function($__export) {
       p = $__export("p", 5);
     }
   };
+});
+
+System.register("tree/cjs", [], true, function(require, exports, module) {
+  var global = System.global;
+  var __define = global.define;
+  global.define = undefined;
+  var __filename = "tree/cjs.js";
+  var __dirname = "tree";
+  exports.cjs = true;
+  
+  global.define = __define;
+  return module.exports;
+});
+
+System.register("tree/plugin", [], true, function(require, exports, module) {
+  var global = System.global;
+  var __define = global.define;
+  global.define = undefined;
+  var __filename = "tree/plugin.js";
+  var __dirname = "tree";
+  exports.build = false;
+  
+  global.define = __define;
+  return module.exports;
+});
+
+System.register("tree/text.txt!tree/text-plugin", [], true, function(require, exports, module) {
+  var global = System.global;
+  var __define = global.define;
+  global.define = undefined;
+  var __filename = "tree/text.txt";
+  var __dirname = "tree";
+  module.exports = "This is some text";
+  global.define = __define;
+  return module.exports;
 });

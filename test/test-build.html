@@ -67,6 +67,95 @@
         });
       });
 
+      asyncTest('AMD rewriting 1', function() {
+        System['import']('amd-1').then(function(m) {
+          return System['import']('tree/amd-1');
+        })
+        .then(function(m) {
+          ok(m.first.p == 5);
+          start();
+        })
+        .catch(err);
+      });
+
+      asyncTest('AMD rewriting 2', function() {
+        System['import']('amd-2').then(function(m) {
+          return System['import']('tree/amd-2');
+        })
+        .then(function(m) {
+          ok(m.amd == 2);
+          start();
+        })
+        .catch(err);
+      });
+
+      asyncTest('AMD rewriting 3', function() {
+        System['import']('amd-3').then(function(m) {
+          return System['import']('tree/amd-3');
+        })
+        .then(function(m) {
+          ok(m.p == 5);
+          start();
+        })
+        .catch(err);
+      });
+
+      asyncTest('AMD rewriting 4', function() {
+        System['import']('amd-4').then(function(m) {
+          return System['import']('tree/amd-4');
+        })
+        .then(function(m) {
+          ok(m.q == 4);
+          start();
+        })
+        .catch(err);
+      });
+
+      asyncTest('AMD rewriting 5a', function() {
+        System['import']('amd-5a').then(function(m) {
+          return System['import']('tree/amd-5a');
+        })
+        .then(function(m) {
+          ok(m.jquery == 1);
+          start();
+        })
+        .catch(err);
+      });
+
+      asyncTest('AMD rewriting 5b', function() {
+        System['import']('amd-5b').then(function(m) {
+          return System['import']('tree/amd-5b');
+        })
+        .then(function(m) {
+          ok(m.jquery == 1);
+          start();
+        })
+        .catch(err);
+      });
+
+      asyncTest('AMD rewriting 6a', function() {
+        System['import']('amd-6a').then(function(m) {
+          return System['import']('tree/amd-6a');
+        })
+        .then(function(m) {
+          ok(window.p == 'a');
+          start();
+        })
+        .catch(err);
+      });
+
+      asyncTest('AMD rewriting 6b', function() {
+        System['import']('amd-6b').then(function(m) {
+          return System['import']('tree/amd-6b');
+        })
+        .then(function(m) {
+          ok(m.p == 'b');
+          start();
+        })
+        .catch(err);
+      });
+
+
     </script>
 	</body>
 </html>

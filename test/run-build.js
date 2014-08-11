@@ -1,23 +1,10 @@
 var builder = require('../index');
 
-builder.build('tree/amd-1', { baseURL: '.' }, 'amd-1.js').then(function() {
-  console.log('amd1 done');
-}).catch(console.error.bind(console));
-builder.build('tree/amd-2', { baseURL: '.' }, 'amd-2.js').then(function() {
-  console.log('amd2 done');
-}).catch(console.error.bind(console));
-builder.build('tree/amd-3', { baseURL: '.' }, 'amd-3.js').then(function() {
-  console.log('amd3 done');
-}).catch(console.error.bind(console));
-builder.build('tree/amd-4', { baseURL: '.' }, 'amd-4.js').then(function() {
-  console.log('amd4 done');
-}).catch(console.error.bind(console));
-builder.build('tree/amd-5a', { baseURL: '.' }, 'amd-5.js').then(function() {
-  console.log('amd5a done');
-}).catch(console.error.bind(console));
-builder.build('tree/amd-5b', { baseURL: '.' }, 'amd-5a.js').then(function() {
-  console.log('amd5b done');
-}).catch(console.error.bind(console));
+var err = function(e) {
+  setTimeout(function() {
+    throw e;
+  });
+}
 
 console.log('Running a multi-format build...');
 builder.build('tree/first', {
@@ -26,11 +13,7 @@ builder.build('tree/first', {
 .then(function() {
   console.log('Done');
 })
-.catch(function(e) {
-  setTimeout(function() {
-    throw e;
-  });
-});
+.catch(err);
 
 var treeFirst;
 builder.trace('tree/first').then(function(traceTree) {
@@ -42,12 +25,64 @@ builder.trace('tree/first').then(function(traceTree) {
   return builder.trace('tree/amd');
 })
 .then(function(traceTree) {
+  depTree = traceTree;
   return builder.buildTree(
     builder.subtractTrees(treeFirst, traceTree.tree), 'excluded.js'
   );
 })
-.catch(function(e) {
-  setTimeout(function() {
-    throw e;
-  });
-});
+
+
+.then(function() {
+  return builder.trace('tree/amd-1').then(function(trace) {
+    return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'amd-1.js');
+  })
+})
+
+.then(function() {
+  return builder.trace('tree/amd-2').then(function(trace) {
+    return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'amd-2.js');
+  })
+})
+
+.then(function() {
+  return builder.trace('tree/amd-3').then(function(trace) {
+    return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'amd-3.js');
+  })
+})
+
+.then(function() {
+  return builder.trace('tree/amd-4').then(function(trace) {
+    return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'amd-4.js');
+  })
+})
+
+.then(function() {
+  return builder.trace('tree/amd-5a').then(function(trace) {
+    return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'amd-5a.js');
+  })
+})
+
+.then(function() {
+  return builder.trace('tree/amd-5b').then(function(trace) {
+    return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'amd-5b.js');
+  })
+})
+
+.then(function() {
+  return builder.trace('tree/amd-6a').then(function(trace) {
+    return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'amd-6a.js');
+  })
+})
+
+.then(function() {
+  return builder.trace('tree/amd-6b').then(function(trace) {
+    return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'amd-6b.js');
+  })
+})
+
+.then(function() {
+  return builder.buildSFX('tree/amd-1', {}, 'sfx.js');
+})
+
+.catch(err);
+

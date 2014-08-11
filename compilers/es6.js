@@ -3,51 +3,71 @@ var compiler = new traceur.Compiler();
 
 var ParseTreeTransformer = traceur.System.get('traceur@0.0.56/src/codegeneration/ParseTreeTransformer').ParseTreeTransformer;
 
-function ModuleImportNormalizeTransformer(depMap) {
-  this.depMap = depMap;
+function ModuleImportNormalizeTransformer(map) {
+  this.map = map;
   return ParseTreeTransformer.apply(this, arguments);
 }
 ModuleImportNormalizeTransformer.prototype = Object.create(ParseTreeTransformer.prototype);
 ModuleImportNormalizeTransformer.prototype.transformImportDeclaration = function(tree) {
 
-  var depName = tree.moduleSpecifier.token.processedValue;
-
-  if (this.depMap[depName])
-    depName = this.depMap[depName];
+  var depName = this.map(tree.moduleSpecifier.token.processedValue);
 
   tree.moduleSpecifier.token.value = "'" + depName + "'";
   return tree;
-
-  /* if (binding === tree.binding) {
-    return tree;
-  }
-  return new ImportedBinding(tree.location, binding);
-
-
-  var bindingElement = new BindingElement(tree.location, tree.binding, null);
-  var name = new LiteralPropertyName(null, createIdentifierToken('default'));
-  return new ObjectPattern(null,
-      [new ObjectPatternField(null, name, bindingElement)]); */
 }
 
+function remap(source, map) {
+  var output = compiler.stringToTree({content: source});
 
-// converts anonymous AMDs into named AMD for the module
-exports.compile = function(load) {
-
-  var output = compiler.stringToTree({content: load.source, options: {
-    moduleName: load.name,
-    modules: 'instantiate'
-  }});
+  if (output.errors.length)
+    return Promise.reject(output.errors[0]);
   
-  var transformer = new ModuleImportNormalizeTransformer(load.depMap);
+  var transformer = new ModuleImportNormalizeTransformer(map);
   output.tree = transformer.transformAny(output.tree);
-
-  output = compiler.treeToTree(output);
 
   output = compiler.treeToString(output);
 
   if (output.errors.length)
-    return Promise.reject(output.errors);
+    return Promise.reject(output.errors[0]);
+
+  return Promise.resolve({
+    source: output.js
+  });
+}
+exports.remap = remap;
+
+// converts anonymous AMDs into named AMD for the module
+exports.compile = function(load) {
+  var output = compiler.stringToTree({
+    content: load.source, 
+    options: {
+      filename: load.address,
+      moduleName: load.name,
+      modules: 'instantiate'
+    }
+  });
+
+  if (output.errors.length)
+    return Promise.reject(output.errors[0]);
+  
+  var transformer = new ModuleImportNormalizeTransformer(function(dep) {
+    return load.depMap[dep];
+  });
+  
+  output.tree = transformer.transformAny(output.tree);
+
+  if (output.errors.length)
+    return Promise.reject(output.errors[0]);
+  
+  output = compiler.treeToTree(output);
+
+  if (output.errors.length)
+    return Promise.reject(output.errors[0]);
+
+  output = compiler.treeToString(output);
+
+  if (output.errors.length)
+    return Promise.reject(output.errors[0]);
 
   return Promise.resolve({
     source: output.js

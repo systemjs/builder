@@ -28,9 +28,10 @@ loader.trace = true;
 loader.execute = false;
 loader.pluginLoader = pluginLoader;
 
+amdCompiler.attach(loader);
+amdCompiler.attach(pluginLoader);
 
 exports.build = function(moduleName, config, outFile) {
-
   return exports.trace(moduleName, config)
   .then(function(trace) {
     return exports.buildTree(trace.tree, outFile)

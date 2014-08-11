@@ -1,39 +1,21 @@
+var System = require('systemjs');
 var traceur = require('traceur');
 
 var ScopeTransformer = traceur.System.get('traceur@0.0.56/src/codegeneration/ScopeTransformer').ScopeTransformer;
 var parseExpression = traceur.System.get('traceur@0.0.56/src/codegeneration/PlaceholderParser').parseExpression;
 
 var compiler = new traceur.Compiler();
-var options = {
-  modules: 'instantiate'
-  // sourceMaps: true,
-  // filename: load.address,
-  // moduleName
-};
 
-function FindRequireTransformer(requireName) {
-  this.requireName = requireName;
-  this.requires = [];
-  return ScopeTransformer.call(this, requireName);
-}
-FindRequireTransformer.prototype = Object.create(ScopeTransformer.prototype);
-FindRequireTransformer.prototype.transformCallExpression = function(tree) {
-  if (tree.operand.identifierToken.value != this.requireName)
-    return;
-
-  // found a require
-  var args = tree.args.args;
-  if (args.length && args[0].type == 'LITERAL_EXPRESSION')
-    this.requires.push(args[0].literalToken.processedValue);
-}
+var CJSRequireTransformer = require('./cjs').CJSRequireTransformer;
 
 // First of two-pass transform
 // lists number of define statements, the named module it defines (if any), and deps
 // second pass will do rewriting based on this info
 // we set this.isAnon, which is true if there is one named define, or one anonymous define
 // if there are more than one anonymous defines, it is invalid
-function AMDDependenciesTransformer(load) {
-  this.load = load;
+function AMDDependenciesTransformer(map) {
+  // optional mapping function
+  this.map = map;
   this.anonDefine = false;
   this.defineBundle = false;
   this.deps = [];
@@ -50,12 +32,11 @@ AMDDependenciesTransformer.prototype.filterAMDDeps = function(deps) {
   return newDeps;
 }
 AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
-  if (tree.operand.identifierToken.value != 'define')
+  if (!tree.operand.identifierToken || tree.operand.identifierToken.value != 'define')
     return;
 
   var args = tree.args.args;
-
-  var name = args[0].type === 'LITERAL_EXPRESSION';
+  var name = args[0].type === 'LITERAL_EXPRESSION' && args[0].literalToken.processedValue;
 
   // anonymous define
   if (!name) {
@@ -98,6 +79,9 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
     depTree = args[1];
 
   if (depTree) {
+    // apply the map to the tree
+    if (this.map)
+      depTree.elements = depTree.elements.map(this.map);
     this.deps = this.filterAMDDeps(depTree.elements.map(function(dep) {
       return dep.literalToken.processedValue;
     }));
@@ -118,9 +102,9 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
     
     // now we create a new scope transformer and apply it to this function to find every call of
     // the function reqName, noting the require
-    var findRequires = new FindRequireTransformer(reqName);
-    findRequires.transformAny(cjsFactory.body);
-    this.deps = this.filterAMDDeps(findRequires.requires);
+    var cjsRequires = new CJSRequireTransformer(reqName, this.map);
+    cjsFactory.body = cjsRequires.transformAny(cjsFactory.body);
+    this.deps = this.filterAMDDeps(cjsRequires.requires);
   }
 }
 
@@ -129,16 +113,21 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
 function AMDDefineRegisterTransformer(load, isAnon, depMap) {
   this.load = load;
   this.isAnon = isAnon;
-  this.depMap = depMap
+  this.depMap = depMap;
   return ScopeTransformer.call(this, 'define');
 }
 AMDDefineRegisterTransformer.prototype = Object.create(ScopeTransformer.prototype);
 AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) {
-  if (tree.operand.identifierToken.value != 'define')
+  if (!tree.operand.identifierToken || tree.operand.identifierToken.value != 'define')
     return ScopeTransformer.prototype.transformCallExpression.call(this, tree);
 
   var self = this;
   var args = tree.args.args;
+
+  // only when "exports" is present as an argument
+  // or dependency, does it become "this" for AMD
+  // otherwise "this" must reference the global
+  var bindToExports = false;
   /*
     define(['some', 'deps', 'require'], function(some, deps, require) {
 
@@ -207,14 +196,26 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
       exportsIndex = depNames.indexOf('exports');
       moduleIndex = depNames.indexOf('module');
 
+      var exportsIndexD = exportsIndex, moduleIndexD = moduleIndex;
+
       if (requireIndex != -1) {
         depCalls.splice(requireIndex, 1, '__require');
+        deps.elements.splice(requireIndex, 1);
+        if (exportsIndex > requireIndex)
+          exportsIndexD--;
+        if (moduleIndex > requireIndex)
+          moduleIndexD--;
       }
-      else if (exportsIndex != -1) {
+      if (exportsIndex != -1) {
+        bindToExports = true;
         depCalls.splice(exportsIndex, 1, '__exports');
+        deps.elements.splice(exportsIndexD, 1);
+        if (moduleIndexD > exportsIndexD)
+          moduleIndexD--;
       }
-      else if (moduleIndex != -1) {
+      if (moduleIndex != -1) {
         depCalls.splice(moduleIndex, 1, '__module');
+        deps.elements.splice(moduleIndexD, 1);
       }
     }
 
@@ -222,14 +223,14 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
       return parseExpression([
         'System.register("' + name + '",',
         ', false, function(__require, __exports, __module) {\n  return (',
-        ')(',
+        ').call(' + (bindToExports ? '__exports' : 'this') + ', ',
         ');\n});'
       ], deps, factory, parseExpression([depCalls.join(', ')]));
     else
       return parseExpression([
         'System.register("' + name + '",',
         ', false, function(__require, __exports, __module) {\n  return (',
-        ')();\n});'
+        ').call(' + (bindToExports ? '__exports' : 'this') + ');\n});'
       ], deps, factory);
   }
 
@@ -258,61 +259,89 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
 
     ->
 
-    System.register(['some-dep'], ['some-dep'], false, function(require, exports, module) {
+    System.register(['some-dep'], false, function(require, exports, module) {
       require('some-dep');
     });
+
+    Note there is a strange subtlety in RequireJS here.
+
+    If there is one argument, 
   */
   if (args[0].type == 'FUNCTION_EXPRESSION') {
-
     // system loader already extracted the deps for us
     var requires = this.load.deps.map(function(dep) {
       return self.depMap[dep] || dep;
     });
 
-    return parseExpression([
-      'System.register("' + this.load.name + '", ' + JSON.stringify(requires) + ', false, ',
-      ');'
-    ], args[0]);
+    var params = args[0].parameterList.parameters;
+    if (params.length > 1)
+      bindToExports = true;
+
+    if (bindToExports)
+      return parseExpression([
+        'System.register("' + this.load.name + '", ' + JSON.stringify(requires) + ', false, function(__require, __exports, __module) {\n'
+      + '(',
+        ').call(__exports, __require, __exports, __module);\n'
+      + '});'
+      ], args[0]);
+    else
+      return parseExpression([
+        'System.register("' + this.load.name + '", ' + JSON.stringify(requires) + ', false, ',
+        ');'
+      ], args[0]);
   }
 }
 
 // override System instantiate to handle AMD dependencies
-var systemInstantiate = System.instantiate;
-System.instantiate = function(load) {
-  var result = systemInstantiate.call(this, load);
+exports.attach = function(loader) {
+  var systemInstantiate = loader.instantiate;
+  loader.instantiate = function(load) {
+    var result = systemInstantiate.call(this, load);
 
-  if (load.metadata.format == 'amd') {
-    // extract AMD dependencies using tree parsing
-    var output = compiler.stringToTree({content: load.source, options: options});
-    if (output.errors.length)
-      return Promise.reject(output.errors);
-    var depTransformer = new AMDDependenciesTransformer();
-    depTransformer.transformAny(output.tree);
+    if (load.metadata.format == 'amd') {
+      // extract AMD dependencies using tree parsing
+      var output = compiler.stringToTree({content: load.source});
+      if (output.errors.length)
+        return Promise.reject(output.errors[0]);
+      load.metadata.parseTree = output;
+      var depTransformer = new AMDDependenciesTransformer();
+      depTransformer.transformAny(output.tree);
 
-    // we store the results as meta
-    load.metadata.isAnon = depTransformer.isAnon;
+      // we store the results as meta
+      load.metadata.isAnon = depTransformer.anonDefine;
 
-    return {
-      deps: depTransformer.deps,
-      execute: function() {}
-    };
+      return {
+        deps: depTransformer.deps,
+        execute: function() {}
+      };
+    }
+
+    return result;
   }
+}
 
-  return result;
+exports.remap = function(source, map) {
+  var output = compiler.stringToTree({content: source, options: options});
+  if (output.errors.length)
+    return Promise.reject(output.errors[0]);
+  var transformer = new AMDDependenciesTransformer(map);
+  output.tree = transformer.transformAny(output.tree);
+  output = compiler.treeToString(output);
+  if (output.errors.length)
+    return Promise.reject(output.errors[0]);
+
+  return Promise.resolve({ source: output.js });
 }
 
 
 // converts anonymous AMDs into named AMD for the module
 exports.compile = function(load, normalize, loader) {
-
-  var output = compiler.stringToTree({content: load.source, options: options});
-  if (output.errors.length)
-    return Promise.reject(output.errors);
+  var output = load.metadata.parseTree;
   var transformer = new AMDDefineRegisterTransformer(load, load.metadata.isAnon, normalize ? load.depMap : {});
   output.tree = transformer.transformAny(output.tree);
-  output = compiler.treeToString(output);
+  var output = compiler.treeToString(output);
   if (output.errors.length)
-    return Promise.reject(output.errors);
+    return Promise.reject(output.errors[0]);
 
   return Promise.resolve({
     source: output.js
