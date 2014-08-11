@@ -175,6 +175,9 @@
       if (depModule) {
         depExports = depModule.exports;
       }
+      else if (depEntry && !depEntry.declarative) {
+        depExports = { 'default': depEntry.module.exports, __useDefault: true };
+      }
       // in the module registry
       else if (!depEntry) {
         depExports = load(depName);
