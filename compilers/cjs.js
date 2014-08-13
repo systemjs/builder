@@ -23,9 +23,9 @@ CJSRequireTransformer.prototype.transformCallExpression = function(tree) {
       args[0].literalToken.value = '"' + this.map(args[0].literalToken.processedValue) + '"';
 
     this.requires.push(args[0].literalToken.processedValue);
-
-    return ScopeTransformer.prototype.transformCallExpression.call(this, tree);
   }
+
+  return ScopeTransformer.prototype.transformCallExpression.call(this, tree);
 }
 exports.CJSRequireTransformer = CJSRequireTransformer;
 
@@ -61,7 +61,6 @@ exports.compile = function(load, normalize, loader) {
     return source;
   })
   .then(function(source) {
-    //console.log(source);
     return { source: cjsOutput(load.name, deps, load.address, source, loader.baseURL) };
   });
 }
