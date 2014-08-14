@@ -3,7 +3,7 @@
 var path = require('path');
 var traceur = require('traceur');
 var compiler = new traceur.Compiler();
-var ScopeTransformer = traceur.System.get('traceur@0.0.56/src/codegeneration/ScopeTransformer').ScopeTransformer;
+var ScopeTransformer = traceur.get('codegeneration/ScopeTransformer').ScopeTransformer;
 
 function CJSRequireTransformer(requireName, map) {
   this.requireName = requireName;

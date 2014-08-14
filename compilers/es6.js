@@ -1,7 +1,7 @@
 var traceur = require('traceur');
 var compiler = new traceur.Compiler();
 
-var ParseTreeTransformer = traceur.System.get('traceur@0.0.56/src/codegeneration/ParseTreeTransformer').ParseTreeTransformer;
+var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer').ParseTreeTransformer;
 
 function ModuleImportNormalizeTransformer(map) {
   this.map = map;

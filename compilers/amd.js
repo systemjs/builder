@@ -1,8 +1,8 @@
 var System = require('systemjs');
 var traceur = require('traceur');
 
-var ScopeTransformer = traceur.System.get('traceur@0.0.56/src/codegeneration/ScopeTransformer').ScopeTransformer;
-var parseExpression = traceur.System.get('traceur@0.0.56/src/codegeneration/PlaceholderParser').parseExpression;
+var ScopeTransformer = traceur.get('codegeneration/ScopeTransformer').ScopeTransformer;
+var parseExpression = traceur.get('codegeneration/PlaceholderParser').parseExpression;
 
 var compiler = new traceur.Compiler();
 
