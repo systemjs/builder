@@ -336,8 +336,6 @@ exports.remap = function(source, map) {
 
 // converts anonymous AMDs into named AMD for the module
 exports.compile = function(load, normalize, loader) {
-  console.log(load.name);
-  console.log(load.metadata.isAnon);
   var output = load.metadata.parseTree;
   var transformer = new AMDDefineRegisterTransformer(load, load.metadata.isAnon, normalize ? load.depMap : {});
   output.tree = transformer.transformAny(output.tree);
