@@ -33,7 +33,7 @@ AMDDependenciesTransformer.prototype.filterAMDDeps = function(deps) {
 }
 AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
   if (!tree.operand.identifierToken || tree.operand.identifierToken.value != 'define')
-    return;
+    return ScopeTransformer.prototype.transformCallExpression.call(this, tree);
 
   var args = tree.args.args;
   var name = args[0].type === 'LITERAL_EXPRESSION' && args[0].literalToken.processedValue;
@@ -336,6 +336,8 @@ exports.remap = function(source, map) {
 
 // converts anonymous AMDs into named AMD for the module
 exports.compile = function(load, normalize, loader) {
+  console.log(load.name);
+  console.log(load.metadata.isAnon);
   var output = load.metadata.parseTree;
   var transformer = new AMDDefineRegisterTransformer(load, load.metadata.isAnon, normalize ? load.depMap : {});
   output.tree = transformer.transformAny(output.tree);
@@ -343,7 +345,9 @@ exports.compile = function(load, normalize, loader) {
   if (output.errors.length)
     return Promise.reject(output.errors[0]);
 
+  // because we've blindly replaced the define statement from AMD with a System.register call
+  // we have to ensure we still trigger any AMD guard statements in the code by creating a dummy define which isn't called
   return Promise.resolve({
-    source: output.js
+    source: '(function() {\nfunction define(){};  define.amd = true;\n  ' + output.js.replace(/\n/g, '\n  ') + '})();'
   });
 }

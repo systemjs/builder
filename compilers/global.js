@@ -24,8 +24,6 @@ function globalOutput(name, deps, exportName, init, source) {
 exports.compile = function(load, normalize) {
   var deps = normalize ? load.metadata.deps.map(function(dep) { return load.depMap[dep]; }) : load.metadata.deps;
 
-  load.source
-
   return Promise.resolve({
     source: globalOutput(load.name, deps, load.metadata.exports, load.metadata.init, load.source)
   });

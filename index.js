@@ -148,8 +148,13 @@ exports.buildSFX = function(moduleName, config, outFile) {
 }
 
 exports.config = function(config) {
-  loader.config(config);
-  pluginLoader.config(config);
+  var cfg = {};
+  for (var p in config) {
+    if (p != 'bundles')
+      cfg[p] = config[p];
+  }
+  loader.config(cfg);
+  pluginLoader.config(cfg);
 }
 
 // returns a new tree containing tree1 n tree2
@@ -209,8 +214,7 @@ exports.extractTree = function(tree, moduleName) {
 
 exports.trace = function(moduleName, config) {
   if (config) {
-    loader.config(config);
-    pluginLoader.config(config);
+    exports.config(config);
   }
 
   var System = loader.global.System;
