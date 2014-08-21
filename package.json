@@ -1,6 +1,6 @@
 {
   "name": "systemjs-builder",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "",
   "main": "index.js",
   "directories": {
@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "rsvp": "^3.0.6",
-    "systemjs": "0.8.1",
+    "systemjs": "0.8.2",
     "traceur": "0.0.58"
   },
   "devDependencies": {
