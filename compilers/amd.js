@@ -346,6 +346,6 @@ exports.compile = function(load, normalize, loader) {
   // because we've blindly replaced the define statement from AMD with a System.register call
   // we have to ensure we still trigger any AMD guard statements in the code by creating a dummy define which isn't called
   return Promise.resolve({
-    source: '(function() {\nfunction define(){};  define.amd = true;\n  ' + output.js.replace(/\n/g, '\n  ') + '})();'
+    source: '(function() {\nfunction define(){};  define.amd = {};\n  ' + output.js.replace(/\n/g, '\n  ') + '})();'
   });
 }
