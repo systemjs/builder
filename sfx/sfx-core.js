@@ -194,6 +194,8 @@
         depModule.importers.push(module);
         module.dependencies.push(depModule);
       }
+      else
+        module.dependencies.push(null);
 
       // run the setter for this dependency
       if (module.setters[i])
