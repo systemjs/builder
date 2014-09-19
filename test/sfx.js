@@ -194,6 +194,8 @@
         depModule.importers.push(module);
         module.dependencies.push(depModule);
       }
+      else
+        module.dependencies.push(null);
 
       // run the setter for this dependency
       if (module.setters[i])
@@ -367,70 +369,6 @@ System.register("tree/third", [], function($__export) {
   };
 });
 
-System.register("tree/jquery", [], false, function(__require, __exports, __module) {
-  System.get("@@global-helpers").prepareGlobal(__module.id, []);
-  (function() {  this.jquery = {};
-      
-  }).call(System.global);  return System.get("@@global-helpers").retrieveGlobal(__module.id, false);
-});
-
-System.register("tree/second", ["tree/third", "tree/cjs"], function($__export) {
-  "use strict";
-  var __moduleName = "tree/second";
-  var q;
-  return {
-    setters: [function(m) {}, function(m) {}],
-    execute: function() {
-      q = $__export("q", 4);
-    }
-  };
-});
-
-System.register("tree/global", ["tree/jquery"], false, function(__require, __exports, __module) {
-  System.get("@@global-helpers").prepareGlobal(__module.id, ["tree/jquery"]);
-  (function() {  "deps ./jquery";
-      "exports jquery.test";
-      
-      this.jquery = this.jquery || {};
-      this.jquery.test = 'output';
-      
-  this["jquery.test"] = jquery.test;
-  }).call(System.global);  return System.get("@@global-helpers").retrieveGlobal(__module.id, "jquery.test");
-});
-
-System.register("tree/amd", ['./global', './some!./plugin', './text.txt!./text-plugin'], false, function(__require, __exports, __module) {
-  return (function(a, b, c) {
-    return {
-      is: 'amd',
-      text: c
-    };
-  }).call(this, __require('./global'), __require('./some!./plugin'), __require('./text.txt!./text-plugin'));
-});
-
-System.register("tree/first", ["tree/second", "tree/amd"], function($__export) {
-  "use strict";
-  var __moduleName = "tree/first";
-  var dep,
-      p;
-  return {
-    setters: [function(m) {
-      dep = m.dep;
-    }, function(m) {}],
-    execute: function() {
-      p = $__export("p", 5);
-    }
-  };
-});
-
-System.register("tree/amd-1", ['./first', './second'], false, function(__require, __exports, __module) {
-  return (function(first, second, require, module) {
-    module.exports = {
-      first: first,
-      second: require('./second')
-    };
-  }).call(this, __require('./first'), __require('./second'), __require, __module);
-});
-
 System.register("tree/cjs", [], true, function(require, exports, module) {
   var global = System.global;
   var __define = global.define;
@@ -441,6 +379,13 @@ System.register("tree/cjs", [], true, function(require, exports, module) {
   
   global.define = __define;
   return module.exports;
+});
+
+System.register("tree/jquery", [], false, function(__require, __exports, __module) {
+  System.get("@@global-helpers").prepareGlobal(__module.id, []);
+  (function() {  this.jquery = {};
+      
+  }).call(System.global);  return System.get("@@global-helpers").retrieveGlobal(__module.id, false);
 });
 
 System.register("tree/plugin", [], true, function(require, exports, module) {
@@ -467,6 +412,67 @@ System.register("tree/text.txt!tree/text-plugin", [], true, function(require, ex
   return module.exports;
 });
 
+System.register("tree/second", ["tree/third", "tree/cjs"], function($__export) {
+  "use strict";
+  var __moduleName = "tree/second";
+  var q;
+  return {
+    setters: [function(m) {}, function(m) {}],
+    execute: function() {
+      q = $__export("q", 4);
+    }
+  };
+});
+
+System.register("tree/global", ["tree/jquery"], false, function(__require, __exports, __module) {
+  System.get("@@global-helpers").prepareGlobal(__module.id, ["tree/jquery"]);
+  (function() {  "deps ./jquery";
+      "exports jquery.test";
+      
+      this.jquery = this.jquery || {};
+      this.jquery.test = 'output';
+      
+  this["jquery.test"] = jquery.test;
+  }).call(System.global);  return System.get("@@global-helpers").retrieveGlobal(__module.id, "jquery.test");
+});
+
+(function() {
+function define(){};  define.amd = {};
+  System.register("tree/amd", ['./global', './some!./plugin', './text.txt!./text-plugin'], false, function(__require, __exports, __module) {
+    return (function(a, b, c) {
+      return {
+        is: 'amd',
+        text: c
+      };
+    }).call(this, __require('./global'), __require('./some!./plugin'), __require('./text.txt!./text-plugin'));
+  });
+  })();
+System.register("tree/first", ["tree/second", "tree/amd"], function($__export) {
+  "use strict";
+  var __moduleName = "tree/first";
+  var dep,
+      p;
+  return {
+    setters: [function(m) {
+      dep = m.dep;
+    }, function(m) {}],
+    execute: function() {
+      p = $__export("p", 5);
+    }
+  };
+});
+
+(function() {
+function define(){};  define.amd = {};
+  System.register("tree/amd-1", ['./first', './second'], false, function(__require, __exports, __module) {
+    return (function(first, second, require, module) {
+      module.exports = {
+        first: first,
+        second: require('./second')
+      };
+    }).call(this, __require('./first'), __require('./second'), __require, __module);
+  });
+  })();
 (function() {
   var loader = System;
   var hasOwnProperty = loader.global.hasOwnProperty;
