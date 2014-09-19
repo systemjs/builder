@@ -30,7 +30,7 @@ CJSRequireTransformer.prototype.transformCallExpression = function(tree) {
 exports.CJSRequireTransformer = CJSRequireTransformer;
 
 function cjsOutput(name, deps, address, source, baseURL) {
-  var filename = path.relative(baseURL, address);
+  var filename = path.relative(baseURL, address).replace(/\\/g, "/");
   var dirname = path.dirname(filename);
   var output = 'System.register("' + name + '", ' + JSON.stringify(deps) + ', true, function(require, exports, module) {\n'
     + '  var global = System.global;\n'
