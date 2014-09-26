@@ -212,8 +212,6 @@
       exports = load(name);
       if (!exports)
         throw "System Register: The module requested " + name + " but this was not declared as a dependency";
-      if (exports.__useDefault)
-        exports = exports['default'];
     }
 
     else {
@@ -225,6 +223,10 @@
 
       exports = entry.module.exports;
     }
+
+    if ((!entry || entry.declarative) && exports && exports.__useDefault)
+      return exports['default'];
+
     return exports;
   }
 
@@ -320,7 +322,6 @@
     defined[name] = undefined;
 
     var module = entry.declarative ? entry.module.exports : { 'default': entry.module.exports, '__useDefault': true };
-    entry.module.module = module;
 
     // return the defined module object
     return modules[name] = module;
