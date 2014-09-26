@@ -37,6 +37,10 @@ System.register("tree/plugin", [], true, function(require, exports, module) {
   var __dirname = "tree";
   exports.build = false;
   
+  exports.fetch = function() {
+    return '';
+  }
+  
   global.define = __define;
   return module.exports;
 });
