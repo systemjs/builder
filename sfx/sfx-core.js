@@ -329,6 +329,8 @@
 
   return function(main, declare) {
 
+    var System;
+
     // if there's a system loader, define onto it
     if (typeof System != 'undefined' && System.register) {
       declare(System);
