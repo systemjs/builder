@@ -8,7 +8,7 @@ function define(){};  define.amd = {};
       first: first
     };
   }
-  System.register("tree/amd-5b", ['./first'], false, function(__require, __exports, __module) {
+  System.register("tree/amd-5b", ["./first"], false, function(__require, __exports, __module) {
     return (factory).call(this, __require('./first'));
   });
   })();

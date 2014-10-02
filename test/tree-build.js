@@ -82,7 +82,7 @@ System.register("tree/global", ["./jquery"], false, function(__require, __export
 
 (function() {
 function define(){};  define.amd = {};
-  System.register("tree/amd", ['./global', './some!./plugin', './text.txt!./text-plugin'], false, function(__require, __exports, __module) {
+  System.register("tree/amd", ["./global", "./some!./plugin", "./text.txt!./text-plugin"], false, function(__require, __exports, __module) {
     return (function(a, b, c) {
       return {
         is: 'amd',

@@ -1,5 +1,4 @@
 var traceur = require('traceur');
-var compiler = new traceur.Compiler();
 
 var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer').ParseTreeTransformer;
 
@@ -16,60 +15,36 @@ ModuleImportNormalizeTransformer.prototype.transformImportDeclaration = function
   return tree;
 }
 
-function remap(source, map) {
-  var output = compiler.stringToTree({content: source});
+function remap(source, map, fileName) {
+  var compiler = new traceur.Compiler();
 
-  if (output.errors.length)
-    return Promise.reject(output.errors[0]);
+  var tree = compiler.parse(source, fileName);
   
-  var transformer = new ModuleImportNormalizeTransformer(map);
-  output.tree = transformer.transformAny(output.tree);
-
-  output = compiler.treeToString(output);
-
-  if (output.errors.length)
-    return Promise.reject(output.errors[0]);
+  tree = new ModuleImportNormalizeTransformer(map).transformAny(tree);
 
   return Promise.resolve({
-    source: output.js
+    source: compiler.write(tree)
   });
 }
 exports.remap = remap;
 
 // converts anonymous AMDs into named AMD for the module
 exports.compile = function(load) {
-  var output = compiler.stringToTree({
-    content: load.source, 
-    options: {
-      filename: load.address,
-      moduleName: load.name,
-      modules: 'instantiate'
-    }
+
+  var compiler = new traceur.Compiler({
+    moduleName: load.name,
+    modules: 'instantiate'
   });
 
-  if (output.errors.length)
-    return Promise.reject(output.errors[0]);
+  var tree = compiler.parse(load.source, load.address);
   
   var transformer = new ModuleImportNormalizeTransformer(function(dep) {
     return load.depMap[dep];
   });
-  
-  output.tree = transformer.transformAny(output.tree);
 
-  if (output.errors.length)
-    return Promise.reject(output.errors[0]);
-  
-  output = compiler.treeToTree(output);
-
-  if (output.errors.length)
-    return Promise.reject(output.errors[0]);
-
-  output = compiler.treeToString(output);
-
-  if (output.errors.length)
-    return Promise.reject(output.errors[0]);
+  tree = compiler.transform(transformer.transformAny(tree));
 
   return Promise.resolve({
-    source: output.js
+    source: compiler.write(tree)
   });
 }

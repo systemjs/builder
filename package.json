@@ -7,12 +7,12 @@
     "test": "test"
   },
   "dependencies": {
-    "rsvp": "^3.0.6",
-    "systemjs": "0.8.2",
-    "traceur": "0.0.58"
+    "rsvp": "^3.0.14",
+    "systemjs": "0.9.1",
+    "traceur": "0.0.66"
   },
   "devDependencies": {
-    "es6-module-loader": "0.8.2"
+    "es6-module-loader": "0.9.2"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

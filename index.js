@@ -105,6 +105,10 @@ exports.buildSFX = function(moduleName, config, outFile) {
     moduleName = trace.moduleName;
     return Promise.all(Object.keys(tree).map(function(name) {
       var load = tree[name];
+      if (load.metadata.plugin && (load.metadata.build === false || load.metadata.plugin.build === false)) {
+        concatOutput.push('System.register("' + load.name + '", [], false, function() { console.log("SystemJS Builder - Plugin for ' + load.name + ' does not support sfx builds"); });\n');
+      }
+      
       return Promise.resolve(compileLoad(load, true, compilers))
       .then(concatOutput.push.bind(concatOutput));
     }));

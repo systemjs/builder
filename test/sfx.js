@@ -362,6 +362,8 @@
 
 
 
+System.register("tree/some!tree/plugin", [], false, function() { console.log("SystemJS Builder - Plugin for tree/some!tree/plugin does not support sfx builds"); });
+
 
 System.register("tree/third", [], function($__export) {
   return {
@@ -444,13 +446,13 @@ System.register("tree/global", ["tree/jquery"], false, function(__require, __exp
 
 (function() {
 function define(){};  define.amd = {};
-  System.register("tree/amd", ['./global', './some!./plugin', './text.txt!./text-plugin'], false, function(__require, __exports, __module) {
+  System.register("tree/amd", ["tree/global", "tree/some!tree/plugin", "tree/text.txt!tree/text-plugin"], false, function(__require, __exports, __module) {
     return (function(a, b, c) {
       return {
         is: 'amd',
         text: c
       };
-    }).call(this, __require('./global'), __require('./some!./plugin'), __require('./text.txt!./text-plugin'));
+    }).call(this, __require('tree/global'), __require('tree/some!tree/plugin'), __require('tree/text.txt!tree/text-plugin'));
   });
   })();
 System.register("tree/first", ["tree/second", "tree/amd"], function($__export) {
@@ -470,13 +472,13 @@ System.register("tree/first", ["tree/second", "tree/amd"], function($__export) {
 
 (function() {
 function define(){};  define.amd = {};
-  System.register("tree/amd-1", ['./first', './second'], false, function(__require, __exports, __module) {
+  System.register("tree/amd-1", ["tree/first", "tree/second"], false, function(__require, __exports, __module) {
     return (function(first, second, require, module) {
       module.exports = {
         first: first,
-        second: require('./second')
+        second: require("tree/second")
       };
-    }).call(this, __require('./first'), __require('./second'), __require, __module);
+    }).call(this, __require('tree/first'), __require('tree/second'), __require, __module);
   });
   })();
 (function() {

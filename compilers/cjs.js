@@ -53,7 +53,7 @@ exports.compile = function(load, normalize, loader) {
     if (normalize) {
       return remap(source, function(dep) {
         return load.depMap[dep];
-      })
+      }, load.address)
       .then(function(output) {
         return output.source;
       });
@@ -66,24 +66,14 @@ exports.compile = function(load, normalize, loader) {
 }
 
 function remap(source, map, fileName) {
-  var output = compiler.stringToTree({content: source, options:{filename:fileName}});
-
-  if (output.errors.length)
-    return Promise.reject(output.errors[0]);
+  var compiler = new traceur.Compiler();
+  var tree = compiler.parse(source, fileName);
   
   var transformer = new CJSRequireTransformer('require', map);
-  output.tree = transformer.transformAny(output.tree);
-
-  if (output.errors.length)
-    return Promise.reject(output.errors[0]);
-
-  output = compiler.treeToString(output);
-
-  if (output.errors.length)
-    return Promise.reject(output.errors[0]);
+  tree = transformer.transformAny(tree);
 
   return Promise.resolve({
-    source: output.js
+    source: compiler.write(tree)
   });
 }
 exports.remap = remap;
