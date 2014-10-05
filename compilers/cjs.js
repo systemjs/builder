@@ -66,7 +66,9 @@ exports.compile = function(load, normalize, loader) {
 }
 
 function remap(source, map, fileName) {
-  var compiler = new traceur.Compiler();
+  // NB can remove after Traceur 0.0.77
+  if (!source) source = ' ';
+  var compiler = new traceur.Compiler({ script: true });
   var tree = compiler.parse(source, fileName);
   
   var transformer = new CJSRequireTransformer('require', map);

@@ -314,7 +314,9 @@ exports.attach = function(loader) {
 
     if (load.metadata.format == 'amd') {
       // extract AMD dependencies using tree parsing
-      var compiler = new traceur.Compiler();
+      // NB can remove after Traceur 0.0.77
+      if (!load.source) load.source = ' ';
+      var compiler = new traceur.Compiler({ script: true });
       load.metadata.parseTree = compiler.parse(load.source, load.address);
       var depTransformer = new AMDDependenciesTransformer();
       depTransformer.transformAny(load.metadata.parseTree);
@@ -333,7 +335,9 @@ exports.attach = function(loader) {
 }
 
 exports.remap = function(source, map, fileName) {
-  var compiler = new traceur.Compiler();
+  // NB can remove after Traceur 0.0.77
+  if (!source) source = ' ';
+  var compiler = new traceur.Compiler({ script: true });
   var tree = compiler.parse(source, fileName);
   var transformer = new AMDDependenciesTransformer(map);
   tree = transformer.transformAny(tree);
