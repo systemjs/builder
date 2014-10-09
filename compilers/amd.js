@@ -284,6 +284,7 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
       bindToExports = true;
 
     var reqName = params[0] && params[0].parameter.binding.identifierToken.value;
+    // NB it may be useful to use the scoped version of the require transformer here in case of minified code.
     var cjsRequireTransformer = new CJSRequireTransformer(reqName, function(v) { return self.depMap[v] || v });
     args[0].body = cjsRequireTransformer.transformAny(args[0].body);
 
