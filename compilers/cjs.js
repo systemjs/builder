@@ -1,20 +1,20 @@
-// NB move these CommonJS layers out into a static operation on the CommonJS module rather
+// NB move these CommonJS layers out into a static operation on the CommonJS module rather?
 
 var path = require('path');
 var traceur = require('traceur');
 var compiler = new traceur.Compiler();
-var ScopeTransformer = traceur.get('codegeneration/ScopeTransformer').ScopeTransformer;
+var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer').ParseTreeTransformer;
 
 function CJSRequireTransformer(requireName, map) {
   this.requireName = requireName;
   this.map = map;
   this.requires = [];
-  return ScopeTransformer.call(this, requireName);
+  return ParseTreeTransformer.call(this, requireName);
 }
-CJSRequireTransformer.prototype = Object.create(ScopeTransformer.prototype);
+CJSRequireTransformer.prototype = Object.create(ParseTreeTransformer.prototype);
 CJSRequireTransformer.prototype.transformCallExpression = function(tree) {
   if (!tree.operand.identifierToken || tree.operand.identifierToken.value != this.requireName)
-    return ScopeTransformer.prototype.transformCallExpression.call(this, tree);
+    return ParseTreeTransformer.prototype.transformCallExpression.call(this, tree);
 
   // found a require
   var args = tree.args.args;
@@ -25,7 +25,7 @@ CJSRequireTransformer.prototype.transformCallExpression = function(tree) {
     this.requires.push(args[0].literalToken.processedValue);
   }
 
-  return ScopeTransformer.prototype.transformCallExpression.call(this, tree);
+  return ParseTreeTransformer.prototype.transformCallExpression.call(this, tree);
 }
 exports.CJSRequireTransformer = CJSRequireTransformer;
 
