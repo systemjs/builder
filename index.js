@@ -38,48 +38,59 @@ exports.build = function(moduleName, config, outFile) {
   });
 }
 
+var sourceMapRegEx = /\/\/[@#] ?(sourceURL|sourceMappingURL)=([^\n'"]+)/;
+function removeSourceMaps(source) {
+  return source.replace(sourceMapRegEx, '');
+}
+
 function compileLoad(load, sfx, compilers) {
-  // note which compilers we used
-  compilers = compilers || {};
-  if (load.metadata.build == false) {
-    return;
-  }
-  else if (load.metadata.format == 'es6') {
-    compilers['es6'] = true;
-    return es6Compiler.compile(load, sfx, loader).then(function(result) {
-      return result.source;
-    });
-  }
-  else if (load.metadata.format == 'register') {
-    compilers['register'] = true;
-    return registerCompiler.compile(load, sfx, loader).then(function(result) {
-      return result.source;
-    });
-  }
-  else if (load.metadata.format == 'amd') {
-    compilers['amd'] = true;
-    return amdCompiler.compile(load, sfx, loader).then(function(result) {
-      return result.source;
-    });
-  }
-  else if (load.metadata.format == 'cjs') {
-    compilers['cjs'] = true;
-    return cjsCompiler.compile(load, sfx, loader).then(function(result) {
-      return result.source;
-    });
-  }
-  else if (load.metadata.format == 'global') {
-    compilers['global'] = true;
-    return globalCompiler.compile(load, sfx, loader).then(function(result) {
-      return result.source;
-    });
-  }
-  else if (load.metadata.format == 'defined') {
-    return '';
-  }
-  else {
-    throw "unknown format " + load.metadata.format;
-  }
+  return Promise.resolve()
+  .then(function() {
+    // note which compilers we used
+    compilers = compilers || {};
+    if (load.metadata.build == false) {
+      return;
+    }
+    else if (load.metadata.format == 'es6') {
+      compilers['es6'] = true;
+      return es6Compiler.compile(load, sfx, loader).then(function(result) {
+        return result.source;
+      });
+    }
+    else if (load.metadata.format == 'register') {
+      compilers['register'] = true;
+      return registerCompiler.compile(load, sfx, loader).then(function(result) {
+        return result.source;
+      });
+    }
+    else if (load.metadata.format == 'amd') {
+      compilers['amd'] = true;
+      return amdCompiler.compile(load, sfx, loader).then(function(result) {
+        return result.source;
+      });
+    }
+    else if (load.metadata.format == 'cjs') {
+      compilers['cjs'] = true;
+      return cjsCompiler.compile(load, sfx, loader).then(function(result) {
+        return result.source;
+      });
+    }
+    else if (load.metadata.format == 'global') {
+      compilers['global'] = true;
+      return globalCompiler.compile(load, sfx, loader).then(function(result) {
+        return result.source;
+      });
+    }
+    else if (load.metadata.format == 'defined') {
+      return '';
+    }
+    else {
+      throw "unknown format " + load.metadata.format;
+    }
+  })
+  .then(function(source) {
+    return removeSourceMaps(source || '');
+  })
 }
 
 exports.buildTree = function(tree, outFile) {

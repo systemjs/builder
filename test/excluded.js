@@ -9,18 +9,6 @@ System.register("tree/third", [], function($__export) {
   };
 });
 
-System.register("tree/cjs", [], true, function(require, exports, module) {
-  var global = System.global;
-  var __define = global.define;
-  global.define = undefined;
-  var __filename = "tree/cjs.js";
-  var __dirname = "tree";
-  exports.cjs = true;
-  
-  global.define = __define;
-  return module.exports;
-});
-
 System.register("tree/second", ["tree/third", "tree/cjs"], function($__export) {
   "use strict";
   var __moduleName = "tree/second";
@@ -46,4 +34,16 @@ System.register("tree/first", ["tree/second", "tree/amd"], function($__export) {
       p = $__export("p", 5);
     }
   };
+});
+
+System.register("tree/cjs", [], true, function(require, exports, module) {
+  var global = System.global;
+  var __define = global.define;
+  global.define = undefined;
+  var __filename = "tree/cjs.js";
+  var __dirname = "tree";
+  exports.cjs = true;
+  
+  global.define = __define;
+  return module.exports;
 });
