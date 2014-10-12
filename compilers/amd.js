@@ -122,6 +122,13 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
   var self = this;
   var args = tree.args.args;
 
+  // check for named modules
+  if (args[0].type === 'LITERAL_EXPRESSION') {
+    if (!this.isAnon)
+      name = args[0].literalToken.processedValue;
+    args = args.splice(1);
+  }
+
   // only when "exports" is present as an argument
   // or dependency, does it become "this" for AMD
   // otherwise "this" must reference the global
@@ -162,18 +169,11 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
 
     Note that when __module is imported, we decorate it with 'uri' and an empty 'config' function
   */
-  if (args[0].type === 'ARRAY_LITERAL_EXPRESSION' || args[0].type === 'LITERAL_EXPRESSION') {
+  if (args[0].type === 'ARRAY_LITERAL_EXPRESSION') {
 
     var name = this.load.name;
     var deps = args[0];
     var factory = args[1];
-
-    if (args[0].type === 'LITERAL_EXPRESSION') {
-      if (!this.isAnon)
-        name = args[0].literalToken.processedValue;
-      deps = args[1];
-      factory = args[2];
-    }
 
     // convert into strings
     deps = deps.elements.map(function(dep) {
