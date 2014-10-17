@@ -28,12 +28,12 @@ function remap(source, map, fileName) {
 }
 exports.remap = remap;
 
-// converts anonymous AMDs into named AMD for the module
 exports.compile = function(load) {
 
   var compiler = new traceur.Compiler({
     moduleName: load.name,
-    modules: 'instantiate'
+    modules: 'instantiate',
+    script: false
   });
 
   var tree = compiler.parse(load.source, load.address);
@@ -42,7 +42,7 @@ exports.compile = function(load) {
     return load.depMap[dep];
   });
 
-  tree = compiler.transform(transformer.transformAny(tree));
+  tree = compiler.transform(transformer.transformAny(tree), load.name);
 
   return Promise.resolve({
     source: compiler.write(tree)
