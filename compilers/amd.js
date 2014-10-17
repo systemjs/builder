@@ -67,7 +67,7 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
 
   // only continue to extracting dependencies if we're anonymous
   if (!this.anonDefine)
-    return;
+    return tree;
 
   var depTree;
 
@@ -83,7 +83,7 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
     this.deps = this.filterAMDDeps(depTree.elements.map(function(dep) {
       return dep.literalToken.processedValue;
     }));
-    return;
+    return tree;
   }
 
   var cjsFactory;
@@ -92,6 +92,8 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
     cjsFactory = args[0];
   else if (args[0].type == 'LITERAL_EXPRESSION' && args[1] && args[1].type == 'FUNCTION_EXPRESSION')
     cjsFactory = args[1];
+  else if (args[0].type == 'IDENTIFIER_EXPRESSION')
+    this.globalCJSRequires = true;
 
   if (cjsFactory) {
     // now we need to do a scope transformer for the require function at this position
@@ -100,10 +102,12 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
     
     // now we create a new scope transformer and apply it to this function to find every call of
     // the function reqName, noting the require
-    var cjsRequires = new CJSRequireTransformer(reqName, this.map);
+    var cjsRequires = new CJSRequireTransformer(reqName);
     cjsFactory.body = cjsRequires.transformAny(cjsFactory.body);
     this.deps = this.filterAMDDeps(cjsRequires.requires);
   }
+
+  return tree;
 }
 
 // AMD System.register transpiler
@@ -305,6 +309,18 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
         ');'
       ], args[0]);
   }
+
+
+  if (args[0].type == 'IDENTIFIER_EXPRESSION') {
+    var requires = this.load.deps.map(function(dep) {
+      return self.depMap[dep] || dep;
+    });
+    return parseExpression([
+      'System.register("' + this.load.name + '", ' + JSON.stringify(requires) + ', false, ' + args[0].identifierToken.value + ');'
+    ]);
+  }
+
+  return ScopeTransformer.prototype.transformCallExpression.call(this, tree);
 }
 
 // override System instantiate to handle AMD dependencies
@@ -324,6 +340,13 @@ exports.attach = function(loader) {
 
       // we store the results as meta
       load.metadata.isAnon = depTransformer.anonDefine;
+      load.metadata.globalCJSRequires = depTransformer.globalCJSRequires;
+
+      if (depTransformer.globalCJSRequires) {
+        var cjsRequires = new CJSRequireTransformer('require');
+        cjsRequires.transformAny(load.metadata.parseTree);
+        depTransformer.deps = depTransformer.filterAMDDeps(cjsRequires.requires);
+      }
 
       return {
         deps: depTransformer.deps,
@@ -342,6 +365,12 @@ exports.remap = function(source, map, fileName) {
   var tree = compiler.parse(source, fileName);
   var transformer = new AMDDependenciesTransformer(map);
   tree = transformer.transformAny(tree);
+
+  if (transformer.globalCJSRequires) {
+    var cjsRequires = new CJSRequireTransformer('require', function(v) { return map[v] || v });
+    tree = cjsRequires.transformAny(tree);
+  }
+
   return Promise.resolve({
     source: compiler.write(tree)
   });
@@ -355,6 +384,11 @@ exports.compile = function(load, normalize, loader) {
   var tree = load.metadata.parseTree;
   var transformer = new AMDDefineRegisterTransformer(load, load.metadata.isAnon, normalize ? load.depMap : {});
   tree = transformer.transformAny(tree);
+
+  if (load.metadata.globalCJSRequires) {
+    var cjsRequires = new CJSRequireTransformer('require', normalize && function(v) { return load.depMap[v] || v });
+    tree = cjsRequires.transformAny(tree);
+  }
   
   var output = compiler.write(tree);
 

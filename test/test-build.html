@@ -30,6 +30,7 @@
       }
 
       System.bundles['tree-build'] = ['tree/third', 'tree/cjs', 'tree/jquery', 'tree/second', 'tree/global', 'tree/amd', 'tree/first'];
+      System.bundles['umd'] = ['tree/umd'];
 
       asyncTest('Loading AMD from a bundle', function() {
         System['import']('tree/amd').then(function(m) {
@@ -155,6 +156,12 @@
         .catch(err);
       });
 
+      asyncTest('Loading UMD', function() {
+        System['import']('tree/umd').then(function(m) {
+          ok(m.umd == 'detection');
+          start();
+        });
+      });
 
     </script>
 	</body>

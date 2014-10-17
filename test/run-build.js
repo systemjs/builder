@@ -81,6 +81,12 @@ builder.trace('tree/first').then(function(traceTree) {
 })
 
 .then(function() {
+  return builder.trace('tree/umd').then(function(trace) {
+    return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'umd.js');
+  })
+})
+
+.then(function() {
   return builder.buildSFX('tree/amd-1', {}, 'sfx.js');
 })
 
