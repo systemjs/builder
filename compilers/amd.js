@@ -145,7 +145,7 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
     ->
 
     System.register(['some', 'deps', 'require'], false, function(__require, __exports, __module) {
-      (function(some, deps, require) {
+      return (function(some, deps, require) {
 
       })(__require('some'), __require('deps'), __require);
     });
@@ -299,7 +299,7 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
     if (bindToExports)
       return parseExpression([
         'System.register("' + this.load.name + '", ' + JSON.stringify(requires) + ', false, function(__require, __exports, __module) {\n'
-      + '(',
+      + 'return (',
         ').call(__exports, __require, __exports, __module);\n'
       + '});'
       ], args[0]);
