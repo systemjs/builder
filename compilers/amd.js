@@ -315,7 +315,7 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
 
   ->
 
-    System.register(typeof factory == 'function' ? factory : function() { return factory; })
+    System.register([], false, typeof factory == 'function' ? factory : function() { return factory; })
 
    */
   if (args[0].type == 'IDENTIFIER_EXPRESSION') {
