@@ -163,6 +163,17 @@
         });
       });
 
+      asyncTest('AMD 7', function() {
+        System['import']('amd-7').then(function() {
+          return System['import']('tree/amd-7');
+        })
+        .then(function(m) {
+          ok(m.amd == 'object');
+          start();
+        })
+        .catch(err);
+      });
+
     </script>
 	</body>
 </html>

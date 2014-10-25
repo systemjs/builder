@@ -310,13 +310,22 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
       ], args[0]);
   }
 
+  /*
+    define(factory);
 
+  ->
+
+    System.register(typeof factory == 'function' ? factory : function() { return factory; })
+
+   */
   if (args[0].type == 'IDENTIFIER_EXPRESSION') {
     var requires = this.load.deps.map(function(dep) {
       return self.depMap[dep] || dep;
     });
+    var token = args[0].identifierToken.value;
     return parseExpression([
-      'System.register("' + this.load.name + '", ' + JSON.stringify(requires) + ', false, ' + args[0].identifierToken.value + ');'
+      'System.register("' + this.load.name + '", ' + JSON.stringify(requires) + ', false, ' +
+            'typeof ' + token + ' == "function" ? ' + token + ' : function() { return ' + token + '; });'
     ]);
   }
 

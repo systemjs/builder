@@ -4,7 +4,9 @@
 function define(){};  define.amd = {};
   (function(root, factory) {
     if (typeof define === 'function' && define.amd) {
-      System.register("tree/umd", ["./cjs"], false, factory);
+      System.register("tree/umd", ["./cjs"], false, typeof factory == "function" ? factory : function() {
+        return factory;
+      });
     } else if (typeof exports === 'object') {
       module.exports = factory(require, exports, module);
     } else {
