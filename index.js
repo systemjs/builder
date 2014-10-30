@@ -14,22 +14,29 @@ var globalCompiler = require('./compilers/global');
 var path = require('path');
 
 // TODO source maps
-var loader = new Loader(System);
-loader.baseURL = System.baseURL;
-loader.paths = { '*': '*.js' };
-loader.config = System.config;
+var loader, pluginLoader;
 
-var pluginLoader = new Loader(System);
-pluginLoader.baseURL = System.baseURL;
-pluginLoader.paths = { '*': '*.js' };
-pluginLoader.config = System.config;
+function reset() {
+  loader = new Loader(System);
+  loader.baseURL = System.baseURL;
+  loader.paths = { '*': '*.js' };
+  loader.config = System.config;
 
-loader.trace = true;
-loader.execute = false;
-loader.pluginLoader = pluginLoader;
+  pluginLoader = new Loader(System);
+  pluginLoader.baseURL = System.baseURL;
+  pluginLoader.paths = { '*': '*.js' };
+  pluginLoader.config = System.config;
 
-amdCompiler.attach(loader);
-amdCompiler.attach(pluginLoader);
+  loader.trace = true;
+  loader.execute = false;
+  loader.pluginLoader = pluginLoader;
+
+  amdCompiler.attach(loader);
+  amdCompiler.attach(pluginLoader);
+}
+exports.reset = reset;
+
+reset();
 
 exports.build = function(moduleName, config, outFile) {
   return exports.trace(moduleName, config)
