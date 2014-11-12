@@ -68,6 +68,8 @@ To make a bundle that is independent of the SystemJS loader entirely, we can mak
   builder.buildSFX('myModule', config, 'outfile.js');
 ```
 
+This bundle file can then be included with a `<script>` tag, and no other dependencies (apart from Traceur runtime if needed) would need to be included in the page.
+
 SFX bundles to not support custom exclusions and inclusions as there is no loader registry.
 
 Rather, if it is needed to have globals like `jQuery` not included, as they will be separate globals, set up a wrapper module something like:
