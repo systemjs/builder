@@ -59,6 +59,24 @@ Usage
   });
 ```
 
+### SFX Bundles
+
+To make a bundle that is independent of the SystemJS loader entirely, we can make SFX bundles:
+
+```javascript
+  var builder = require('systemjs-builder');
+  builder.buildSFX('myModule', config, 'outfile.js');
+```
+
+SFX bundles to not support custom exclusions and inclusions as there is no loader registry.
+
+Rather, if it is needed to have globals like `jQuery` not included, as they will be separate globals, set up a wrapper module something like:
+
+jquery.js
+```javascript
+  module.exports = window.jQuery;
+```
+
 ### Advanced build
 
 The trace trees can be adjusted between tracing and building allowing for custom build layer creation.
