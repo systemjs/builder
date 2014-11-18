@@ -1,5 +1,6 @@
 "format register";
 
+
 System.register("tree/third", [], function($__export) {
   return {
     setters: [],
@@ -9,7 +10,7 @@ System.register("tree/third", [], function($__export) {
   };
 });
 
-System.register("tree/second", ["tree/third", "tree/cjs"], function($__export) {
+System.register("tree/second", ["./third", "./cjs"], function($__export) {
   "use strict";
   var __moduleName = "tree/second";
   var q;
@@ -21,13 +22,13 @@ System.register("tree/second", ["tree/third", "tree/cjs"], function($__export) {
   };
 });
 
-System.register("tree/first", ["tree/second", "tree/amd"], function($__export) {
+System.register("tree/first", ["jquery-cdn", "@empty", "./second", "./amd"], function($__export) {
   "use strict";
   var __moduleName = "tree/first";
   var dep,
       p;
   return {
-    setters: [function(m) {
+    setters: [function(m) {}, function(m) {}, function(m) {
       dep = m.dep;
     }, function(m) {}],
     execute: function() {

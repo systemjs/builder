@@ -365,6 +365,7 @@
 System.register("tree/some!tree/plugin", [], false, function() { console.log("SystemJS Builder - Plugin for tree/some!tree/plugin does not support sfx builds"); });
 
 
+
 System.register("tree/third", [], function($__export) {
   return {
     setters: [],
@@ -417,13 +418,13 @@ function define(){};  define.amd = {};
     }).call(this, __require('tree/global'), __require('tree/some!tree/plugin'), __require('tree/text.txt!tree/text-plugin'));
   });
   })();
-System.register("tree/first", ["tree/second", "tree/amd"], function($__export) {
+System.register("tree/first", ["jquery-cdn", "@empty", "tree/second", "tree/amd"], function($__export) {
   "use strict";
   var __moduleName = "tree/first";
   var dep,
       p;
   return {
-    setters: [function(m) {
+    setters: [function(m) {}, function(m) {}, function(m) {
       dep = m.dep;
     }, function(m) {}],
     execute: function() {

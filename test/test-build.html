@@ -19,7 +19,7 @@
     <script src="../bower_components/qunit/qunit/qunit.js"></script>
 
     <script>
-      QUnit.config.testTimeout = 500;
+      QUnit.config.testTimeout = 2000;
 
       QUnit.module("SystemJS Built Bundle");
 
@@ -28,6 +28,8 @@
           throw e;
         });
       }
+
+      System.paths['jquery-cdn'] = 'https://code.jquery.com/jquery-2.1.1.min.js';
 
       System.bundles['tree-build'] = ['tree/third', 'tree/cjs', 'tree/jquery', 'tree/second', 'tree/global', 'tree/amd', 'tree/first'];
       System.bundles['umd'] = ['tree/umd'];
@@ -65,7 +67,7 @@
         System['import']('tree/first').then(function(m) {
           ok(m.p == 5);
           start();
-        });
+        }, err);
       });
 
       asyncTest('AMD rewriting 1', function() {
