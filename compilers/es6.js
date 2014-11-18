@@ -27,13 +27,16 @@ function remap(source, map, fileName) {
 }
 exports.remap = remap;
 
-exports.compile = function(load, normalize) {
+exports.compile = function(load, normalize, loader) {
 
-  var compiler = new traceur.Compiler({
-    moduleName: load.name,
-    modules: 'instantiate',
-    script: false
-  });
+  var options = loader.traceurOptions || {};
+  options.modules = 'instantiate';
+  options.script = false;
+  options.moduleName = load.name;
+  options.sourceMaps = false;
+  delete options.filename;
+
+  var compiler = new traceur.Compiler(options);
 
   var tree = compiler.parse(load.source, load.address);
   
