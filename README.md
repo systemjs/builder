@@ -79,6 +79,17 @@ jquery.js
   module.exports = window.jQuery;
 ```
 
+### Ignore Resources
+
+If loading resources that shouldn't even be traced as part of the build (say an external import), these
+can be configured with:
+
+```javascript
+System.meta['resource/to/ignore'] = {
+  build: false
+};
+```
+
 ### Advanced build
 
 The trace trees can be adjusted between tracing and building allowing for custom build layer creation.
