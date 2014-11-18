@@ -11,6 +11,8 @@ var amdCompiler = require('./compilers/amd');
 var cjsCompiler = require('./compilers/cjs');
 var globalCompiler = require('./compilers/global');
 
+var mkdirp = require('mkdirp');
+
 var path = require('path');
 
 // TODO source maps
@@ -116,6 +118,9 @@ exports.buildTree = function(tree, outFile) {
     return Promise.resolve(compileLoad(load))
     .then(concatOutput.push.bind(concatOutput));
   }))
+  .then(function() {
+    return asp(mkdirp)(path.dirname(outFile));
+  })
   .then(function() {
     return asp(fs.writeFile)(outFile, concatOutput.join('\n'));  
   });
