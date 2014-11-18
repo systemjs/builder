@@ -187,10 +187,16 @@ exports.buildSFX = function(moduleName, config, outFile) {
 }
 
 exports.loadConfig = function(configFile) {
-  var curSystem = global.System;
-  global.System = loader;
-  require(path.resolve(process.cwd(), configFile));
-  global.System = curSystem;
+  return Promise.resolve()
+  .then(function() {
+    return asp(fs.readFile)(path.resolve(process.cwd(), configFile))
+  })
+  .then(function(source) {
+    var curSystem = global.System;
+    global.System = loader;
+    new Function(source.toString()).call(global);
+    global.System = curSystem;
+  });
 }
 
 exports.config = function(config) {

@@ -72,8 +72,11 @@ Then we can load this config file through the builder:
 ```javascript
   var builder = require('systemjs-builder');
 
-  builder.loadConfig('./cfg.js');
-  builder.build('myModule', 'outfile.js');
+  builder.loadConfig('./cfg.js')
+  .then(function() {
+    return builder.build('myModule', 'outfile.js');
+  });
+  
 ```
 
 To reset the loader for a new build, run `builder.reset()`.
