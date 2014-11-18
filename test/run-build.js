@@ -7,17 +7,10 @@ var err = function(e) {
 }
 
 console.log('Running a multi-format build...');
-builder.build('tree/first', {
-  baseURL: '.',
-  paths: {
-    'jquery-cdn': 'https://code.jquery.com/jquery-2.1.1.min.js'
-  },
-  meta: {
-    'jquery-cdn': {
-      build: false
-    }
-  }
-}, 'tree-build.js')
+
+builder.loadConfig('./cfg.js');
+
+builder.build('tree/first', 'tree-build.js')
 .then(function() {
   console.log('Done');
 })

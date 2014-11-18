@@ -35,12 +35,17 @@ function reset() {
 
   amdCompiler.attach(loader);
   amdCompiler.attach(pluginLoader);
+  exports.loader = loader;
 }
 exports.reset = reset;
 
 reset();
 
 exports.build = function(moduleName, config, outFile) {
+  if (arguments.length == 2) {
+    outFile = config;
+    config = null;
+  }
   return exports.trace(moduleName, config)
   .then(function(trace) {
     return exports.buildTree(trace.tree, outFile)
@@ -117,6 +122,11 @@ exports.buildTree = function(tree, outFile) {
 }
 
 exports.buildSFX = function(moduleName, config, outFile) {
+  if (arguments.length == 2) {
+    outFile = config;
+    config = null;
+  }
+
   var concatOutput = [];
   var compilers = {};
   return exports.trace(moduleName, config)
@@ -169,6 +179,13 @@ exports.buildSFX = function(moduleName, config, outFile) {
   .then(function() {
     return asp(fs.writeFile)(outFile, concatOutput.join('\n'));  
   });
+}
+
+exports.loadConfig = function(configFile) {
+  var curSystem = global.System;
+  global.System = loader;
+  require(path.resolve(process.cwd(), configFile));
+  global.System = curSystem;
 }
 
 exports.config = function(config) {

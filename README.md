@@ -59,6 +59,26 @@ Usage
   });
 ```
 
+### Loading a Separate Config File
+
+To load a SystemJS configuration file, containing configure calls like:
+
+```javascript
+System.config({ ... });
+```
+
+Then we can load this config file through the builder:
+
+```javascript
+  var builder = require('systemjs-builder');
+
+  builder.loadConfig('./cfg.js');
+  builder.build('myModule', 'outfile.js');
+```
+
+To reset the loader for a new build, run `builder.reset()`.
+
+
 ### SFX Bundles
 
 To make a bundle that is independent of the SystemJS loader entirely, we can make SFX bundles:
