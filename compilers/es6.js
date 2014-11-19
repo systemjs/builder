@@ -11,14 +11,14 @@ ModuleImportNormalizeTransformer.prototype.transformModuleSpecifier = function(t
   var depName = this.map(tree.token.processedValue) || tree.token.processedValue;
   tree.token.value = "'" + depName + "'";
   return tree;
-}
+};
 
 
 function remap(source, map, fileName) {
   var compiler = new traceur.Compiler();
 
   var tree = compiler.parse(source, fileName);
-  
+
   tree = new ModuleImportNormalizeTransformer(map).transformAny(tree);
 
   return Promise.resolve({
@@ -39,7 +39,7 @@ exports.compile = function(load, normalize, loader) {
   var compiler = new traceur.Compiler(options);
 
   var tree = compiler.parse(load.source, load.address);
-  
+
   var transformer = new ModuleImportNormalizeTransformer(function(dep) {
     return normalize ? load.depMap[dep] : dep;
   });
@@ -49,4 +49,4 @@ exports.compile = function(load, normalize, loader) {
   return Promise.resolve({
     source: compiler.write(tree)
   });
-}
+};

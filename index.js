@@ -50,9 +50,9 @@ exports.build = function(moduleName, config, outFile) {
   }
   return exports.trace(moduleName, config)
   .then(function(trace) {
-    return exports.buildTree(trace.tree, outFile)
+    return exports.buildTree(trace.tree, outFile);
   });
-}
+};
 
 var sourceMapRegEx = /\/\/[@#] ?(sourceURL|sourceMappingURL)=([^\n'"]+)/;
 function removeSourceMaps(source) {
@@ -122,7 +122,7 @@ exports.buildTree = function(tree, outFile) {
     return asp(mkdirp)(path.dirname(outFile));
   })
   .then(function() {
-    return asp(fs.writeFile)(outFile, concatOutput.join('\n'));  
+    return asp(fs.writeFile)(outFile, concatOutput.join('\n'));
   });
 }
 
@@ -143,7 +143,7 @@ exports.buildSFX = function(moduleName, config, outFile) {
       if (load.metadata.plugin && (load.metadata.build === false || load.metadata.plugin.build === false)) {
         concatOutput.push('System.register("' + load.name + '", [], false, function() { console.log("SystemJS Builder - Plugin for ' + load.name + ' does not support sfx builds"); });\n');
       }
-      
+
       return Promise.resolve(compileLoad(load, true, compilers))
       .then(concatOutput.push.bind(concatOutput));
     }));
@@ -182,7 +182,7 @@ exports.buildSFX = function(moduleName, config, outFile) {
   })
   // finally write
   .then(function() {
-    return asp(fs.writeFile)(outFile, concatOutput.join('\n'));  
+    return asp(fs.writeFile)(outFile, concatOutput.join('\n'));
   });
 }
 
@@ -207,7 +207,7 @@ exports.config = function(config) {
   }
   loader.config(cfg);
   pluginLoader.config(cfg);
-}
+};
 
 // returns a new tree containing tree1 n tree2
 exports.intersectTrees = function(tree1, tree2) {
@@ -220,12 +220,12 @@ exports.intersectTrees = function(tree1, tree2) {
   for (var name in tree2) {
     if (tree1Names.indexOf(name) == -1)
       continue;
-    
+
     intersectTree[name] = tree1[name];
   }
 
   return intersectTree;
-}
+};
 
 // returns a new tree containing tree1 + tree2
 exports.addTrees = function(tree1, tree2) {
@@ -238,7 +238,7 @@ exports.addTrees = function(tree1, tree2) {
     unionTree[name] = tree1[name];
 
   return unionTree;
-}
+};
 
 // returns a new tree containing tree1 - tree2
 exports.subtractTrees = function(tree1, tree2) {
@@ -251,7 +251,7 @@ exports.subtractTrees = function(tree1, tree2) {
     delete subtractTree[name];
 
   return subtractTree;
-}
+};
 
 // copies a subtree out of the tree
 exports.extractTree = function(tree, moduleName) {
@@ -262,7 +262,7 @@ exports.extractTree = function(tree, moduleName) {
   .then(function() {
     return outTree;
   });
-}
+};
 
 exports.trace = function(moduleName, config) {
   if (config) {

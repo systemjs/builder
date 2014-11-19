@@ -22,12 +22,13 @@ function globalOutput(name, deps, exportName, init, source) {
 }
 
 exports.compile = function(load, normalize) {
-  var deps = normalize ? load.metadata.deps.map(function(dep) { return load.depMap[dep]; }) : load.metadata.deps;
+  var deps = normalize ? load.metadata.deps.map(function(dep) { return load.depMap[dep]; }) :
+                         load.metadata.deps;
 
   return Promise.resolve({
     source: globalOutput(load.name, deps, load.metadata.exports, load.metadata.init, load.source)
   });
-}
+};
 
 exports.sfx = function(loader) {
 

@@ -46,7 +46,8 @@ function cjsOutput(name, deps, address, source, baseURL) {
 }
 
 exports.compile = function(load, normalize, loader) {
-  var deps = normalize ? load.metadata.deps.map(function(dep) { return load.depMap[dep]; }) : load.metadata.deps;
+  var deps = normalize ? load.metadata.deps.map(function(dep) { return load.depMap[dep]; }) :
+                         load.metadata.deps;
 
   return Promise.resolve(load.source)
   .then(function(source) {
@@ -63,14 +64,14 @@ exports.compile = function(load, normalize, loader) {
   .then(function(source) {
     return { source: cjsOutput(load.name, deps, load.address, source, loader.baseURL) };
   });
-}
+};
 
 function remap(source, map, fileName) {
   // NB can remove after Traceur 0.0.77
   if (!source) source = ' ';
   var compiler = new traceur.Compiler({ script: true });
   var tree = compiler.parse(source, fileName);
-  
+
   var transformer = new CJSRequireTransformer('require', map);
   tree = transformer.transformAny(tree);
 

@@ -45,7 +45,7 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
   }
   // named define
   else {
-    // if we don't have any other defines, 
+    // if we don't have any other defines,
     // then let this be an anonymous define
     if (!this.anonDefine && !this.defineBundle)
       this.anonDefine = true;
@@ -99,7 +99,7 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
     // now we need to do a scope transformer for the require function at this position
     var fnParameters = cjsFactory.parameterList.parameters;
     var reqName = fnParameters[0] && fnParameters[0].parameter.binding.identifierToken.value;
-    
+
     // now we create a new scope transformer and apply it to this function to find every call of
     // the function reqName, noting the require
     var cjsRequires = new CJSRequireTransformer(reqName);
@@ -244,7 +244,7 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
       ], parseExpression([JSON.stringify(deps)]), factory);
   }
 
-    
+
 
   /*
     define({ })
@@ -275,7 +275,7 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
 
     Note there is a strange subtlety in RequireJS here.
 
-    If there is one argument, 
+    If there is one argument,
   */
   if (args[0].type == 'FUNCTION_EXPRESSION') {
     // system loader already extracted the deps for us
@@ -364,8 +364,8 @@ exports.attach = function(loader) {
     }
 
     return result;
-  }
-}
+  };
+};
 
 exports.remap = function(source, map, fileName) {
   // NB can remove after Traceur 0.0.77
@@ -376,14 +376,14 @@ exports.remap = function(source, map, fileName) {
   tree = transformer.transformAny(tree);
 
   if (transformer.globalCJSRequires) {
-    var cjsRequires = new CJSRequireTransformer('require', function(v) { return map[v] || v });
+    var cjsRequires = new CJSRequireTransformer('require', function(v) { return map[v] || v; });
     tree = cjsRequires.transformAny(tree);
   }
 
   return Promise.resolve({
     source: compiler.write(tree)
   });
-}
+};
 
 
 // converts anonymous AMDs into named AMD for the module
@@ -395,7 +395,7 @@ exports.compile = function(load, normalize, loader) {
   tree = transformer.transformAny(tree);
 
   if (load.metadata.globalCJSRequires) {
-    var cjsRequires = new CJSRequireTransformer('require', normalize && function(v) { return load.depMap[v] || v });
+    var cjsRequires = new CJSRequireTransformer('require', normalize && function(v) { return load.depMap[v] || v; });
     tree = cjsRequires.transformAny(tree);
   }
   
@@ -406,4 +406,4 @@ exports.compile = function(load, normalize, loader) {
   return Promise.resolve({
     source: '(function() {\nfunction define(){};  define.amd = {};\n  ' + output.replace(/\n/g, '\n  ') + '})();'
   });
-}
+};
