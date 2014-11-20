@@ -27,13 +27,11 @@ exports.compile = function(load, normalize) {
   var deps = normalize ? load.metadata.deps.map(function(dep) { return load.depMap[dep]; }) :
                          load.metadata.deps;
 
-  var output = globalOutput(load.name, deps, load.metadata.exports, load.metadata.init, load.source);
+  var source = globalOutput(load.name, deps, load.metadata.exports, load.metadata.init, load.source);
 
-  return Promise.resolve({
-    source: output,
-    sourceMap: saucy.buildIdentitySourceMap(output, load.address),
-    sourceMapOffset: 3
-  });
+  var output = saucy.buildIdentitySourceMap(source, load.address);
+  output.sourceMapOffset = 3;
+  return output;
 };
 
 exports.sfx = function(loader) {

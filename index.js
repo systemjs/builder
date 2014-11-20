@@ -53,11 +53,6 @@ exports.build = function(moduleName, config, outFile) {
   });
 };
 
-var sourceMapRegEx = /\/\/[@#] ?(sourceURL|sourceMappingURL)=([^\n'"]+)/;
-function removeSourceMaps(source) {
-  return source.replace(sourceMapRegEx, '');
-}
-
 function compileLoad(load, sfx, compilers) {
   return Promise.resolve()
   .then(function() {
@@ -93,10 +88,6 @@ function compileLoad(load, sfx, compilers) {
       throw "unknown format " + load.metadata.format;
     }
   })
-  .then(function(output) {
-    output.source = removeSourceMaps(output.source || '');
-    return output;
-  });
 }
 
 exports.buildTree = function(tree, outFile) {

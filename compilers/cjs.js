@@ -68,12 +68,10 @@ exports.compile = function(load, normalize, loader) {
     return source;
   })
   .then(function(source) {
-    var output = cjsOutput(load.name, deps, load.address, source, loader.baseURL);
-    return {
-      source: output,
-      sourceMap: saucy.buildIdentitySourceMap(output, load.address),
-      sourceMapOffset: 6
-    };
+    var output = saucy.buildIdentitySourceMap(source, load.address);
+    output.sourceMapOffset = 6;
+    output.source = cjsOutput(load.name, deps, load.address, output.source, loader.baseURL);
+    return output;
   });
 };
 
