@@ -153,7 +153,7 @@ exports.buildSFX = function(moduleName, config, outFile) {
   })
   .then(function(sfxcore) {
     outputs.unshift("('" + moduleName + "', function(System) {\n");
-    outputs.unshift(sfxcore);
+    outputs.unshift(sfxcore.toString());
   })
   .then(function(result) {
     outputs.push("});");
