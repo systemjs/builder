@@ -2,6 +2,7 @@
 
 var path = require('path');
 var traceur = require('traceur');
+var saucy = require('../sourcemaps');
 var compiler = new traceur.Compiler();
 var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer').ParseTreeTransformer;
 
@@ -30,6 +31,10 @@ CJSRequireTransformer.prototype.transformCallExpression = function(tree) {
 exports.CJSRequireTransformer = CJSRequireTransformer;
 
 function cjsOutput(name, deps, address, source, baseURL) {
+  // TODO: handle transitive compile if normalized (remap)
+  if (typeof source == 'object') {
+    source = source.source;
+  }
   var filename = path.relative(baseURL, address).replace(/\\/g, "/");
   var dirname = path.dirname(filename);
   var output = 'System.register("' + name + '", ' + JSON.stringify(deps) + ', true, function(require, exports, module) {\n'
@@ -38,7 +43,8 @@ function cjsOutput(name, deps, address, source, baseURL) {
     + '  global.define = undefined;\n'
     + '  var __filename = "' + filename + '";\n'
     + '  var __dirname = "' + dirname + '";\n'
-    + '  ' + source.toString().replace(/\n/g, '\n  ') + '\n'
+    //+ '  ' + source.toString().replace(/\n/g, '\n  ') + '\n'
+    + source.toString() + '\n'
     + '  global.define = __define;\n'
     + '  return module.exports;\n'
     + '});\n'
@@ -56,27 +62,35 @@ exports.compile = function(load, normalize, loader) {
         return load.depMap[dep];
       }, load.address)
       .then(function(output) {
-        return output.source;
+        return output;
       });
     }
     return source;
   })
   .then(function(source) {
-    return { source: cjsOutput(load.name, deps, load.address, source, loader.baseURL) };
+    var output = cjsOutput(load.name, deps, load.address, source, loader.baseURL);
+    return {
+      source: output,
+      sourceMap: saucy.buildIdentitySourceMap(output, load.address),
+      sourceMapOffset: 6
+    };
   });
 };
 
 function remap(source, map, fileName) {
   // NB can remove after Traceur 0.0.77
   if (!source) source = ' ';
-  var compiler = new traceur.Compiler({ script: true });
+  var options = {script: true, sourceMaps: 'memory'};
+  var compiler = new traceur.Compiler(options);
   var tree = compiler.parse(source, fileName);
 
   var transformer = new CJSRequireTransformer('require', map);
   tree = transformer.transformAny(tree);
 
+  var output = compiler.write(tree, fileName);
   return Promise.resolve({
-    source: compiler.write(tree)
+    source: output,
+    sourceMap: compiler.getSourceMap()
   });
 }
 exports.remap = remap;

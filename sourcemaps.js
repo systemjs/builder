@@ -35,8 +35,6 @@ exports.concatenateSourceMaps = function(sourceFilename, mapsWithOffsets, outPat
       throw new Error(mapSource + ": Invalid JSON");
     }
 
-    console.log(offset);
-
     // this is odd, sourceRoot is redundant (and causes doubling)
     map.sourceRoot = '';
 

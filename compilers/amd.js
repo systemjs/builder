@@ -370,8 +370,9 @@ exports.attach = function(loader) {
 exports.remap = function(source, map, fileName) {
   // NB can remove after Traceur 0.0.77
   if (!source) source = ' ';
-  var compiler = new traceur.Compiler({ script: true });
-  var tree = compiler.parse(source, fileName);
+  var options = {script: true, sourceMaps: 'memory'};
+  var compiler = new traceur.Compiler(options);
+  var tree = compiler.parse(source, fileName || '');
   var transformer = new AMDDependenciesTransformer(map);
   tree = transformer.transformAny(tree);
 
@@ -380,16 +381,19 @@ exports.remap = function(source, map, fileName) {
     tree = cjsRequires.transformAny(tree);
   }
 
+  var output = compiler.write(tree, fileName);
   return Promise.resolve({
-    source: compiler.write(tree)
+    source: output,
+    sourceMap: compiler.getSourceMap()
   });
 };
 
 
 // converts anonymous AMDs into named AMD for the module
 exports.compile = function(load, normalize, loader) {
-  var compiler = new traceur.Compiler();
-  
+  var options = {sourceMaps: 'memory'};
+  var compiler = new traceur.Compiler(options);
+
   var tree = load.metadata.parseTree;
   var transformer = new AMDDefineRegisterTransformer(load, load.metadata.isAnon, normalize ? load.depMap : {});
   tree = transformer.transformAny(tree);
@@ -398,12 +402,14 @@ exports.compile = function(load, normalize, loader) {
     var cjsRequires = new CJSRequireTransformer('require', normalize && function(v) { return load.depMap[v] || v; });
     tree = cjsRequires.transformAny(tree);
   }
-  
-  var output = compiler.write(tree);
+
+  var output = compiler.write(tree, load.address);
 
   // because we've blindly replaced the define statement from AMD with a System.register call
   // we have to ensure we still trigger any AMD guard statements in the code by creating a dummy define which isn't called
   return Promise.resolve({
-    source: '(function() {\nfunction define(){};  define.amd = {};\n  ' + output.replace(/\n/g, '\n  ') + '})();'
+    source: '(function() {\nfunction define(){};  define.amd = {};\n' + output + '})();',
+    sourceMap: compiler.getSourceMap(),
+    sourceMapOffset: 2
   });
 };

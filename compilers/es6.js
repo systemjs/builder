@@ -33,8 +33,7 @@ exports.compile = function(load, normalize, loader) {
   options.modules = 'instantiate';
   options.script = false;
   options.moduleName = load.name;
-  options.sourceMaps = false;
-  delete options.filename;
+  options.sourceMaps = 'memory';
 
   var compiler = new traceur.Compiler(options);
 
@@ -46,7 +45,9 @@ exports.compile = function(load, normalize, loader) {
 
   tree = compiler.transform(transformer.transformAny(tree), load.name);
 
+  var source = compiler.write(tree, load.address);
   return Promise.resolve({
-    source: compiler.write(tree)
+    source: source,
+    sourceMap: compiler.getSourceMap()
   });
 };
