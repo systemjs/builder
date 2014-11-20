@@ -23,15 +23,20 @@ function globalOutput(name, deps, exportName, init, source) {
     + '});\n';
 }
 
-exports.compile = function(load, normalize) {
+exports.compile = function(load, opts, loader) {
+  var normalize = opts.normalize;
   var deps = normalize ? load.metadata.deps.map(function(dep) { return load.depMap[dep]; }) :
                          load.metadata.deps;
 
   var source = globalOutput(load.name, deps, load.metadata.exports, load.metadata.init, load.source);
 
-  var output = saucy.buildIdentitySourceMap(source, load.address);
-  output.sourceMapOffset = 3;
-  return output;
+  if (!opts.createSourceMaps) {
+    return source;
+  } else {
+    var output = saucy.buildIdentitySourceMap(source, load.address);
+    output.sourceMapOffset = 3;
+    return output;
+  }
 };
 
 exports.sfx = function(loader) {

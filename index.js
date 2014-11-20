@@ -53,7 +53,7 @@ exports.build = function(moduleName, config, outFile) {
   });
 };
 
-function compileLoad(load, sfx, compilers) {
+function compileLoad(load, opts, compilers) {
   return Promise.resolve()
   .then(function() {
     // note which compilers we used
@@ -63,23 +63,23 @@ function compileLoad(load, sfx, compilers) {
     }
     else if (load.metadata.format == 'es6') {
       compilers['es6'] = true;
-      return es6Compiler.compile(load, sfx, loader);
+      return es6Compiler.compile(load, opts, loader);
     }
     else if (load.metadata.format == 'register') {
       compilers['register'] = true;
-      return registerCompiler.compile(load, sfx, loader);
+      return registerCompiler.compile(load, opts, loader);
     }
     else if (load.metadata.format == 'amd') {
       compilers['amd'] = true;
-      return amdCompiler.compile(load, sfx, loader);
+      return amdCompiler.compile(load, opts, loader);
     }
     else if (load.metadata.format == 'cjs') {
       compilers['cjs'] = true;
-      return cjsCompiler.compile(load, sfx, loader);
+      return cjsCompiler.compile(load, opts, loader);
     }
     else if (load.metadata.format == 'global') {
       compilers['global'] = true;
-      return globalCompiler.compile(load, sfx, loader);
+      return globalCompiler.compile(load, opts, loader);
     }
     else if (load.metadata.format == 'defined') {
       return {source: ''};
@@ -87,19 +87,20 @@ function compileLoad(load, sfx, compilers) {
     else {
       throw "unknown format " + load.metadata.format;
     }
-  })
+  });
 }
 
-exports.buildTree = function(tree, outFile) {
+exports.buildTree = function(tree, outFile, createSourceMaps) {
   var outputs = ['"format register";\n'];
   var names = Object.keys(tree);
+  var opts = {createSourceMaps: createSourceMaps, outFile: outFile};
 
   return Promise.all(names.map(function(name) {
     var load = tree[name];
-    return Promise.resolve(compileLoad(load))
+    return Promise.resolve(compileLoad(load, opts))
                   .then(outputs.push.bind(outputs));
   }))
-  .then(builder.writeOutputFile.bind(this, outFile, outputs));
+  .then(builder.writeOutputFile.bind(this, opts, outputs));
 };
 
 exports.buildSFX = function(moduleName, config, outFile) {
@@ -110,6 +111,7 @@ exports.buildSFX = function(moduleName, config, outFile) {
 
   var outputs = [];
   var compilers = {};
+  var opts = {normalize: true, outFile: outFile};
   return exports.trace(moduleName, config)
   .then(function(trace) {
     var tree = trace.tree;
@@ -120,7 +122,7 @@ exports.buildSFX = function(moduleName, config, outFile) {
         outputs.push('System.register("' + load.name + '", [], false, function() { console.log("SystemJS Builder - Plugin for ' + load.name + ' does not support sfx builds"); });\n');
       }
 
-      return Promise.resolve(compileLoad(load, true, compilers))
+      return Promise.resolve(compileLoad(load, opts, compilers))
                     .then(outputs.push.bind(outputs));
     }));
   })
@@ -156,7 +158,7 @@ exports.buildSFX = function(moduleName, config, outFile) {
   .then(function(result) {
     outputs.push("});");
   })
-  .then(builder.writeOutputFile.bind(this, outFile, outputs));
+  .then(builder.writeOutputFile.bind(this, opts, outputs));
 };
 
 exports.loadConfig = function(configFile) {

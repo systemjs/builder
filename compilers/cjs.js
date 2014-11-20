@@ -51,7 +51,8 @@ function cjsOutput(name, deps, address, source, baseURL) {
   return output;
 }
 
-exports.compile = function(load, normalize, loader) {
+exports.compile = function(load, opts, loader) {
+  var normalize = opts.normalize;
   var deps = normalize ? load.metadata.deps.map(function(dep) { return load.depMap[dep]; }) :
                          load.metadata.deps;
 
@@ -68,10 +69,14 @@ exports.compile = function(load, normalize, loader) {
     return source;
   })
   .then(function(source) {
-    var output = saucy.buildIdentitySourceMap(source, load.address);
-    output.sourceMapOffset = 6;
-    output.source = cjsOutput(load.name, deps, load.address, output.source, loader.baseURL);
-    return output;
+    if (!opts.createSourceMaps) {
+      return source;
+    } else {
+      var output = saucy.buildIdentitySourceMap(source, load.address);
+      output.sourceMapOffset = 6;
+      output.source = cjsOutput(load.name, deps, load.address, output.source, loader.baseURL);
+      return output;
+    }
   });
 };
 

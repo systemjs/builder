@@ -370,7 +370,7 @@ exports.attach = function(loader) {
 exports.remap = function(source, map, fileName) {
   // NB can remove after Traceur 0.0.77
   if (!source) source = ' ';
-  var options = {script: true, sourceMaps: 'memory'};
+  var options = {script: true};
   var compiler = new traceur.Compiler(options);
   var tree = compiler.parse(source, fileName || '');
   var transformer = new AMDDependenciesTransformer(map);
@@ -381,17 +381,18 @@ exports.remap = function(source, map, fileName) {
     tree = cjsRequires.transformAny(tree);
   }
 
-  var output = compiler.write(tree, fileName);
-  return Promise.resolve({
-    source: output,
-    sourceMap: compiler.getSourceMap()
-  });
+  var output = compiler.write(tree);
+  return Promise.resolve(output);
 };
 
 
 // converts anonymous AMDs into named AMD for the module
-exports.compile = function(load, normalize, loader) {
-  var options = {sourceMaps: 'memory'};
+exports.compile = function(load, opts, loader) {
+  var normalize = opts.normalize;
+  var options = {};
+  if (opts.createSourceMaps) {
+    options.sourceMaps = 'memory';
+  }
   var compiler = new traceur.Compiler(options);
 
   var tree = load.metadata.parseTree;

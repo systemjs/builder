@@ -27,13 +27,15 @@ function remap(source, map, fileName) {
 }
 exports.remap = remap;
 
-exports.compile = function(load, normalize, loader) {
-
+exports.compile = function(load, opts, loader) {
+  var normalize = opts.normalize;
   var options = loader.traceurOptions || {};
   options.modules = 'instantiate';
   options.script = false;
   options.moduleName = load.name;
-  options.sourceMaps = 'memory';
+  if (opts.createSourceMaps) {
+    options.sourceMaps = 'memory';
+  }
 
   var compiler = new traceur.Compiler(options);
 
