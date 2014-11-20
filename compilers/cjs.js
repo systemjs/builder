@@ -70,7 +70,7 @@ exports.compile = function(load, opts, loader) {
   })
   .then(function(source) {
     if (!opts.createSourceMaps) {
-      return source;
+      return cjsOutput(load.name, deps, load.address, source, loader.baseURL);
     } else {
       var output = saucy.buildIdentitySourceMap(source, load.address);
       output.sourceMapOffset = 6;
