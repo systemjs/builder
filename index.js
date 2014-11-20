@@ -103,7 +103,7 @@ exports.buildTree = function(tree, outFile, createSourceMaps) {
   .then(builder.writeOutputFile.bind(this, opts, outputs));
 };
 
-exports.buildSFX = function(moduleName, config, outFile) {
+exports.buildSFX = function(moduleName, config, outFile, createSourceMaps) {
   if (arguments.length == 2) {
     outFile = config;
     config = null;
@@ -111,7 +111,7 @@ exports.buildSFX = function(moduleName, config, outFile) {
 
   var outputs = [];
   var compilers = {};
-  var opts = {normalize: true, outFile: outFile};
+  var opts = {normalize: true, createSourceMaps: createSourceMaps, outFile: outFile};
   return exports.trace(moduleName, config)
   .then(function(trace) {
     var tree = trace.tree;
