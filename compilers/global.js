@@ -28,13 +28,13 @@ exports.compile = function(load, opts, loader) {
   var deps = normalize ? load.metadata.deps.map(function(dep) { return load.depMap[dep]; }) :
                          load.metadata.deps;
 
-  var source = globalOutput(load.name, deps, load.metadata.exports, load.metadata.init, load.source);
 
   if (!opts.createSourceMaps) {
-    return source;
+    return globalOutput(load.name, deps, load.metadata.exports, load.metadata.init, load.source);
   } else {
-    var output = saucy.buildIdentitySourceMap(source, load.address);
+    var output = saucy.buildIdentitySourceMap(load.source, load.address);
     output.sourceMapOffset = 3;
+    output.source = globalOutput(load.name, deps, load.metadata.exports, load.metadata.init, output.source);
     return output;
   }
 };
