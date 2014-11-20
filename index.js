@@ -10,10 +10,7 @@ var registerCompiler = require('./compilers/register');
 var amdCompiler = require('./compilers/amd');
 var cjsCompiler = require('./compilers/cjs');
 var globalCompiler = require('./compilers/global');
-
-var saucy = require('./sourcemaps');
-
-var mkdirp = require('mkdirp');
+var builder = require('./lib/builder');
 
 var path = require('path');
 
@@ -102,58 +99,6 @@ function compileLoad(load, sfx, compilers) {
   });
 }
 
-var countLines = function(str) {
-  return str.split(/\r\n|\r|\n/).length;
-};
-
-var writeOutputFile = function(outFile, outputs) {
-  var concatOutput = [];
-  var sourceMapsWithOffsets = [];
-  var offset = 0;
-
-  outputs = outputs || [];
-
-  outputs.forEach(function(output) {
-    var source;
-    if (typeof output == "object") {
-      source = output.source || '';
-      var offset_ = output.sourceMapOffset || 0;
-      var map = output.sourceMap;
-      if (map) {
-        //console.log(output.source)
-        sourceMapsWithOffsets.push([offset + offset_, map]);
-      }
-    } else if (typeof output == "string") {
-      source = output;
-    } else {
-      throw "Unexpected output format: " + output.toString();
-    }
-    offset += countLines(source);
-    concatOutput.push(source);
-  });
-
-  var outPath = path.dirname(outFile);
-
-  return asp(mkdirp)(outPath).then(function() {
-    var writeSourceMap;
-    if (sourceMapsWithOffsets.length > 0) {
-      var sourceOutFile = outFile + '.map';
-      var combinedSourceMap = saucy.concatenateSourceMaps(
-        outFile,
-        sourceMapsWithOffsets,
-        'file:' + path.resolve(outPath)
-      );
-
-      concatOutput.push('//# sourceMappingURL=' + sourceOutFile);
-
-      writeSourceMap = asp(fs.writeFile)(sourceOutFile, combinedSourceMap);
-    }
-    return Promise.resolve(writeSourceMap).then(function() {
-      return asp(fs.writeFile)(outFile, concatOutput.join('\n'));
-    });
-  });
-};
-
 exports.buildTree = function(tree, outFile) {
   var outputs = ['"format register";\n'];
   var names = Object.keys(tree);
@@ -163,7 +108,7 @@ exports.buildTree = function(tree, outFile) {
     return Promise.resolve(compileLoad(load))
                   .then(outputs.push.bind(outputs));
   }))
-  .then(writeOutputFile.bind(this, outFile, outputs));
+  .then(builder.writeOutputFile.bind(this, outFile, outputs));
 };
 
 exports.buildSFX = function(moduleName, config, outFile) {
@@ -220,7 +165,7 @@ exports.buildSFX = function(moduleName, config, outFile) {
   .then(function(result) {
     outputs.push("});");
   })
-  .then(writeOutputFile.bind(this, outFile, outputs));
+  .then(builder.writeOutputFile.bind(this, outFile, outputs));
 };
 
 exports.loadConfig = function(configFile) {

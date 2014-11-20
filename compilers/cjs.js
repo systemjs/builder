@@ -2,7 +2,7 @@
 
 var path = require('path');
 var traceur = require('traceur');
-var saucy = require('../sourcemaps');
+var saucy = require('../lib/sourcemaps');
 var compiler = new traceur.Compiler();
 var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer').ParseTreeTransformer;
 

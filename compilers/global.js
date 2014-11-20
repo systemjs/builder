@@ -4,7 +4,7 @@
 // - support "init" as argument to retrieveGlobal
 // - do a global scope rewriting on the source so "var" declarations assign to global
 
-var saucy = require('../sourcemaps');
+var saucy = require('../lib/sourcemaps');
 
 // RATHER than prepare and retrieve, detect the globals written and treat as exports
 // this is a really hard problem though as we need to cater to global IIFE detection
