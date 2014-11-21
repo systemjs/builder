@@ -33,7 +33,7 @@ exports.compile = function(load, opts, loader) {
   options.modules = 'instantiate';
   options.script = false;
   options.moduleName = load.name;
-  if (opts.createSourceMaps) {
+  if (opts.sourceMaps) {
     options.sourceMaps = 'memory';
   }
 

@@ -9,9 +9,10 @@
   "dependencies": {
     "mkdirp": "^0.5.0",
     "rsvp": "^3.0.14",
+    "source-map": "~0.1.8",
     "systemjs": "^0.10.0",
     "traceur": "0.0.74",
-    "source-map": "~0.1.8"
+    "uglify-js": "^2.4.15"
   },
   "devDependencies": {
     "es6-module-loader": "0.10.0"

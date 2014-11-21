@@ -42,14 +42,11 @@ exports.reset = reset;
 
 reset();
 
-exports.build = function(moduleName, config, outFile, createSourceMaps) {
-  if (arguments.length == 2) {
-    outFile = config;
-    config = null;
-  }
-  return exports.trace(moduleName, config)
+exports.build = function(moduleName, outFile, opts) {
+  opts = opts || {};
+  return exports.trace(moduleName, opts.config)
   .then(function(trace) {
-    return exports.buildTree(trace.tree, outFile, createSourceMaps);
+    return exports.buildTree(trace.tree, outFile, opts);
   });
 };
 
@@ -90,10 +87,12 @@ function compileLoad(load, opts, compilers) {
   });
 }
 
-exports.buildTree = function(tree, outFile, createSourceMaps) {
+exports.buildTree = function(tree, outFile, opts) {
+  opts = opts || {};
+  opts.outFile = outFile;
+
   var outputs = ['"format register";\n'];
   var names = Object.keys(tree);
-  var opts = {createSourceMaps: createSourceMaps, outFile: outFile};
 
   return Promise.all(names.map(function(name) {
     var load = tree[name];
@@ -103,15 +102,15 @@ exports.buildTree = function(tree, outFile, createSourceMaps) {
   .then(builder.writeOutputFile.bind(this, opts, outputs));
 };
 
-exports.buildSFX = function(moduleName, config, outFile, createSourceMaps) {
-  if (arguments.length == 2) {
-    outFile = config;
-    config = null;
-  }
+exports.buildSFX = function(moduleName, outFile, opts) {
+  opts = opts || {};
+  var config = opts.config;
+
+  opts.outFile = outFile;
 
   var outputs = [];
   var compilers = {};
-  var opts = {normalize: true, createSourceMaps: createSourceMaps, outFile: outFile};
+  opts.normalize = true;
   return exports.trace(moduleName, config)
   .then(function(trace) {
     var tree = trace.tree;

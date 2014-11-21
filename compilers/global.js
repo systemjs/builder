@@ -29,7 +29,7 @@ exports.compile = function(load, opts, loader) {
                          load.metadata.deps;
 
 
-  if (!opts.createSourceMaps) {
+  if (!opts.sourceMaps) {
     return globalOutput(load.name, deps, load.metadata.exports, load.metadata.init, load.source);
   } else {
     var output = saucy.buildIdentitySourceMap(load.source, load.address);
