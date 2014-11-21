@@ -40,16 +40,18 @@ Usage
 ```javascript
   var builder = require('systemjs-builder');
 
-  builder.build('myModule', {
-    baseURL: path.resolve('some/folder'),
+  builder.build('myModule', 'outfile.js', {
+    config: {
+      baseURL: path.resolve('some/folder'),
 
-    // any map config
-    map: {
-      jquery: 'jquery-1.2.3/jquery'
-    },
+      // any map config
+      map: {
+        jquery: 'jquery-1.2.3/jquery'
+      },
 
-    // etc. any SystemJS config
-  }, 'outfile.js')
+      // etc. any SystemJS config
+    }
+  })
   .then(function() {
     console.log('Build complete');
   })
@@ -88,7 +90,7 @@ To make a bundle that is independent of the SystemJS loader entirely, we can mak
 
 ```javascript
   var builder = require('systemjs-builder');
-  builder.buildSFX('myModule', config, 'outfile.js');
+  builder.buildSFX('myModule', 'outfile.js', options);
 ```
 
 This bundle file can then be included with a `<script>` tag, and no other dependencies (apart from Traceur runtime if needed) would need to be included in the page.
@@ -100,6 +102,15 @@ Rather, if it is needed to have globals like `jQuery` not included, as they will
 jquery.js
 ```javascript
   module.exports = window.jQuery;
+```
+
+### Minfication & Source Maps
+
+As well as an `options.config` parameter, it is also possible to specify minification and source maps options:
+
+```javascript
+  var builder = require('systemjs-builder');
+  builder.build('myModule', 'outfile.js', { minify: true, sourceMaps: true, config: cfg });
 ```
 
 ### Ignore Resources

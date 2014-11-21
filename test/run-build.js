@@ -89,11 +89,11 @@ builder.loadConfig('./cfg.js')
   })
 
   .then(function() {
-    return builder.build('tree/amd-7', {}, 'amd-7.js');
+    return builder.build('tree/amd-7', 'amd-7.js');
   })
 
   .then(function() {
-    return builder.buildSFX('tree/amd-1', {}, 'sfx.js');
+    return builder.buildSFX('tree/amd-1', 'sfx.js');
   })
 
   .catch(err);
