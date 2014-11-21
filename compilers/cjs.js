@@ -2,6 +2,7 @@
 
 var path = require('path');
 var traceur = require('traceur');
+var saucy = require('../lib/sourcemaps');
 var compiler = new traceur.Compiler();
 var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer').ParseTreeTransformer;
 
@@ -30,6 +31,10 @@ CJSRequireTransformer.prototype.transformCallExpression = function(tree) {
 exports.CJSRequireTransformer = CJSRequireTransformer;
 
 function cjsOutput(name, deps, address, source, baseURL) {
+  // TODO: handle transitive compile if normalized (remap)
+  if (typeof source == 'object') {
+    source = source.source;
+  }
   var filename = path.relative(baseURL, address).replace(/\\/g, "/");
   var dirname = path.dirname(filename);
   var output = 'System.register("' + name + '", ' + JSON.stringify(deps) + ', true, function(require, exports, module) {\n'
@@ -38,15 +43,18 @@ function cjsOutput(name, deps, address, source, baseURL) {
     + '  global.define = undefined;\n'
     + '  var __filename = "' + filename + '";\n'
     + '  var __dirname = "' + dirname + '";\n'
-    + '  ' + source.toString().replace(/\n/g, '\n  ') + '\n'
+    //+ '  ' + source.toString().replace(/\n/g, '\n  ') + '\n'
+    + source.toString() + '\n'
     + '  global.define = __define;\n'
     + '  return module.exports;\n'
     + '});\n'
   return output;
 }
 
-exports.compile = function(load, normalize, loader) {
-  var deps = normalize ? load.metadata.deps.map(function(dep) { return load.depMap[dep]; }) : load.metadata.deps;
+exports.compile = function(load, opts, loader) {
+  var normalize = opts.normalize;
+  var deps = normalize ? load.metadata.deps.map(function(dep) { return load.depMap[dep]; }) :
+                         load.metadata.deps;
 
   return Promise.resolve(load.source)
   .then(function(source) {
@@ -55,27 +63,37 @@ exports.compile = function(load, normalize, loader) {
         return load.depMap[dep];
       }, load.address)
       .then(function(output) {
-        return output.source;
+        return output;
       });
     }
     return source;
   })
   .then(function(source) {
-    return { source: cjsOutput(load.name, deps, load.address, source, loader.baseURL) };
+    if (!opts.createSourceMaps) {
+      return cjsOutput(load.name, deps, load.address, source, loader.baseURL);
+    } else {
+      var output = saucy.buildIdentitySourceMap(source, load.address);
+      output.sourceMapOffset = 6;
+      output.source = cjsOutput(load.name, deps, load.address, output.source, loader.baseURL);
+      return output;
+    }
   });
-}
+};
 
 function remap(source, map, fileName) {
   // NB can remove after Traceur 0.0.77
   if (!source) source = ' ';
-  var compiler = new traceur.Compiler({ script: true });
+  var options = {script: true, sourceMaps: 'memory'};
+  var compiler = new traceur.Compiler(options);
   var tree = compiler.parse(source, fileName);
-  
+
   var transformer = new CJSRequireTransformer('require', map);
   tree = transformer.transformAny(tree);
 
+  var output = compiler.write(tree, fileName);
   return Promise.resolve({
-    source: compiler.write(tree)
+    source: output,
+    sourceMap: compiler.getSourceMap()
   });
 }
 exports.remap = remap;

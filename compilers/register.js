@@ -10,4 +10,4 @@ exports.compile = function(load) {
   return Promise.resolve({
     source: load.source.replace(anonRegisterRegEx, 'System.register("' + load.name + '", [') + '\n'
   });
-}
+};

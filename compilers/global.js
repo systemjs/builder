@@ -4,6 +4,7 @@
 // - support "init" as argument to retrieveGlobal
 // - do a global scope rewriting on the source so "var" declarations assign to global
 
+var saucy = require('../lib/sourcemaps');
 
 // RATHER than prepare and retrieve, detect the globals written and treat as exports
 // this is a really hard problem though as we need to cater to global IIFE detection
@@ -13,21 +14,30 @@
 function globalOutput(name, deps, exportName, init, source) {
   return 'System.register("' + name + '", ' + JSON.stringify(deps) + ', false, function(__require, __exports, __module) {\n'
     + '  System.get("@@global-helpers").prepareGlobal(__module.id, ' + JSON.stringify(deps) + ');\n'
-    + '  (function() {'
-    + '  ' + source.replace(/\n/g, '\n      ') + '\n'
+    + '  (function() {\n'
+    //+ '  ' + source.replace(/\n/g, '\n      ') + '\n'
+    + source + '\n'
     + (exportName ? '  this["' + exportName + '"] = ' + exportName + ';\n' : '')
     + '  }).call(System.global);'
     + '  return System.get("@@global-helpers").retrieveGlobal(__module.id, ' + (exportName ? '"' + exportName + '"' : 'false') + (init ? ', ' + init.toString().replace(/\n/g, '\n      ') : '') + ');\n'
     + '});\n';
 }
 
-exports.compile = function(load, normalize) {
-  var deps = normalize ? load.metadata.deps.map(function(dep) { return load.depMap[dep]; }) : load.metadata.deps;
+exports.compile = function(load, opts, loader) {
+  var normalize = opts.normalize;
+  var deps = normalize ? load.metadata.deps.map(function(dep) { return load.depMap[dep]; }) :
+                         load.metadata.deps;
 
-  return Promise.resolve({
-    source: globalOutput(load.name, deps, load.metadata.exports, load.metadata.init, load.source)
-  });
-}
+
+  if (!opts.createSourceMaps) {
+    return globalOutput(load.name, deps, load.metadata.exports, load.metadata.init, load.source);
+  } else {
+    var output = saucy.buildIdentitySourceMap(load.source, load.address);
+    output.sourceMapOffset = 3;
+    output.source = globalOutput(load.name, deps, load.metadata.exports, load.metadata.init, output.source);
+    return output;
+  }
+};
 
 exports.sfx = function(loader) {
 

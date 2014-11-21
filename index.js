@@ -10,8 +10,7 @@ var registerCompiler = require('./compilers/register');
 var amdCompiler = require('./compilers/amd');
 var cjsCompiler = require('./compilers/cjs');
 var globalCompiler = require('./compilers/global');
-
-var mkdirp = require('mkdirp');
+var builder = require('./lib/builder');
 
 var path = require('path');
 
@@ -43,97 +42,76 @@ exports.reset = reset;
 
 reset();
 
-exports.build = function(moduleName, config, outFile) {
+exports.build = function(moduleName, config, outFile, createSourceMaps) {
   if (arguments.length == 2) {
     outFile = config;
     config = null;
   }
   return exports.trace(moduleName, config)
   .then(function(trace) {
-    return exports.buildTree(trace.tree, outFile)
+    return exports.buildTree(trace.tree, outFile, createSourceMaps);
   });
-}
+};
 
-var sourceMapRegEx = /\/\/[@#] ?(sourceURL|sourceMappingURL)=([^\n'"]+)/;
-function removeSourceMaps(source) {
-  return source.replace(sourceMapRegEx, '');
-}
-
-function compileLoad(load, sfx, compilers) {
+function compileLoad(load, opts, compilers) {
   return Promise.resolve()
   .then(function() {
     // note which compilers we used
     compilers = compilers || {};
     if (load.metadata.build == false) {
-      return;
+      return {};
     }
     else if (load.metadata.format == 'es6') {
       compilers['es6'] = true;
-      return es6Compiler.compile(load, sfx, loader).then(function(result) {
-        return result.source;
-      });
+      return es6Compiler.compile(load, opts, loader);
     }
     else if (load.metadata.format == 'register') {
       compilers['register'] = true;
-      return registerCompiler.compile(load, sfx, loader).then(function(result) {
-        return result.source;
-      });
+      return registerCompiler.compile(load, opts, loader);
     }
     else if (load.metadata.format == 'amd') {
       compilers['amd'] = true;
-      return amdCompiler.compile(load, sfx, loader).then(function(result) {
-        return result.source;
-      });
+      return amdCompiler.compile(load, opts, loader);
     }
     else if (load.metadata.format == 'cjs') {
       compilers['cjs'] = true;
-      return cjsCompiler.compile(load, sfx, loader).then(function(result) {
-        return result.source;
-      });
+      return cjsCompiler.compile(load, opts, loader);
     }
     else if (load.metadata.format == 'global') {
       compilers['global'] = true;
-      return globalCompiler.compile(load, sfx, loader).then(function(result) {
-        return result.source;
-      });
+      return globalCompiler.compile(load, opts, loader);
     }
     else if (load.metadata.format == 'defined') {
-      return '';
+      return {source: ''};
     }
     else {
       throw "unknown format " + load.metadata.format;
     }
-  })
-  .then(function(source) {
-    return removeSourceMaps(source || '');
-  })
-}
-
-exports.buildTree = function(tree, outFile) {
-  var concatOutput = ['"format register";\n'];
-
-  return Promise.all(Object.keys(tree).map(function(name) {
-    var load = tree[name];
-
-    return Promise.resolve(compileLoad(load))
-    .then(concatOutput.push.bind(concatOutput));
-  }))
-  .then(function() {
-    return asp(mkdirp)(path.dirname(outFile));
-  })
-  .then(function() {
-    return asp(fs.writeFile)(outFile, concatOutput.join('\n'));  
   });
 }
 
-exports.buildSFX = function(moduleName, config, outFile) {
+exports.buildTree = function(tree, outFile, createSourceMaps) {
+  var outputs = ['"format register";\n'];
+  var names = Object.keys(tree);
+  var opts = {createSourceMaps: createSourceMaps, outFile: outFile};
+
+  return Promise.all(names.map(function(name) {
+    var load = tree[name];
+    return Promise.resolve(compileLoad(load, opts))
+                  .then(outputs.push.bind(outputs));
+  }))
+  .then(builder.writeOutputFile.bind(this, opts, outputs));
+};
+
+exports.buildSFX = function(moduleName, config, outFile, createSourceMaps) {
   if (arguments.length == 2) {
     outFile = config;
     config = null;
   }
 
-  var concatOutput = [];
+  var outputs = [];
   var compilers = {};
+  var opts = {normalize: true, createSourceMaps: createSourceMaps, outFile: outFile};
   return exports.trace(moduleName, config)
   .then(function(trace) {
     var tree = trace.tree;
@@ -141,11 +119,11 @@ exports.buildSFX = function(moduleName, config, outFile) {
     return Promise.all(Object.keys(tree).map(function(name) {
       var load = tree[name];
       if (load.metadata.plugin && (load.metadata.build === false || load.metadata.plugin.build === false)) {
-        concatOutput.push('System.register("' + load.name + '", [], false, function() { console.log("SystemJS Builder - Plugin for ' + load.name + ' does not support sfx builds"); });\n');
+        outputs.push('System.register("' + load.name + '", [], false, function() { console.log("SystemJS Builder - Plugin for ' + load.name + ' does not support sfx builds"); });\n');
       }
-      
-      return Promise.resolve(compileLoad(load, true, compilers))
-      .then(concatOutput.push.bind(concatOutput));
+
+      return Promise.resolve(compileLoad(load, opts, compilers))
+                    .then(outputs.push.bind(outputs));
     }));
   })
   // next add sfx headers for formats at the beginning
@@ -154,37 +132,34 @@ exports.buildSFX = function(moduleName, config, outFile) {
       return registerCompiler.sfx(loader);
   })
   .then(function(result) {
-    concatOutput.unshift(result || '');
+    outputs.unshift(result || '');
     if (compilers.amd && amdCompiler.sfx)
       return amdCompiler.sfx(loader);
   })
   .then(function(result) {
-    concatOutput.unshift(result || '');
+    outputs.unshift(result || '');
     if (compilers.cjs && cjsCompiler.sfx)
       return cjsCompiler.sfx(loader);
   })
   .then(function(result) {
-    concatOutput.unshift(result || '');
+    outputs.unshift(result || '');
     if (compilers.global && globalCompiler.sfx)
       return globalCompiler.sfx(loader);
   })
   // next wrap with the core code
   .then(function(result) {
-    concatOutput.push(result || '');
+    outputs.push(result || '');
     return asp(fs.readFile)(path.resolve(__dirname, './sfx/sfx-core.js'));
   })
   .then(function(sfxcore) {
-    concatOutput.unshift("('" + moduleName + "', function(System) {\n");
-    concatOutput.unshift(sfxcore);
+    outputs.unshift("('" + moduleName + "', function(System) {\n");
+    outputs.unshift(sfxcore.toString());
   })
   .then(function(result) {
-    concatOutput.push("});");
+    outputs.push("});");
   })
-  // finally write
-  .then(function() {
-    return asp(fs.writeFile)(outFile, concatOutput.join('\n'));  
-  });
-}
+  .then(builder.writeOutputFile.bind(this, opts, outputs));
+};
 
 exports.loadConfig = function(configFile) {
   return Promise.resolve()
@@ -207,7 +182,7 @@ exports.config = function(config) {
   }
   loader.config(cfg);
   pluginLoader.config(cfg);
-}
+};
 
 // returns a new tree containing tree1 n tree2
 exports.intersectTrees = function(tree1, tree2) {
@@ -220,12 +195,12 @@ exports.intersectTrees = function(tree1, tree2) {
   for (var name in tree2) {
     if (tree1Names.indexOf(name) == -1)
       continue;
-    
+
     intersectTree[name] = tree1[name];
   }
 
   return intersectTree;
-}
+};
 
 // returns a new tree containing tree1 + tree2
 exports.addTrees = function(tree1, tree2) {
@@ -238,7 +213,7 @@ exports.addTrees = function(tree1, tree2) {
     unionTree[name] = tree1[name];
 
   return unionTree;
-}
+};
 
 // returns a new tree containing tree1 - tree2
 exports.subtractTrees = function(tree1, tree2) {
@@ -251,7 +226,7 @@ exports.subtractTrees = function(tree1, tree2) {
     delete subtractTree[name];
 
   return subtractTree;
-}
+};
 
 // copies a subtree out of the tree
 exports.extractTree = function(tree, moduleName) {
@@ -262,7 +237,7 @@ exports.extractTree = function(tree, moduleName) {
   .then(function() {
     return outTree;
   });
-}
+};
 
 exports.trace = function(moduleName, config) {
   if (config) {

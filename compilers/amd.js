@@ -45,7 +45,7 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
   }
   // named define
   else {
-    // if we don't have any other defines, 
+    // if we don't have any other defines,
     // then let this be an anonymous define
     if (!this.anonDefine && !this.defineBundle)
       this.anonDefine = true;
@@ -99,7 +99,7 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
     // now we need to do a scope transformer for the require function at this position
     var fnParameters = cjsFactory.parameterList.parameters;
     var reqName = fnParameters[0] && fnParameters[0].parameter.binding.identifierToken.value;
-    
+
     // now we create a new scope transformer and apply it to this function to find every call of
     // the function reqName, noting the require
     var cjsRequires = new CJSRequireTransformer(reqName);
@@ -244,7 +244,7 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
       ], parseExpression([JSON.stringify(deps)]), factory);
   }
 
-    
+
 
   /*
     define({ })
@@ -275,7 +275,7 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
 
     Note there is a strange subtlety in RequireJS here.
 
-    If there is one argument, 
+    If there is one argument,
   */
   if (args[0].type == 'FUNCTION_EXPRESSION') {
     // system loader already extracted the deps for us
@@ -364,46 +364,53 @@ exports.attach = function(loader) {
     }
 
     return result;
-  }
-}
+  };
+};
 
 exports.remap = function(source, map, fileName) {
   // NB can remove after Traceur 0.0.77
   if (!source) source = ' ';
-  var compiler = new traceur.Compiler({ script: true });
-  var tree = compiler.parse(source, fileName);
+  var options = {script: true};
+  var compiler = new traceur.Compiler(options);
+  var tree = compiler.parse(source, fileName || '');
   var transformer = new AMDDependenciesTransformer(map);
   tree = transformer.transformAny(tree);
 
   if (transformer.globalCJSRequires) {
-    var cjsRequires = new CJSRequireTransformer('require', function(v) { return map[v] || v });
+    var cjsRequires = new CJSRequireTransformer('require', function(v) { return map[v] || v; });
     tree = cjsRequires.transformAny(tree);
   }
 
-  return Promise.resolve({
-    source: compiler.write(tree)
-  });
-}
+  var output = compiler.write(tree);
+  return Promise.resolve(output);
+};
 
 
 // converts anonymous AMDs into named AMD for the module
-exports.compile = function(load, normalize, loader) {
-  var compiler = new traceur.Compiler();
-  
+exports.compile = function(load, opts, loader) {
+  var normalize = opts.normalize;
+  var options = {};
+  if (opts.createSourceMaps) {
+    options.sourceMaps = 'memory';
+  }
+  var compiler = new traceur.Compiler(options);
+
   var tree = load.metadata.parseTree;
   var transformer = new AMDDefineRegisterTransformer(load, load.metadata.isAnon, normalize ? load.depMap : {});
   tree = transformer.transformAny(tree);
 
   if (load.metadata.globalCJSRequires) {
-    var cjsRequires = new CJSRequireTransformer('require', normalize && function(v) { return load.depMap[v] || v });
+    var cjsRequires = new CJSRequireTransformer('require', normalize && function(v) { return load.depMap[v] || v; });
     tree = cjsRequires.transformAny(tree);
   }
-  
-  var output = compiler.write(tree);
+
+  var output = compiler.write(tree, load.address);
 
   // because we've blindly replaced the define statement from AMD with a System.register call
   // we have to ensure we still trigger any AMD guard statements in the code by creating a dummy define which isn't called
   return Promise.resolve({
-    source: '(function() {\nfunction define(){};  define.amd = {};\n  ' + output.replace(/\n/g, '\n  ') + '})();'
+    source: '(function() {\nfunction define(){};  define.amd = {};\n' + output + '})();',
+    sourceMap: compiler.getSourceMap(),
+    sourceMapOffset: 2
   });
-}
+};
