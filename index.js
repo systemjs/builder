@@ -42,14 +42,14 @@ exports.reset = reset;
 
 reset();
 
-exports.build = function(moduleName, config, outFile) {
+exports.build = function(moduleName, config, outFile, createSourceMaps) {
   if (arguments.length == 2) {
     outFile = config;
     config = null;
   }
   return exports.trace(moduleName, config)
   .then(function(trace) {
-    return exports.buildTree(trace.tree, outFile);
+    return exports.buildTree(trace.tree, outFile, createSourceMaps);
   });
 };
 
