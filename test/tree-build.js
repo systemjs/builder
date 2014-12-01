@@ -6,6 +6,8 @@ System.register("tree/jquery", [], false, function(__require, __exports, __modul
   (function() {
 this.jquery = {};
 
+
+
   }).call(System.global);  return System.get("@@global-helpers").retrieveGlobal(__module.id, false);
 });
 
@@ -14,9 +16,9 @@ System.register("tree/global", ["./jquery"], false, function(__require, __export
   (function() {
 "deps ./jquery";
 "exports jquery.test";
-
 this.jquery = this.jquery || {};
 this.jquery.test = 'output';
+
 
 
   this["jquery.test"] = jquery.test;
@@ -48,6 +50,8 @@ System.register("tree/second", ["./third", "./cjs"], function($__export) {
   };
 });
 
+
+
 (function() {
 function define(){};  define.amd = {};
 System.register("tree/amd", ["./global", "./some!./plugin", "./text.txt!./text-plugin"], false, function(__require, __exports, __module) {
@@ -58,6 +62,8 @@ System.register("tree/amd", ["./global", "./some!./plugin", "./text.txt!./text-p
     };
   }).call(this, __require('./global'), __require('./some!./plugin'), __require('./text.txt!./text-plugin'));
 });
+
+
 })();
 System.register("tree/first", ["jquery-cdn", "@empty", "./second", "./amd"], function($__export) {
   "use strict";
@@ -77,6 +83,8 @@ System.register("tree/first", ["jquery-cdn", "@empty", "./second", "./amd"], fun
   };
 });
 
+
+
 System.register("tree/cjs", [], true, function(require, exports, module) {
   var global = System.global;
   var __define = global.define;
@@ -84,6 +92,8 @@ System.register("tree/cjs", [], true, function(require, exports, module) {
   var __filename = "tree/cjs.js";
   var __dirname = "tree";
 exports.cjs = true;
+
+
 
   global.define = __define;
   return module.exports;
@@ -96,10 +106,11 @@ System.register("tree/plugin", [], true, function(require, exports, module) {
   var __filename = "tree/plugin.js";
   var __dirname = "tree";
 exports.build = false;
-
 exports.fetch = function() {
   return '';
-}
+};
+
+
 
   global.define = __define;
   return module.exports;
@@ -112,6 +123,10 @@ System.register("tree/text.txt!tree/text-plugin", [], true, function(require, ex
   var __filename = "tree/text.txt";
   var __dirname = "tree";
 module.exports = "This is some text";
+
+
+
   global.define = __define;
   return module.exports;
 });
+//# sourceMappingURL=tree-build.js.map

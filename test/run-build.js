@@ -11,7 +11,7 @@ console.log('Running a multi-format build...');
 builder.loadConfig('./cfg.js')
 .then(function() {
 
-  builder.build('tree/first', 'tree-build.js')
+  builder.build('tree/first', 'tree-build.js', { sourceMaps: true })
   .then(function() {
     console.log('Done');
   })
