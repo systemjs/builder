@@ -83,7 +83,7 @@ exports.compile = function(load, opts, loader) {
 function remap(source, map, fileName) {
   // NB can remove after Traceur 0.0.77
   if (!source) source = ' ';
-  var options = {script: true, sourceMaps: 'memory'};
+  var options = {script: true};
   var compiler = new traceur.Compiler(options);
   var tree = compiler.parse(source, fileName);
 
@@ -92,8 +92,7 @@ function remap(source, map, fileName) {
 
   var output = compiler.write(tree, fileName);
   return Promise.resolve({
-    source: output,
-    sourceMap: compiler.getSourceMap()
+    source: output
   });
 }
 exports.remap = remap;
