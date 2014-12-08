@@ -460,8 +460,6 @@ System.register("tree/cjs", [], true, function(require, exports, module) {
   var __dirname = "tree";
 exports.cjs = true;
 
-
-
   global.define = __define;
   return module.exports;
 });
@@ -477,8 +475,6 @@ exports.fetch = function() {
   return '';
 };
 
-
-
   global.define = __define;
   return module.exports;
 });
@@ -490,8 +486,6 @@ System.register("tree/text.txt!tree/text-plugin", [], true, function(require, ex
   var __filename = "tree/text.txt";
   var __dirname = "tree";
 module.exports = "This is some text";
-
-
 
   global.define = __define;
   return module.exports;
