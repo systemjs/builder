@@ -27,6 +27,7 @@ function reset() {
   pluginLoader.baseURL = System.baseURL;
   pluginLoader.paths = { '*': '*.js' };
   pluginLoader.config = System.config;
+  pluginLoader.trace = true;
 
   loader.trace = true;
   loader.execute = false;
@@ -230,7 +231,7 @@ exports.subtractTrees = function(tree1, tree2) {
 // copies a subtree out of the tree
 exports.extractTree = function(tree, moduleName) {
   var outTree = {};
-  return visitTree(tree, moduleName, function(load) {
+  return visitTree(tree, moduleName, null, function(load) {
     outTree[load.name] = load;
   })
   .then(function() {
@@ -238,7 +239,7 @@ exports.extractTree = function(tree, moduleName) {
   });
 };
 
-exports.trace = function(moduleName, config) {
+exports.trace = function(moduleName, config, includePlugins) {
   if (config) {
     exports.config(config);
   }
@@ -255,7 +256,7 @@ exports.trace = function(moduleName, config) {
   .then(function(_moduleName) {
     moduleName = _moduleName;
     loader.global.System = System;
-    return visitTree(loader.loads, moduleName, function(load) {
+    return visitTree(loader.loads, moduleName, includePlugins && loader.pluginLoader, function(load) {
       traceTree[load.name] = load;
     });
   })
@@ -271,7 +272,7 @@ exports.trace = function(moduleName, config) {
   });
 }
 
-function visitTree(tree, moduleName, visit, seen) {
+function visitTree(tree, moduleName, pluginLoader, visit, seen) {
   seen = seen || [];
 
   if (seen.indexOf(moduleName) != -1)
@@ -286,8 +287,17 @@ function visitTree(tree, moduleName, visit, seen) {
 
   // visit the deps first
   return Promise.all(load.deps.map(function(dep) {
-    return Promise.resolve(visitTree(tree, load.depMap[dep], visit, seen));
+    return visitTree(tree, load.depMap[dep], pluginLoader, visit, seen);
   })).then(function() {
+    if (!pluginLoader)
+      return;
+
+    var pluginName = load.metadata.pluginName;
+    if (pluginName) {
+      return visitTree(pluginLoader.loads, pluginName, pluginLoader, visit, seen);
+    }
+  })
+  .then(function() {
     // if we are the bottom of the tree, visit
     return visit(load);
   });
