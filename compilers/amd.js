@@ -133,6 +133,9 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
     args = args.splice(1);
   }
 
+  if (!args[0])
+    return;
+
   // only when "exports" is present as an argument
   // or dependency, does it become "this" for AMD
   // otherwise "this" must reference the global
