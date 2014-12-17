@@ -17,6 +17,10 @@
   "devDependencies": {
     "es6-module-loader": "0.10.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/systemjs/builder.git"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
