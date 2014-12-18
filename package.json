@@ -11,7 +11,7 @@
     "rsvp": "^3.0.14",
     "source-map": "~0.1.8",
     "systemjs": "^0.10.2",
-    "traceur": "0.0.74",
+    "traceur": "0.0.79",
     "uglify-js": "^2.4.15"
   },
   "devDependencies": {
