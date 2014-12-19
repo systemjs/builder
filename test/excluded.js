@@ -1,6 +1,7 @@
 "format register";
 
 
+"asdf";
 System.register("tree/third", [], function($__export) {
   return {
     setters: [],
@@ -10,12 +11,21 @@ System.register("tree/third", [], function($__export) {
   };
 });
 
+System.register("tree/cjs", [], true, function(require, exports, module) {
+  var global = System.global,
+      __define = global.define;
+  global.define = undefined;
+  var __filename = System.baseURL + "tree/cjs.js",
+      __dirname = System.baseURL + "tree";
+  console.log(__filename);
+  exports.cjs = true;
+  global.define = __define;
+  return module.exports;
+});
+
 System.register("tree/second", ["./third", "./cjs"], function($__export) {
   "use strict";
   var __moduleName = "tree/second";
-  function require(path) {
-    return $traceurRuntime.require("tree/second", path);
-  }
   var q;
   return {
     setters: [function(m) {}, function(m) {}],
@@ -25,12 +35,11 @@ System.register("tree/second", ["./third", "./cjs"], function($__export) {
   };
 });
 
+
+
 System.register("tree/first", ["jquery-cdn", "@empty", "./second", "./amd"], function($__export) {
   "use strict";
   var __moduleName = "tree/first";
-  function require(path) {
-    return $traceurRuntime.require("tree/first", path);
-  }
   var dep,
       p;
   return {
@@ -43,14 +52,4 @@ System.register("tree/first", ["jquery-cdn", "@empty", "./second", "./amd"], fun
   };
 });
 
-System.register("tree/cjs", [], true, function(require, exports, module) {
-  var global = System.global;
-  var __define = global.define;
-  global.define = undefined;
-  var __filename = "tree/cjs.js";
-  var __dirname = "tree";
-exports.cjs = true;
 
-  global.define = __define;
-  return module.exports;
-});

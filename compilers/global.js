@@ -1,43 +1,83 @@
-// Converts globals into a form that will define the module onto the loader
+var traceur = require('traceur');
+var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
+var parseStatements = traceur.get('codegeneration/PlaceholderParser.js').parseStatements;
+var parseStatement = traceur.get('codegeneration/PlaceholderParser.js').parseStatement;
+var Script = traceur.get('syntax/trees/ParseTrees.js').Script;
 
-// Todo:
-// - support "init" as argument to retrieveGlobal
-// - do a global scope rewriting on the source so "var" declarations assign to global
+// wraps global scripts
+function GlobalTransformer(name, deps, exportName, init) {
+  this.name = name;
+  this.deps = deps;
+  this.exportName = exportName;
+  this.varGlobals = [];
+  this.init = init;
+  this.inOuterScope = true;
+  return ParseTreeTransformer.call(this);
+}
 
-var saucy = require('../lib/sourcemaps');
+GlobalTransformer.prototype = Object.create(ParseTreeTransformer.prototype);
 
-// RATHER than prepare and retrieve, detect the globals written and treat as exports
-// this is a really hard problem though as we need to cater to global IIFE detection
-// init can be inlined
+GlobalTransformer.prototype.transformVariableDeclaration = function(tree) {
+  tree = ParseTreeTransformer.prototype.transformVariableDeclaration.call(this, tree);
 
+  if (!this.inOuterScope)
+    return tree;
 
-function globalOutput(name, deps, exportName, init, source) {
-  return 'System.register("' + name + '", ' + JSON.stringify(deps) + ', false, function(__require, __exports, __module) {\n'
-    + '  System.get("@@global-helpers").prepareGlobal(__module.id, ' + JSON.stringify(deps) + ');\n'
-    + '  (function() {\n'
-    //+ '  ' + source.replace(/\n/g, '\n      ') + '\n'
-    + source + '\n'
-    + (exportName ? '  this["' + exportName + '"] = ' + exportName + ';\n' : '')
-    + '  }).call(System.global);'
-    + '  return System.get("@@global-helpers").retrieveGlobal(__module.id, ' + (exportName ? '"' + exportName + '"' : 'false') + (init ? ', ' + init.toString().replace(/\n/g, '\n      ') : '') + ');\n'
-    + '});\n';
+  // do var replacement
+  this.varGlobals.push(tree.lvalue.identifierToken.value);
+  return tree;
+}
+
+GlobalTransformer.prototype.transformFunctionDeclaration = function(tree) {
+  if (this.inOuterScope)
+    var revertOuterScope = true;
+  this.inOuterScope = false;
+
+  tree = ParseTreeTransformer.prototype.transformFunctionDeclaration.call(this, tree);
+  
+  if (revertOuterScope)
+    this.inOuterScope = true;
+  return tree;
+}
+
+GlobalTransformer.prototype.transformScript = function(tree) {
+  tree = ParseTreeTransformer.prototype.transformScript.call(this, tree);
+
+  // for globals defined as "var x = 5;" in outer scope, add "this.x = x;" at end
+  var scriptItemList = tree.scriptItemList.concat(this.varGlobals.map(function(g) {
+    return parseStatement(['this["' + g + '"] = ' + g + ';']);
+  }));
+
+  return new Script(tree.location, parseStatements([
+    'System.register("' + this.name + '", ' + JSON.stringify(this.deps) + ', false, function(__require, __exports, __module) {\n'
+  + '  System.get("@@global-helpers").prepareGlobal(__module.id, ' + JSON.stringify(this.deps) + ');\n'
+  + '  (function() {',
+    '  }).call(System.global);'
+  + '  return System.get("@@global-helpers").retrieveGlobal(__module.id, ' + (this.exportName ? '"' + this.exportName + '"' : 'false') + (this.init ? ', ' + this.init.toString().replace(/\n/g, '\n      ') : '') + ');\n'
+  + '});'], scriptItemList));
 }
 
 exports.compile = function(load, opts, loader) {
-  var normalize = opts.normalize;
-  var deps = normalize ? load.metadata.deps.map(function(dep) { return load.depMap[dep]; }) :
-                         load.metadata.deps;
+  var options = { script: true };
+  if (opts.sourceMaps)
+    options.sourceMaps = 'memory';
 
+  var compiler = new traceur.Compiler(options);
+  var tree = compiler.parse(load.source, load.address);
 
-  if (!opts.sourceMaps) {
-    return globalOutput(load.name, deps, load.metadata.exports, load.metadata.init, load.source);
-  } else {
-    var output = saucy.buildIdentitySourceMap(load.source, load.address);
-    output.sourceMapOffset = 3;
-    output.source = globalOutput(load.name, deps, load.metadata.exports, load.metadata.init, output.source);
-    return output;
-  }
+  var deps = opts.normalize ? load.metadata.deps.map(function(dep) { return load.depMap[dep]; }) : load.metadata.deps;
+
+  var transformer = new GlobalTransformer(load.name, deps, load.metadata.exports, load.metadata.init);
+  tree = transformer.transformAny(tree);
+
+  var output = compiler.write(tree, load.address);
+
+  return Promise.resolve({
+    source: output,
+    sourceMap: compiler.getSourceMap()
+  });
 };
+
 
 exports.sfx = function(loader) {
 

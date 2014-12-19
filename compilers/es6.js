@@ -1,5 +1,5 @@
 var traceur = require('traceur');
-var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer').ParseTreeTransformer;
+var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
 
 function ModuleImportNormalizeTransformer(map) {
   this.map = map;
