@@ -366,7 +366,6 @@ System.register("tree/some!tree/plugin", [], false, function() { console.log("Sy
 
 
 
-"asdf";
 System.register("tree/third", [], function($__export) {
   return {
     setters: [],

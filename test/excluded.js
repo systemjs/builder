@@ -1,7 +1,6 @@
 "format register";
 
 
-"asdf";
 System.register("tree/third", [], function($__export) {
   return {
     setters: [],

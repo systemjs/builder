@@ -29,6 +29,8 @@ function reset() {
   pluginLoader.config = System.config;
   pluginLoader.trace = true;
 
+  pluginLoader._nodeRequire = loader._nodeRequire = require;
+
   loader.trace = true;
   loader.execute = false;
   loader.pluginLoader = pluginLoader;
