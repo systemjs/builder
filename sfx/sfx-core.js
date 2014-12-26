@@ -36,8 +36,6 @@
     }
     else {
       // ES6 declarative
-      if (deps.length > 0 && declare.length != 1)
-        throw 'Invalid System.register form for ' + name + '. Declare function must take one argument.';
       entry = {
         declarative: true,
         deps: deps,
@@ -161,7 +159,7 @@
     module.execute = declaration.execute;
 
     if (!module.setters || !module.execute)
-      throw "Invalid System.register form for " + entry.name;
+      throw new TypeError("Invalid System.register form for " + entry.name);
 
     // now link all the module dependencies
     for (var i = 0, l = entry.normalizedDeps.length; i < l; i++) {
@@ -211,7 +209,7 @@
     if (!entry) {
       exports = load(name);
       if (!exports)
-        throw "System Register: The module requested " + name + " but this was not declared as a dependency";
+        throw new Error("Unable to load dependency " + name + ".");
     }
 
     else {
@@ -256,6 +254,7 @@
           continue;
         return getModule(entry.normalizedDeps[i]);
       }
+      throw new TypeError('Module ' + name + ' not declared as a dependency.');
     }, exports, module);
     
     if (output)
