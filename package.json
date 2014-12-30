@@ -1,6 +1,6 @@
 {
   "name": "systemjs-builder",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "SystemJS Build Tool ===",
   "main": "index.js",
   "directories": {
