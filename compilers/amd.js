@@ -207,8 +207,10 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
       var exportsIndexD = exportsIndex, moduleIndexD = moduleIndex;
 
       if (requireIndex != -1) {
-        var fnParameters = factory.parameterList.parameters;
-        var reqName = fnParameters[requireIndex] && fnParameters[requireIndex].parameter.binding.identifierToken.value;
+        if (factory.parameterList) {
+          var fnParameters = factory.parameterList.parameters;
+          var reqName = fnParameters[requireIndex] && fnParameters[requireIndex].parameter.binding.identifierToken.value;
+        }
         var cjsRequireTransformer = new CJSRequireTransformer(reqName, function(v) { return self.depMap[v] || v });
         factory.body = cjsRequireTransformer.transformAny(factory.body);
 
