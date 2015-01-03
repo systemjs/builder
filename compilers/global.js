@@ -17,26 +17,42 @@ function GlobalTransformer(name, deps, exportName, init) {
 
 GlobalTransformer.prototype = Object.create(ParseTreeTransformer.prototype);
 
+GlobalTransformer.prototype.transformVariableDeclarationList = function(tree) {
+  this.isVarDeclaration = tree.declarationType == 'var';
+  return ParseTreeTransformer.prototype.transformVariableDeclarationList.call(this, tree);
+}
+
 GlobalTransformer.prototype.transformVariableDeclaration = function(tree) {
   tree = ParseTreeTransformer.prototype.transformVariableDeclaration.call(this, tree);
 
-  if (!this.inOuterScope)
+  if (!this.inOuterScope || !this.isVarDeclaration)
     return tree;
 
   // do var replacement
   this.varGlobals.push(tree.lvalue.identifierToken.value);
   return tree;
 }
+GlobalTransformer.prototype.enterScope = function() {
+  var revert = this.inOuterScope;
+  this.inOuterScope = false;
+  return revert;
+}
+GlobalTransformer.prototype.exitScope = function(revert) {
+  if (revert)
+    this.inOuterScope = true;
+}
 
 GlobalTransformer.prototype.transformFunctionDeclaration = function(tree) {
-  if (this.inOuterScope)
-    var revertOuterScope = true;
-  this.inOuterScope = false;
-
+  var revert = this.enterScope();
   tree = ParseTreeTransformer.prototype.transformFunctionDeclaration.call(this, tree);
-  
-  if (revertOuterScope)
-    this.inOuterScope = true;
+  this.exitScope(revert);
+  return tree;
+}
+
+GlobalTransformer.prototype.transformFunctionExpression = function(tree) {
+  var revert = this.enterScope();
+  tree = ParseTreeTransformer.prototype.transformFunctionExpression.call(this, tree);
+  this.exitScope(revert);
   return tree;
 }
 

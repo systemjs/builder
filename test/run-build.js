@@ -33,6 +33,17 @@ builder.loadConfig('./cfg.js')
     );
   })
 
+  .then(function() {
+    return builder.trace('tree/global-inner').then(function(trace) {
+      return builder.buildTree(trace.tree, 'global-inner.js');
+    });
+  })
+
+  .then(function() {
+    return builder.trace('tree/global-outer').then(function(trace) {
+      return builder.buildTree(trace.tree, 'global-outer.js');
+    });
+  })
 
   .then(function() {
     return builder.trace('tree/amd-1').then(function(trace) {
