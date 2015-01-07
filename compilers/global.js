@@ -75,8 +75,12 @@ GlobalTransformer.prototype.transformScript = function(tree) {
 
 exports.compile = function(load, opts, loader) {
   var options = { script: true };
+
   if (opts.sourceMaps)
     options.sourceMaps = 'memory';
+
+  if (load.metadata.sourceMap)
+    options.inputSourceMap = load.metadata.sourceMap;
 
   var compiler = new traceur.Compiler(options);
   var tree = compiler.parse(load.source, load.address);

@@ -21,7 +21,7 @@ RegisterTransformer.prototype.transformCallExpression = function(tree) {
       && tree.operand.memberName.value == 'register'
       && tree.operand.operand.type == 'IDENTIFIER_EXPRESSION'
       && tree.operand.operand.identifierToken.value == 'System') {
- 
+
     var firstArg = tree.args.args[0];
 
     if (firstArg.type == 'ARRAY_LITERAL_EXPRESSION') {
@@ -39,15 +39,19 @@ RegisterTransformer.prototype.transformCallExpression = function(tree) {
 
 exports.compile = function(load, opts, loader) {
   var options = { script: true };
+
   if (opts.sourceMaps)
     options.sourceMaps = 'memory';
+
+  if (load.metadata.sourceMap)
+    options.inputSourceMap = load.metadata.sourceMap;
 
   var compiler = new traceur.Compiler(options);
   var tree = compiler.parse(load.source, load.address);
 
   var transformer = new RegisterTransformer(load.name);
   tree = transformer.transformAny(tree);
-  
+
   // if the transformer didn't find an anonymous System.register
   // then this is a bundle itself
   // so we need to reconstruct files with load.metadata.execute etc

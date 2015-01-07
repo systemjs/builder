@@ -33,9 +33,12 @@ exports.compile = function(load, opts, loader) {
   options.modules = 'instantiate';
   options.script = false;
   options.moduleName = load.name;
-  if (opts.sourceMaps) {
+
+  if (opts.sourceMaps)
     options.sourceMaps = 'memory';
-  }
+
+  if (load.metadata.sourceMap)
+    options.inputSourceMap = load.metadata.sourceMap;
 
   var compiler = new traceur.Compiler(options);
 

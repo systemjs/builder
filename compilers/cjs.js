@@ -70,7 +70,7 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
 
   // wrap everything in System.register
   return new Script(tree.location, parseStatements([
-    'System.register("' + this.name + '", ' + JSON.stringify(this.deps) + ', true, function(require, exports, module) {\n', 
+    'System.register("' + this.name + '", ' + JSON.stringify(this.deps) + ', true, function(require, exports, module) {\n',
     '});'], scriptItemList));
 }
 
@@ -78,6 +78,9 @@ exports.compile = function(load, opts, loader) {
   var options = { script: true };
   if (opts.sourceMaps)
     options.sourceMaps = 'memory';
+
+  if (load.metadata.sourceMap)
+    options.inputSourceMap = load.metadata.sourceMap;
 
   var compiler = new traceur.Compiler(options);
   var tree = compiler.parse(load.source, load.address);

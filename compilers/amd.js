@@ -395,9 +395,12 @@ exports.remap = function(source, map, fileName) {
 exports.compile = function(load, opts, loader) {
   var normalize = opts.normalize;
   var options = {};
-  if (opts.sourceMaps) {
+  if (opts.sourceMaps)
     options.sourceMaps = 'memory';
-  }
+
+  if (load.metadata.sourceMap)
+    options.inputSourceMap = load.metadata.sourceMap;
+
   var compiler = new traceur.Compiler(options);
 
   var tree = load.metadata.parseTree;
