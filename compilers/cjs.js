@@ -70,7 +70,7 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
 
   // wrap everything in System.register
   return new Script(tree.location, parseStatements([
-    'System.register("' + this.name + '", ' + JSON.stringify(this.deps) + ', true, function(require, exports, module) {\n', 
+    'System.register("' + this.name + '", ' + JSON.stringify(this.deps) + ', true, function(require, exports, module) {\n',
     '});'], scriptItemList));
 }
 

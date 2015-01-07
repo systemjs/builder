@@ -75,6 +75,7 @@ GlobalTransformer.prototype.transformScript = function(tree) {
 
 exports.compile = function(load, opts, loader) {
   var options = { script: true };
+
   if (opts.sourceMaps)
     options.sourceMaps = 'memory';
 
