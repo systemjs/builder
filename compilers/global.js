@@ -78,6 +78,8 @@ exports.compile = function(load, opts, loader) {
 
   if (opts.sourceMaps)
     options.sourceMaps = 'memory';
+  if (opts.lowResolutionSourceMaps)
+    options.lowResolutionSourceMap = true;
 
   if (load.metadata.sourceMap)
     options.inputSourceMap = load.metadata.sourceMap;
