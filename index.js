@@ -170,7 +170,12 @@ exports.loadConfig = function(configFile) {
   })
   .then(function(source) {
     var curSystem = global.System;
-    global.System = loader;
+    global.System = {
+      config: function(cfg) {
+        loader.config(cfg);
+        pluginLoader.config(cfg);
+      }
+    };
     new Function(source.toString()).call(global);
     global.System = curSystem;
   });
