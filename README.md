@@ -74,14 +74,20 @@ Then we can load this config file through the builder:
 ```javascript
   var builder = require('systemjs-builder');
 
+  // `builder.loadConfig` will load config from a file
   builder.loadConfig('./cfg.js')
   .then(function() {
+    // additional config can also be set through `builder.config`
+    builder.config({ baseURL: 'file:' + process.cwd() });
+    
     return builder.build('myModule', 'outfile.js');
   });
   
 ```
 
-To reset the loader for a new build, run `builder.reset()`.
+Multiple config calls can be run, which will combine into the loader configuration.
+
+To reset the loader state and configuration for a new build, run `builder.reset()`.
 
 
 ### SFX Bundles
