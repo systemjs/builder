@@ -61,7 +61,7 @@ Usage
   });
 ```
 
-### Loading a Separate Config File
+### Setting Configuration
 
 To load a SystemJS configuration file, containing configure calls like:
 
