@@ -153,11 +153,11 @@ In this example we build `app/core` excluding `app/corelibs`:
   });
 
   builder.trace('app/main')
-  .then(function(appTree) {
-
+  .then(function(appTrace) {
+  
     return builder.trace('app/corelibs')
-    .then(function(coreTree) {
-      return builder.subtractTrees(appTree, coreTree);
+    .then(function(coreTrace) {
+      return builder.subtractTrees(appTrace.tree, coreTrace.tree);
     });
   })
   .then(function(appMinusCoreTree) {
@@ -179,13 +179,13 @@ In this example we build `app/first` and `app/second` creating a separate `app/s
   var firstTree, secondTree, commonTree;
 
   builder.trace('app/first')
-  .then(function(tree) {
-    firstTree = tree;
+  .then(function(trace) {
+    firstTree = trace.tree;
     
     return builder.trace('app/second');
   })
-  .then(function(tree) {
-    secondTree = tree;
+  .then(function(trace) {
+    secondTree = trace.tree;
     commonTree = builder.intersectTrees(firstTree, secondTree);
 
     firstTree = builder.subtractTrees(firstTree, commonTree);
