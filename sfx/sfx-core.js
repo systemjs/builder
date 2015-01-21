@@ -348,6 +348,7 @@
         },
         global: global 
       });
+      System.set('@empty', System.newModule({}));
       load(main);
     }
   };
