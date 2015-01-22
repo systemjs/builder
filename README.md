@@ -38,6 +38,7 @@ Usage
 ### Basic Use
 
 ```javascript
+  var path = require("path");
   var builder = require('systemjs-builder');
 
   builder.build('myModule', 'outfile.js', {
