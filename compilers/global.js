@@ -28,8 +28,10 @@ GlobalTransformer.prototype.transformVariableDeclaration = function(tree) {
   if (!this.inOuterScope || !this.isVarDeclaration)
     return tree;
 
-  // do var replacement
-  this.varGlobals.push(tree.lvalue.identifierToken.value);
+  var varName = tree.lvalue.identifierToken.value;
+  if (this.varGlobals.indexOf(varName) == -1)
+    this.varGlobals.push(varName);
+
   return tree;
 }
 GlobalTransformer.prototype.enterScope = function() {
@@ -60,7 +62,9 @@ GlobalTransformer.prototype.transformScript = function(tree) {
   tree = ParseTreeTransformer.prototype.transformScript.call(this, tree);
 
   // for globals defined as "var x = 5;" in outer scope, add "this.x = x;" at end
-  var scriptItemList = tree.scriptItemList.concat(this.varGlobals.map(function(g) {
+  var scriptItemList = this.varGlobals.map(function(g) {
+    return parseStatement(['var ' + g + ' = this["' + g + '"];']);
+  }).concat(tree.scriptItemList).concat(this.varGlobals.map(function(g) {
     return parseStatement(['this["' + g + '"] = ' + g + ';']);
   }));
 

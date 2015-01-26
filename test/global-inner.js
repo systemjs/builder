@@ -3,6 +3,7 @@
 System.register("tree/global-inner", [], false, function(__require, __exports, __module) {
   System.get("@@global-helpers").prepareGlobal(__module.id, []);
   (function() {
+    var r = this["r"];
     (function() {
       var p = 5;
     });
