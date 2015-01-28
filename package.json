@@ -10,12 +10,13 @@
     "mkdirp": "^0.5.0",
     "rsvp": "^3.0.14",
     "source-map": "~0.1.8",
-    "systemjs": "^0.11.2",
-    "traceur": "0.0.79",
+    "systemjs": "^0.12.0",
+    "traceur": "0.0.82",
+    "6to5": "^3.0.0",
     "uglify-js": "^2.4.15"
   },
   "devDependencies": {
-    "es6-module-loader": "0.11.2",
+    "es6-module-loader": "0.12.0",
     "react-tools": "^0.12.1"
   },
   "repository": {
@@ -23,7 +24,8 @@
     "url": "http://github.com/systemjs/builder.git"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test:traceur": "cd test && node run-build.js && open test-build.html",
+    "test:6to5": "cd test && node run-build.js 6to5 && open test-build.html"
   },
   "author": "",
   "license": "MIT",

@@ -11,6 +11,9 @@ console.log('Running a multi-format build...');
 builder.loadConfig('./cfg.js')
 .then(function() {
 
+  if (process.argv[2] == '6to5')
+    builder.loader.parser = '6to5';
+
   builder.build('tree/first', 'tree-build.js', { sourceMaps: true })
   .then(function() {
     console.log('Done');
