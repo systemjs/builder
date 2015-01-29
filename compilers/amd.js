@@ -373,8 +373,6 @@ exports.attach = function(loader) {
 };
 
 exports.remap = function(source, map, fileName) {
-  // NB can remove after Traceur 0.0.77
-  if (!source) source = ' ';
   var options = {script: true};
   var compiler = new traceur.Compiler(options);
   var tree = compiler.parse(source, fileName || '');
