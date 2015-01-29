@@ -120,6 +120,12 @@ As well as an `options.config` parameter, it is also possible to specify minific
   builder.build('myModule', 'outfile.js', { minify: true, sourceMaps: true, config: cfg });
 ```
 
+Compile time with source maps can also be improved with the `lowResSourceMaps` option:
+
+```javascript
+  builder.build('myModule', 'outfile.js', { sourceMaps: true, lowResSourceMaps: true });
+```
+
 ### Ignore Resources
 
 If loading resources that shouldn't even be traced as part of the build (say an external import), these
