@@ -38,7 +38,8 @@ exports.compile = function(load, opts, loader) {
   if (loader.parser == '6to5') {
     options = loader.to5Options || {};
     options.modules = 'system';
-    options.sourceMap = true;
+    if (opts.sourceMaps)
+      options.sourceMap = true;
     options.filename = load.address;
     options.filenameRelative = load.name;
     options.code = true;
@@ -54,8 +55,9 @@ exports.compile = function(load, opts, loader) {
     var output = to5.transform(source, options);
     
     source = output.code;
-    if (output.map)
+    if (output.map) {
       load.metadata.sourceMap = output.map;
+    }
   }
 
   // NB todo - create an inline 6to5 transformer to do import normalization
