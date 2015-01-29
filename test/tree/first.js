@@ -5,3 +5,8 @@ import './amd';
 import './component.jsx!./jsx';
 
 export var p = 5;
+export class test {
+  constructor() {
+    super();
+  }
+}
