@@ -100,9 +100,9 @@ exports.buildTree = function(tree, outFile, opts) {
   return Promise.all(names.map(function(name) {
     var load = tree[name];
     return Promise.resolve(compileLoad(load, opts))
-                  .then(outputs.push.bind(outputs));
+    .then(outputs.push.bind(outputs));
   }))
-  .then(builder.writeOutputFile.bind(this, opts, outputs));
+  .then(builder.writeOutputFile.bind(this, opts, outputs, loader.baseURL));
 };
 
 exports.buildSFX = function(moduleName, outFile, opts) {
@@ -125,7 +125,7 @@ exports.buildSFX = function(moduleName, outFile, opts) {
       }
 
       return Promise.resolve(compileLoad(load, opts, compilers))
-                    .then(outputs.push.bind(outputs));
+      .then(outputs.push.bind(outputs));
     }));
   })
   // next add sfx headers for formats at the beginning
@@ -160,7 +160,7 @@ exports.buildSFX = function(moduleName, outFile, opts) {
   .then(function(result) {
     outputs.push("});");
   })
-  .then(builder.writeOutputFile.bind(this, opts, outputs));
+  .then(builder.writeOutputFile.bind(this, opts, outputs, loader.baseURL));
 };
 
 exports.loadConfig = function(configFile) {
