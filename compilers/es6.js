@@ -44,8 +44,12 @@ exports.compile = function(load, opts, loader) {
     options.code = true;
     options.ast = false;
     options.moduleIds = true;
-    var output = to5.transform(source, options);
-
+    /* if (opts.runtime) {
+      options.optional = options.optional || [];
+      if (options.optional.indexOf('selfContained') == -1)
+        options.optional.push('selfContained')
+      var output = to5.transform(source, options);
+    } */
     source = output.code;
     if (output.map)
       load.metadata.sourceMap = output.map;
