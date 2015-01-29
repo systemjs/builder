@@ -120,6 +120,13 @@ As well as an `options.config` parameter, it is also possible to specify minific
   builder.build('myModule', 'outfile.js', { minify: true, sourceMaps: true, config: cfg });
 ```
 
+If you want minification without mangling, you can set the config like this:
+
+```javascript
+  var builder = require('systemjs-builder');
+  builder.build('myModule', 'outfile.js', { minify: true, mangle: false });
+```
+
 ### Ignore Resources
 
 If loading resources that shouldn't even be traced as part of the build (say an external import), these
