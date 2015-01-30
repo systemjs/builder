@@ -160,7 +160,9 @@ exports.buildSFX = function(moduleName, outFile, opts) {
   .then(function(result) {
     outputs.push("});");
   })
-  .then(builder.writeOutputFile.bind(this, opts, outputs, loader.baseURL));
+  .then(function() {
+    return builder.writeOutputFile(opts, outputs, loader.baseURL);
+  });
 };
 
 exports.loadConfig = function(configFile) {
