@@ -35,7 +35,7 @@ exports.compile = function(load, opts, loader) {
 
   var source = load.source;
 
-  if (loader.parser == '6to5') {
+  if (loader.transpiler == '6to5') {
     options = loader.to5Options || {};
     options.modules = 'system';
     if (opts.sourceMaps)
@@ -87,7 +87,7 @@ exports.compile = function(load, opts, loader) {
 
     tree = transformer.transformAny(tree);
 
-    if (loader.parser == 'traceur')
+    if (loader.transpiler == 'traceur')
       tree = compiler.transform(tree, load.name);
 
     var source = compiler.write(tree, load.address);
