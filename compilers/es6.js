@@ -1,5 +1,5 @@
 var traceur = require('traceur');
-var to5 = require('6to5');
+var to5 = require('6to5-core');
 
 
 var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
@@ -45,52 +45,56 @@ exports.compile = function(load, opts, loader) {
     options.code = true;
     options.ast = false;
     options.moduleIds = true;
-    /*
-    if (opts.runtime) {
+
+    if (normalize)
+      options.resolveModuleSource = function(dep) {
+        return load.depMap[dep];
+      }
+
+    /* if (opts.runtime) {
       options.optional = options.optional || [];
       if (options.optional.indexOf('selfContained') == -1)
         options.optional.push('selfContained') 
-    }
-    */
+    } */
     var output = to5.transform(source, options);
     
-    source = output.code;
-    if (output.map) {
-      load.metadata.sourceMap = output.map;
-    }
+    return Promise.resolve({
+      source: output.code,
+      sourceMap: output.map
+    });
   }
+  else {
+    options = loader.traceurOptions || {};
+    options.modules = 'instantiate';
+    options.script = false;
+    options.moduleName = load.name;
 
-  // NB todo - create an inline 6to5 transformer to do import normalization
-  // still need Traceur because of this
-  options = loader.traceurOptions || {};
-  options.modules = 'instantiate';
-  options.script = false;
-  options.moduleName = load.name;
+    if (opts.sourceMaps)
+      options.sourceMaps = 'memory';
+    if (opts.lowResSourceMaps)
+      options.lowResolutionSourceMap = true;
 
-  if (opts.sourceMaps)
-    options.sourceMaps = 'memory';
-  if (opts.lowResSourceMaps)
-    options.lowResolutionSourceMap = true;
+    if (load.metadata.sourceMap)
+      options.inputSourceMap = load.metadata.sourceMap;
 
-  if (load.metadata.sourceMap)
-    options.inputSourceMap = load.metadata.sourceMap;
+    var compiler = new traceur.Compiler(options);
 
-  var compiler = new traceur.Compiler(options);
+    var tree = compiler.parse(source, load.address);
 
-  var tree = compiler.parse(source, load.address);
+    var transformer = new TraceurImportNormalizeTransformer(function(dep) {
+      return normalize ? load.depMap[dep] : dep;
+    });
 
-  var transformer = new TraceurImportNormalizeTransformer(function(dep) {
-    return normalize ? load.depMap[dep] : dep;
-  });
+    tree = transformer.transformAny(tree);
 
-  tree = transformer.transformAny(tree);
+    if (loader.parser == 'traceur')
+      tree = compiler.transform(tree, load.name);
 
-  if (loader.parser == 'traceur')
-    tree = compiler.transform(tree, load.name);
+    var source = compiler.write(tree, load.address);
 
-  var source = compiler.write(tree, load.address);
-  return Promise.resolve({
-    source: source,
-    sourceMap: compiler.getSourceMap()
-  });
+    return Promise.resolve({
+      source: source,
+      sourceMap: compiler.getSourceMap()
+    });
+  }
 };
