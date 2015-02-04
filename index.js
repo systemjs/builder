@@ -36,6 +36,7 @@ function reset() {
   loader.pluginLoader = pluginLoader;
 
   loader.set('@empty', loader.newModule({}));
+  pluginLoader.set('@empty', loader.newModule({}));
 
   amdCompiler.attach(loader);
   amdCompiler.attach(pluginLoader);
