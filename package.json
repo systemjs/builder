@@ -17,6 +17,8 @@
   },
   "devDependencies": {
     "es6-module-loader": "0.13.0",
+    "mocha": "~2.0.0",
+    "chai": "^1.10.0",
     "react-tools": "^0.12.1"
   },
   "repository": {
