@@ -27,6 +27,7 @@ function reset() {
   pluginLoader.paths = { '*': '*.js' };
   pluginLoader.config = System.config;
   pluginLoader.trace = true;
+  pluginLoader.import = loader.import = System.import;
 
   pluginLoader._nodeRequire = loader._nodeRequire = require;
 
@@ -46,8 +47,8 @@ exports.reset = reset;
 reset();
 
 exports.build = function(moduleName, outFile, opts) {
-  loader.buildOptions = opts;
   opts = opts || {};
+
   return exports.trace(moduleName, opts.config)
   .then(function(trace) {
     return exports.buildTree(trace.tree, outFile, opts);
@@ -120,9 +121,9 @@ function buildOutputs(tree, opts, sfx) {
   }))
   .then(function() {
     // apply plugin "bundle" hook
-    return Promise.all(Object.keys(pluginBundlers).map(function(pluginName) {
-      var entry = pluginBundlers[pluginName];
-      return Promise.resolve(entry.bundle(entry.loads, opts))
+    return Promise.all(Object.keys(plugins).map(function(pluginName) {
+      var entry = plugins[pluginName];
+      return Promise.resolve(entry.bundle.call(pluginLoader, entry.loads, opts))
       .then(outputs.push.bind(outputs));
     }));
   })
@@ -132,10 +133,9 @@ function buildOutputs(tree, opts, sfx) {
 }
 
 exports.buildTree = function(tree, outFile, opts) {
+
   opts = opts || {};
   opts.outFile = outFile;
-
-  loader.buildOptions = opts;
 
   return buildOutputs(tree, opts, false)
   .then(function(outputs) {
@@ -145,14 +145,13 @@ exports.buildTree = function(tree, outFile, opts) {
 };
 
 exports.buildSFX = function(moduleName, outFile, opts) {
+
   opts = opts || {};
   var config = opts.config;
 
   opts.outFile = outFile;
 
   var outputs;
-
-  loader.buildOptions = opts;
 
   var compilers = {};
   opts.normalize = true;
