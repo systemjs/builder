@@ -103,7 +103,7 @@ exports.buildTree = function(tree, outFile, opts) {
     return Promise.resolve(compileLoad(load, opts))
     .then(outputs.push.bind(outputs));
   }))
-  .then(builder.writeOutputFile.bind(this, opts, outputs, loader.baseURL));
+  .then(builder.writeOutput.bind(this, opts, outputs, loader.baseURL));
 };
 
 exports.buildSFX = function(moduleName, outFile, opts) {
@@ -162,7 +162,7 @@ exports.buildSFX = function(moduleName, outFile, opts) {
     outputs.push("});");
   })
   .then(function() {
-    return builder.writeOutputFile(opts, outputs, loader.baseURL);
+    return builder.writeOutput(opts, outputs, loader.baseURL);
   });
 };
 
