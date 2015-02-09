@@ -1,4 +1,4 @@
-exports.build = false;
+//exports.build = false;
 
 exports.fetch = function() {
   return '';
