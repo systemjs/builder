@@ -14,7 +14,6 @@ var builder = require('./lib/builder');
 
 var path = require('path');
 
-// TODO source maps
 var loader, pluginLoader;
 
 function reset() {
@@ -47,6 +46,7 @@ exports.reset = reset;
 reset();
 
 exports.build = function(moduleName, outFile, opts) {
+  loader.buildOptions = opts;
   opts = opts || {};
   return exports.trace(moduleName, opts.config)
   .then(function(trace) {
@@ -95,7 +95,7 @@ function buildOutputs(tree, opts, sfx) {
   var names = Object.keys(tree);
   
   // store plugins with a bundle hook to allow post-processing
-  var pluginBundlers = {};
+  var plugins = {};
 
   var outputs = [];
 
@@ -106,9 +106,12 @@ function buildOutputs(tree, opts, sfx) {
       outputs.push('System.register("' + load.name + '", [], false, function() { console.log("SystemJS Builder - Plugin for ' + load.name + ' does not support sfx builds"); });\n');
 
     // support plugin "bundle" reduction hook
-    var pluginBundle = load.metadata.plugin && load.metadata.plugin.bundle;
-    if (pluginBundle) {
-      var entry = pluginBundlers[load.metadata.pluginName] = pluginBundlers[load.metadata.pluginName] || { loads: [], bundle: pluginBundle };
+    var plugin = load.metadata.plugin;
+    if (plugin && load.metadata.build !== false) {
+      var entry = plugins[load.metadata.pluginName] = plugins[load.metadata.pluginName] || {
+        loads: [],
+        bundle: plugin.bundle
+      };
       entry.loads.push(load);
     }
 
@@ -132,6 +135,8 @@ exports.buildTree = function(tree, outFile, opts) {
   opts = opts || {};
   opts.outFile = outFile;
 
+  loader.buildOptions = opts;
+
   return buildOutputs(tree, opts, false)
   .then(function(outputs) {
     outputs.unshift('"format register";\n');
@@ -146,6 +151,8 @@ exports.buildSFX = function(moduleName, outFile, opts) {
   opts.outFile = outFile;
 
   var outputs;
+
+  loader.buildOptions = opts;
 
   var compilers = {};
   opts.normalize = true;
