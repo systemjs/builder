@@ -1,1 +1,1 @@
-{"version":3,"sources":["file:/Users/jeffpalentine/Workspace/projects/open-source/jspm/builder/test/chain/second.js","file:/Users/jeffpalentine/Workspace/projects/open-source/jspm/builder/test/chain/first.js"],"names":[],"mappings":";;;;;AACA;AACE;AAEA;AACE;AACE;QACF;MACF;IAEF;;;;AAGA;;;;;;;ACZA;AACE;AAEA;EAEF;;;;AAGA"}
+{"version":3,"sources":["test/chain/second.js","test/chain/first.js"],"names":[],"mappings":";;;;;AACA;AACE;AAEA;AACE;AACE;QACF;MACF;IAEF;;;;AAGA;;;;;;;ACZA;AACE;AAEA;EAEF;;;;AAGA"}

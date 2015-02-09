@@ -9,6 +9,7 @@ var err = function(e) {
 };
 
 var compareSourceMaps = function(filename, expectation, done) {
+  builder.reset();
   builder.loadConfig('./test/cfg.js')
     .then(function() {
       return builder.build(filename, null, { sourceMaps: true });
@@ -47,7 +48,7 @@ describe('Source Maps', function() {
         compareSourceMaps('test/chain/second', single, done);
       });
 
-      it('handles multipl compilation targets correctly', function(done) {
+      it('handles multiple compilation targets correctly', function(done) {
         compareSourceMaps('test/chain/first', multiple, done);
       });
     });
