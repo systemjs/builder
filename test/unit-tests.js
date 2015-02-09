@@ -26,30 +26,58 @@ var readExpectation = function(filename) {
 
 describe('Source Maps', function() {
   describe('Traceur', function() {
-    var single = readExpectation('expectations/singleTraceur.json');
-    var multiple = readExpectation('expectations/multipleTraceur.json');
     builder.loader.transpiler = 'traceur';
 
-    it('handles single compilation targets correctly', function(done) {
-      compareSourceMaps('test/tree/amd-2', single, done);
+    describe('without input source maps', function() {
+      var single = readExpectation('expectations/singleTraceur.json');
+      var multiple = readExpectation('expectations/multipleTraceur.json');
+      it('handles single compilation targets correctly', function(done) {
+        compareSourceMaps('test/tree/amd-2', single, done);
+      });
+
+      it('handles multiple compilation targets correctly', function(done) {
+        compareSourceMaps('test/tree/first', multiple, done);
+      });
     });
 
-    it('handles multiple compilation targets correctly', function(done) {
-      compareSourceMaps('test/tree/first', multiple, done);
+    describe('with input source maps', function() {
+      var single= readExpectation('expectations/singleChainTraceur.json');
+      var multiple= readExpectation('expectations/multipleChainTraceur.json');
+      it('handles single compilation targets correctly', function(done) {
+        compareSourceMaps('test/chain/second', single, done);
+      });
+
+      it('handles multipl compilation targets correctly', function(done) {
+        compareSourceMaps('test/chain/first', multiple, done);
+      });
     });
   });
 
   describe('6to5', function() {
-    var single = readExpectation('expectations/single6to5.json');
-    var multiple = readExpectation('expectations/multiple6to5.json');
     builder.loader.transpiler = '6to5';
 
-    it('handles single compilation targets correctly', function(done) {
-      compareSourceMaps('test/tree/amd-2', single, done);
+    describe('without input source maps', function() {
+      var single = readExpectation('expectations/single6to5.json');
+      var multiple = readExpectation('expectations/multiple6to5.json');
+      it('handles single compilation targets correctly', function(done) {
+        compareSourceMaps('test/tree/amd-2', single, done);
+      });
+
+      it('handles multiple compilation targets correctly', function(done) {
+        compareSourceMaps('test/tree/first', multiple, done);
+      });
     });
 
-    it('handles multiple compilation targets correctly', function(done) {
-      compareSourceMaps('test/tree/first', multiple, done);
+    describe('with input source maps', function() {
+      var single= readExpectation('expectations/singleChain6to5.json');
+      var multiple= readExpectation('expectations/multipleChain6to5.json');
+      it('handles single compilation targets correctly', function(done) {
+        compareSourceMaps('test/chain/second', single, done);
+      });
+
+      it('handles multipl compilation targets correctly', function(done) {
+        compareSourceMaps('test/chain/first', multiple, done);
+      });
     });
   });
 });
