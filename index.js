@@ -91,19 +91,49 @@ function compileLoad(load, opts, compilers) {
   });
 }
 
+function buildOutputs(tree, opts, sfx) {
+  var names = Object.keys(tree);
+  var pluginReductions = [];
+  var loads = [];
+
+  var outputs = [];
+
+  return Promise.all(names.map(function(name) {
+    var load = tree[name];
+    loads.push(load);
+
+    if (sfx && load.metadata.plugin && (load.metadata.build === false || load.metadata.plugin.build === false))
+      outputs.push('System.register("' + load.name + '", [], false, function() { console.log("SystemJS Builder - Plugin for ' + load.name + ' does not support sfx builds"); });\n');
+
+    // support plugin "bundle" reduction hook
+    var pluginReduce = load.metadata.plugin && load.metadata.plugin.bundle;
+    if (pluginReduce && pluginReductions.indexOf(pluginReduce) == -1)
+      pluginReductions.push(pluginReduce);
+
+    return Promise.resolve(compileLoad(load, opts))
+    .then(outputs.push.bind(outputs));
+  }))
+  .then(function() {
+    // apply plugin "bundle" hook
+    return Promise.all(pluginReductions.map(function(bundle) {
+      return Promise.resolve(bundle(loads, opts))
+      .then(outputs.push.bind(outputs));
+    }));
+  })
+  .then(function() {
+    return outputs;
+  });
+}
+
 exports.buildTree = function(tree, outFile, opts) {
   opts = opts || {};
   opts.outFile = outFile;
 
-  var outputs = ['"format register";\n'];
-  var names = Object.keys(tree);
-
-  return Promise.all(names.map(function(name) {
-    var load = tree[name];
-    return Promise.resolve(compileLoad(load, opts))
-    .then(outputs.push.bind(outputs));
-  }))
-  .then(builder.writeOutput.bind(this, opts, outputs, loader.baseURL));
+  return buildOutputs(tree, opts, false)
+  .then(function(outputs) {
+    outputs.unshift('"format register";\n');
+    return builder.writeOutput(opts, outputs, loader.baseURL);
+  });
 };
 
 exports.buildSFX = function(moduleName, outFile, opts) {
@@ -112,22 +142,17 @@ exports.buildSFX = function(moduleName, outFile, opts) {
 
   opts.outFile = outFile;
 
-  var outputs = [];
+  var outputs;
+
   var compilers = {};
   opts.normalize = true;
   return exports.trace(moduleName, config)
   .then(function(trace) {
-    var tree = trace.tree;
     moduleName = trace.moduleName;
-    return Promise.all(Object.keys(tree).map(function(name) {
-      var load = tree[name];
-      if (load.metadata.plugin && (load.metadata.build === false || load.metadata.plugin.build === false)) {
-        outputs.push('System.register("' + load.name + '", [], false, function() { console.log("SystemJS Builder - Plugin for ' + load.name + ' does not support sfx builds"); });\n');
-      }
-
-      return Promise.resolve(compileLoad(load, opts, compilers))
-      .then(outputs.push.bind(outputs));
-    }));
+    return buildOutputs(trace.tree, opts, true);
+  })
+  .then(function(_outputs) {
+    outputs = _outputs;
   })
   // next add sfx headers for formats at the beginning
   .then(function() {
