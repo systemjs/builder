@@ -93,30 +93,33 @@ function compileLoad(load, opts, compilers) {
 
 function buildOutputs(tree, opts, sfx) {
   var names = Object.keys(tree);
-  var pluginReductions = [];
-  var loads = [];
+  
+  // store plugins with a bundle hook to allow post-processing
+  var pluginBundlers = {};
 
   var outputs = [];
 
   return Promise.all(names.map(function(name) {
     var load = tree[name];
-    loads.push(load);
 
     if (sfx && load.metadata.plugin && (load.metadata.build === false || load.metadata.plugin.build === false))
       outputs.push('System.register("' + load.name + '", [], false, function() { console.log("SystemJS Builder - Plugin for ' + load.name + ' does not support sfx builds"); });\n');
 
     // support plugin "bundle" reduction hook
-    var pluginReduce = load.metadata.plugin && load.metadata.plugin.bundle;
-    if (pluginReduce && pluginReductions.indexOf(pluginReduce) == -1)
-      pluginReductions.push(pluginReduce);
+    var pluginBundle = load.metadata.plugin && load.metadata.plugin.bundle;
+    if (pluginBundle) {
+      var entry = pluginBundlers[load.metadata.pluginName] = pluginBundlers[load.metadata.pluginName] || { loads: [], bundle: pluginBundle };
+      entry.loads.push(load);
+    }
 
     return Promise.resolve(compileLoad(load, opts))
     .then(outputs.push.bind(outputs));
   }))
   .then(function() {
     // apply plugin "bundle" hook
-    return Promise.all(pluginReductions.map(function(bundle) {
-      return Promise.resolve(bundle(loads, opts))
+    return Promise.all(Object.keys(pluginBundlers).map(function(pluginName) {
+      var entry = pluginBundlers[pluginName];
+      return Promise.resolve(entry.bundle(entry.loads, opts))
       .then(outputs.push.bind(outputs));
     }));
   })
