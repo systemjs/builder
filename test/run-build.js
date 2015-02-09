@@ -1,10 +1,23 @@
 var builder = require('../index');
+var inline = require('../lib/builder').inlineSourceMap;
+var fs = require('fs');
 
 var err = function(e) {
   setTimeout(function() {
     throw e;
   });
-}
+};
+
+console.log('Running in-memory build...');
+builder.loadConfig('./cfg.js')
+.then(function() {
+  builder.build('tree/first', null, { sourceMaps: true, minify: true })
+  .then(function(output) {
+    fs.writeFile('memory-test', inline(output));
+    console.log('Wrote in-memory build to ./memory-test');
+  })
+  .catch(err);
+});
 
 console.log('Running a multi-format build...');
 
