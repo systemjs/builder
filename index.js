@@ -14,7 +14,6 @@ var builder = require('./lib/builder');
 
 var path = require('path');
 
-// TODO source maps
 var loader, pluginLoader;
 
 function reset() {
@@ -28,6 +27,7 @@ function reset() {
   pluginLoader.paths = { '*': '*.js' };
   pluginLoader.config = System.config;
   pluginLoader.trace = true;
+  pluginLoader.import = loader.import = System.import;
 
   pluginLoader._nodeRequire = loader._nodeRequire = require;
 
@@ -48,6 +48,7 @@ reset();
 
 exports.build = function(moduleName, outFile, opts) {
   opts = opts || {};
+
   return exports.trace(moduleName, opts.config)
   .then(function(trace) {
     return exports.buildTree(trace.tree, outFile, opts);
@@ -91,43 +92,76 @@ function compileLoad(load, opts, compilers) {
   });
 }
 
-exports.buildTree = function(tree, outFile, opts) {
-  opts = opts || {};
-  opts.outFile = outFile;
-
-  var outputs = ['"format register";\n'];
+function buildOutputs(tree, opts, sfx) {
   var names = Object.keys(tree);
+  
+  // store plugins with a bundle hook to allow post-processing
+  var plugins = {};
+
+  var outputs = [];
 
   return Promise.all(names.map(function(name) {
     var load = tree[name];
+
+    if (sfx && load.metadata.plugin && (load.metadata.build === false || load.metadata.plugin.build === false))
+      outputs.push('System.register("' + load.name + '", [], false, function() { console.log("SystemJS Builder - Plugin for ' + load.name + ' does not support sfx builds"); });\n');
+
+    // support plugin "bundle" reduction hook
+    var plugin = load.metadata.plugin;
+    if (plugin && load.metadata.build !== false) {
+      var entry = plugins[load.metadata.pluginName] = plugins[load.metadata.pluginName] || {
+        loads: [],
+        bundle: plugin.bundle
+      };
+      entry.loads.push(load);
+    }
+
     return Promise.resolve(compileLoad(load, opts))
     .then(outputs.push.bind(outputs));
   }))
-  .then(builder.writeOutput.bind(this, opts, outputs, loader.baseURL));
+  .then(function() {
+    // apply plugin "bundle" hook
+    return Promise.all(Object.keys(plugins).map(function(pluginName) {
+      var entry = plugins[pluginName];
+      return Promise.resolve(entry.bundle.call(pluginLoader, entry.loads, opts))
+      .then(outputs.push.bind(outputs));
+    }));
+  })
+  .then(function() {
+    return outputs;
+  });
+}
+
+exports.buildTree = function(tree, outFile, opts) {
+
+  opts = opts || {};
+  opts.outFile = outFile;
+
+  return buildOutputs(tree, opts, false)
+  .then(function(outputs) {
+    outputs.unshift('"format register";\n');
+    return builder.writeOutput(opts, outputs, loader.baseURL);
+  });
 };
 
 exports.buildSFX = function(moduleName, outFile, opts) {
+
   opts = opts || {};
   var config = opts.config;
 
   opts.outFile = outFile;
 
-  var outputs = [];
+  var outputs;
+
   var compilers = {};
   opts.normalize = true;
   return exports.trace(moduleName, config)
   .then(function(trace) {
-    var tree = trace.tree;
     moduleName = trace.moduleName;
-    return Promise.all(Object.keys(tree).map(function(name) {
-      var load = tree[name];
-      if (load.metadata.plugin && (load.metadata.build === false || load.metadata.plugin.build === false)) {
-        outputs.push('System.register("' + load.name + '", [], false, function() { console.log("SystemJS Builder - Plugin for ' + load.name + ' does not support sfx builds"); });\n');
-      }
-
-      return Promise.resolve(compileLoad(load, opts, compilers))
-      .then(outputs.push.bind(outputs));
-    }));
+    return buildOutputs(trace.tree, opts, true);
+  })
+  .then(function(_outputs) {
+    outputs = _outputs;
   })
   // next add sfx headers for formats at the beginning
   .then(function() {
