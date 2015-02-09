@@ -175,7 +175,7 @@ In this example we build `app/core` excluding `app/corelibs`:
     });
   })
   .then(function(appMinusCoreTree) {
-    return builder.buildTree(appMinusCoreTree, 'output-file.js');
+    return builder.buildTree(appMinusCoreTree, 'output-file.js', { minify: true, sourceMaps: true, config: cfg });
   });
 ```
 
