@@ -123,6 +123,7 @@ function buildOutputs(tree, opts, sfx) {
     // apply plugin "bundle" hook
     return Promise.all(Object.keys(plugins).map(function(pluginName) {
       var entry = plugins[pluginName];
+      if (entry.bundle)
       return Promise.resolve(entry.bundle.call(pluginLoader, entry.loads, opts))
       .then(outputs.push.bind(outputs));
     }));
