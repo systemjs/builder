@@ -21,9 +21,23 @@ var compareSourceMaps = function(filename, expectation, done) {
   .catch(err);
 };
 
+var buildOutput = function(filename) {
+  builder.reset();
+  builder.loadConfig('./test/cfg.js')
+    .then(function() {
+      return builder.buildSFX(filename, './test/output.js', {
+        sourceMaps: true,
+        config: {baseURL: 'test', map: {"jquery-cdn": "@empty"}}
+      });
+    })
+  .catch(err);
+};
+
 var readExpectation = function(filename) {
   return fs.readFileSync(filename).toString().replace(/\n$/, '');
 };
+
+// buildOutput('test/tree/first');
 
 describe('Source Maps', function() {
   describe('Traceur', function() {

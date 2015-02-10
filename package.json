@@ -4,7 +4,10 @@
   "description": "SystemJS Build Tool ===",
   "main": "index.js",
   "directories": {
-    "test": "test"
+    "test": "test",
+    "baseURL": "test",
+    "lib": "test",
+    "packages": "test/jspm_packages"
   },
   "dependencies": {
     "mkdirp": "^0.5.0",
@@ -34,5 +37,11 @@
   "bugs": {
     "url": "https://github.com/systemjs/builder/issues"
   },
-  "homepage": "https://github.com/systemjs/builder"
+  "homepage": "https://github.com/systemjs/builder",
+  "jspm": {
+    "directories": {
+      "baseURL": "test",
+      "lib": "test"
+    }
+  }
 }

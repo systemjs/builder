@@ -94,7 +94,7 @@ function compileLoad(load, opts, compilers) {
 
 function buildOutputs(tree, opts, sfx) {
   var names = Object.keys(tree);
-  
+
   // store plugins with a bundle hook to allow post-processing
   var plugins = {};
 
