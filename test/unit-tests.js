@@ -26,22 +26,18 @@ var compareSourceMaps = function(filename, expectation, done) {
   .catch(err);
 };
 
-var buildOutput = function(filename) {
-  builder.reset();
-  builder.loadConfig('./test/cfg.js')
-    .then(function() {
-      return builder.buildSFX(filename, './test/output.js', buildOpts);
-    })
-  .catch(err);
-};
-
 var readExpectation = function(filename) {
   return fs.readFileSync(filename).toString().replace(/\n$/, '');
 };
 
-// buildOutput('test/tree/first');
+//builder.loadConfig('./test/cfg.js')
+//.then(function() {
+  //builder.buildSFX('tree/first', 'test/output.js', buildOpts);
+//})
+//.catch(err);
 
 describe('Source Maps', function() {
+
   describe('Traceur', function() {
     builder.loader.transpiler = 'traceur';
 
@@ -98,5 +94,3 @@ describe('Source Maps', function() {
     });
   });
 });
-
-
