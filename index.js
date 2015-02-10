@@ -92,7 +92,7 @@ function compileLoad(load, opts, compilers) {
   });
 }
 
-function buildOutputs(tree, opts, sfx) {
+function buildOutputs(tree, opts, sfxCompilers) {
   var names = Object.keys(tree);
   
   // store plugins with a bundle hook to allow post-processing
@@ -103,7 +103,7 @@ function buildOutputs(tree, opts, sfx) {
   return Promise.all(names.map(function(name) {
     var load = tree[name];
 
-    if (sfx && load.metadata.plugin && (load.metadata.build === false || load.metadata.plugin.build === false))
+    if (sfxCompilers && load.metadata.plugin && (load.metadata.build === false || load.metadata.plugin.build === false))
       outputs.push('System.register("' + load.name + '", [], false, function() { console.log("SystemJS Builder - Plugin for ' + load.name + ' does not support sfx builds"); });\n');
 
     // support plugin "bundle" reduction hook
@@ -116,7 +116,7 @@ function buildOutputs(tree, opts, sfx) {
       entry.loads.push(load);
     }
 
-    return Promise.resolve(compileLoad(load, opts))
+    return Promise.resolve(compileLoad(load, opts, sfxCompilers))
     .then(outputs.push.bind(outputs));
   }))
   .then(function() {
@@ -159,7 +159,7 @@ exports.buildSFX = function(moduleName, outFile, opts) {
   return exports.trace(moduleName, config)
   .then(function(trace) {
     moduleName = trace.moduleName;
-    return buildOutputs(trace.tree, opts, true);
+    return buildOutputs(trace.tree, opts, compilers);
   })
   .then(function(_outputs) {
     outputs = _outputs;
