@@ -1,5 +1,5 @@
 var fs = require('fs');
-var builder = require('../index');
+var Builder = require('../index');
 var assert = require('chai').assert;
 
 var err = function(e) {
@@ -8,19 +8,12 @@ var err = function(e) {
   });
 };
 
-var buildOpts = {
-  sourceMaps: true,
-  config: {baseURL: 'test', map: {"jquery-cdn": "@empty"}}
-};
+var buildOpts = { sourceMaps: true };
 
 var compareSourceMaps = function(filename, expectation, done, transpiler) {
-  var instance = new builder.Builder();
-  instance.reset();
+  var instance = new Builder('./test/cfg.js');
   instance.loader.transpiler = transpiler || 'traceur';
-  instance.loadConfig('./test/cfg.js')
-    .then(function() {
-      return instance.build(filename, null, buildOpts);
-    })
+  instance.build(filename, null, buildOpts)
   .then(function(output) {
     assert.equal(expectation, output.sourceMap.toString());
   })
@@ -33,9 +26,8 @@ var readExpectation = function(filename) {
 };
 
 function writeTestOutput() {
-  instance = new builder.Builder();
-  instance.loadConfig('./test/cfg.js')
-    .then(function() {
+  (new Builder()).loadConfig('./test/cfg.js')
+    .then(function(builder) {
       builder.buildSFX('tree/first', 'test/output.js', buildOpts);
     })
   .catch(err);

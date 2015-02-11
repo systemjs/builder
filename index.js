@@ -1,6 +1,6 @@
 var Promise = require('rsvp').Promise;
 
-var System = exports.System = require('systemjs');
+var System = require('systemjs');
 var fs = require('fs');
 
 var asp = require('rsvp').denodeify;
@@ -14,10 +14,14 @@ var builder = require('./lib/builder');
 
 var path = require('path');
 
-// unfortunate punning with the namespace
-function Builder() {
+function Builder(cfg) {
+  this.System = System;
   this.loader = null;
   this.reset();
+  if (typeof cfg == "string")
+    this.loadConfigSync(cfg);
+  else if (typeof cfg == "object")
+    this.config(cfg);
 }
 
 Builder.prototype.reset = function() {
@@ -44,9 +48,6 @@ Builder.prototype.reset = function() {
 
   amdCompiler.attach(loader);
   amdCompiler.attach(pluginLoader);
-
-  if (this == legacy || !legacy)
-    exports.loader = loader;
 };
 
 Builder.prototype.build = function(moduleName, outFile, opts) {
@@ -206,26 +207,29 @@ Builder.prototype.buildSFX = function(moduleName, outFile, opts) {
   });
 };
 
-Builder.prototype.loadConfig = function(configFile) {
-  var loader = this.loader;
-  var pluginLoader = loader.pluginLoader;
+function executeConfigFile(loader, source) {
+  var curSystem = global.System;
+  global.System = {
+    config: function(cfg) {
+      loader.config(cfg);
+      loader.pluginLoader.config(cfg);
+    }
+  };
+  // jshint evil:true
+  new Function(source.toString()).call(global);
+  global.System = curSystem;
+}
 
-  return Promise.resolve()
-  .then(function() {
-    return asp(fs.readFile)(path.resolve(process.cwd(), configFile));
-  })
-  .then(function(source) {
-    var curSystem = global.System;
-    global.System = {
-      config: function(cfg) {
-        loader.config(cfg);
-        pluginLoader.config(cfg);
-      }
-    };
-    // jshint evil:true
-    new Function(source.toString()).call(global);
-    global.System = curSystem;
-  });
+var resolvePath = path.resolve.bind(path, process.cwd());
+
+Builder.prototype.loadConfig = function(configFile) {
+  return asp(fs.readFile)(resolvePath(configFile))
+    .then(executeConfigFile.bind(null, this.loader));
+};
+
+Builder.prototype.loadConfigSync = function(configFile) {
+  var source = fs.readFileSync(resolvePath(configFile));
+  executeConfigFile(this.loader, source);
 };
 
 Builder.prototype.config = function(config) {
@@ -366,19 +370,6 @@ function visitTree(tree, moduleName, pluginLoader, visit, seen) {
   });
 }
 
+Builder.legacy = new Builder();
 
-var legacy = new Builder();
-
-exports.reset = legacy.reset.bind(legacy);
-exports.build = legacy.build.bind(legacy);
-exports.buildTree = legacy.buildTree.bind(legacy);
-exports.buildSFX = legacy.buildSFX.bind(legacy);
-exports.loadConfig = legacy.loadConfig.bind(legacy);
-exports.config = legacy.config.bind(legacy);
-exports.intersectTrees = legacy.intersectTrees.bind(legacy);
-exports.addTrees = legacy.addTrees.bind(legacy);
-exports.subtractTrees = legacy.subtractTrees.bind(legacy);
-exports.extractTree = legacy.extractTree.bind(legacy);
-exports.trace = legacy.trace.bind(legacy);
-
-exports.Builder = Builder;
+module.exports = Builder;
