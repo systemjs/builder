@@ -14,15 +14,19 @@ var builder = require('./lib/builder');
 
 var path = require('path');
 
-var loader, pluginLoader;
+// unfortunate punning with the namespace
+function Builder() {
+  this.loader = null;
+  this.reset();
+}
 
-function reset() {
-  loader = new Loader(System);
+Builder.prototype.reset = function() {
+  var loader = this.loader = new Loader(System);
   loader.baseURL = System.baseURL;
   loader.paths = { '*': '*.js' };
   loader.config = System.config;
 
-  pluginLoader = new Loader(System);
+  var pluginLoader = new Loader(System);
   pluginLoader.baseURL = System.baseURL;
   pluginLoader.paths = { '*': '*.js' };
   pluginLoader.config = System.config;
@@ -40,29 +44,30 @@ function reset() {
 
   amdCompiler.attach(loader);
   amdCompiler.attach(pluginLoader);
-  exports.loader = loader;
-}
-exports.reset = reset;
 
-reset();
+  if (this == legacy || !legacy)
+    exports.loader = loader;
+};
 
-exports.build = function(moduleName, outFile, opts) {
+Builder.prototype.build = function(moduleName, outFile, opts) {
+  var self = this;
   opts = opts || {};
 
-  return exports.trace(moduleName, opts.config)
+  return this.trace(moduleName, opts.config)
   .then(function(trace) {
-    return exports.buildTree(trace.tree, outFile, opts);
+    return self.buildTree(trace.tree, outFile, opts);
   });
 };
 
-function compileLoad(load, opts, compilers) {
+function compileLoad(loader, load, opts, compilers) {
   return Promise.resolve()
   .then(function() {
     // note which compilers we used
     compilers = compilers || {};
-    if (load.metadata.build == false) {
+    if (load.metadata.build === false) {
       return {};
     }
+    // jshint sub:true
     else if (load.metadata.format == 'es6') {
       compilers['es6'] = true;
       return es6Compiler.compile(load, opts, loader);
@@ -92,12 +97,10 @@ function compileLoad(load, opts, compilers) {
   });
 }
 
-function buildOutputs(tree, opts, sfxCompilers) {
+function buildOutputs(loader, tree, opts, sfxCompilers) {
   var names = Object.keys(tree);
-
   // store plugins with a bundle hook to allow post-processing
   var plugins = {};
-
   var outputs = [];
 
   return Promise.all(names.map(function(name) {
@@ -116,7 +119,7 @@ function buildOutputs(tree, opts, sfxCompilers) {
       entry.loads.push(load);
     }
 
-    return Promise.resolve(compileLoad(load, opts, sfxCompilers))
+    return Promise.resolve(compileLoad(loader, load, opts, sfxCompilers))
     .then(outputs.push.bind(outputs));
   }))
   .then(function() {
@@ -124,7 +127,7 @@ function buildOutputs(tree, opts, sfxCompilers) {
     return Promise.all(Object.keys(plugins).map(function(pluginName) {
       var entry = plugins[pluginName];
       if (entry.bundle)
-      return Promise.resolve(entry.bundle.call(pluginLoader, entry.loads, opts))
+      return Promise.resolve(entry.bundle.call(loader.pluginLoader, entry.loads, opts))
       .then(outputs.push.bind(outputs));
     }));
   })
@@ -133,19 +136,21 @@ function buildOutputs(tree, opts, sfxCompilers) {
   });
 }
 
-exports.buildTree = function(tree, outFile, opts) {
+Builder.prototype.buildTree = function(tree, outFile, opts) {
+  var loader = this.loader;
 
   opts = opts || {};
   opts.outFile = outFile;
 
-  return buildOutputs(tree, opts, false)
+  return buildOutputs(loader, tree, opts, false)
   .then(function(outputs) {
     outputs.unshift('"format register";\n');
     return builder.writeOutput(opts, outputs, loader.baseURL);
   });
 };
 
-exports.buildSFX = function(moduleName, outFile, opts) {
+Builder.prototype.buildSFX = function(moduleName, outFile, opts) {
+  var loader = this.loader;
 
   opts = opts || {};
   var config = opts.config;
@@ -156,10 +161,10 @@ exports.buildSFX = function(moduleName, outFile, opts) {
 
   var compilers = {};
   opts.normalize = true;
-  return exports.trace(moduleName, config)
+  return this.trace(moduleName, config)
   .then(function(trace) {
     moduleName = trace.moduleName;
-    return buildOutputs(trace.tree, opts, compilers);
+    return buildOutputs(loader, trace.tree, opts, compilers);
   })
   .then(function(_outputs) {
     outputs = _outputs;
@@ -201,10 +206,13 @@ exports.buildSFX = function(moduleName, outFile, opts) {
   });
 };
 
-exports.loadConfig = function(configFile) {
+Builder.prototype.loadConfig = function(configFile) {
+  var loader = this.loader;
+  var pluginLoader = loader.pluginLoader;
+
   return Promise.resolve()
   .then(function() {
-    return asp(fs.readFile)(path.resolve(process.cwd(), configFile))
+    return asp(fs.readFile)(path.resolve(process.cwd(), configFile));
   })
   .then(function(source) {
     var curSystem = global.System;
@@ -214,12 +222,16 @@ exports.loadConfig = function(configFile) {
         pluginLoader.config(cfg);
       }
     };
+    // jshint evil:true
     new Function(source.toString()).call(global);
     global.System = curSystem;
   });
-}
+};
 
-exports.config = function(config) {
+Builder.prototype.config = function(config) {
+  var loader = this.loader;
+  var pluginLoader = loader.pluginLoader;
+
   var cfg = {};
   for (var p in config) {
     if (p != 'bundles')
@@ -230,14 +242,15 @@ exports.config = function(config) {
 };
 
 // returns a new tree containing tree1 n tree2
-exports.intersectTrees = function(tree1, tree2) {
+Builder.prototype.intersectTrees = function(tree1, tree2) {
+  var name;
   var intersectTree = {};
 
   var tree1Names = [];
-  for (var name in tree1)
+  for (name in tree1)
     tree1Names.push(name);
 
-  for (var name in tree2) {
+  for (name in tree2) {
     if (tree1Names.indexOf(name) == -1)
       continue;
 
@@ -248,33 +261,35 @@ exports.intersectTrees = function(tree1, tree2) {
 };
 
 // returns a new tree containing tree1 + tree2
-exports.addTrees = function(tree1, tree2) {
+Builder.prototype.addTrees = function(tree1, tree2) {
+  var name;
   var unionTree = {};
 
-  for (var name in tree2)
+  for (name in tree2)
     unionTree[name] = tree2[name];
 
-  for (var name in tree1)
+  for (name in tree1)
     unionTree[name] = tree1[name];
 
   return unionTree;
 };
 
 // returns a new tree containing tree1 - tree2
-exports.subtractTrees = function(tree1, tree2) {
+Builder.prototype.subtractTrees = function(tree1, tree2) {
+  var name;
   var subtractTree = {};
 
-  for (var name in tree1)
+  for (name in tree1)
     subtractTree[name] = tree1[name];
 
-  for (var name in tree2)
+  for (name in tree2)
     delete subtractTree[name];
 
   return subtractTree;
 };
 
 // copies a subtree out of the tree
-exports.extractTree = function(tree, moduleName) {
+Builder.prototype.extractTree = function(tree, moduleName) {
   var outTree = {};
   return visitTree(tree, moduleName, null, function(load) {
     outTree[load.name] = load;
@@ -284,9 +299,12 @@ exports.extractTree = function(tree, moduleName) {
   });
 };
 
-exports.trace = function(moduleName, config, includePlugins) {
+Builder.prototype.trace = function(moduleName, config, includePlugins) {
+  var loader = this.loader;
+  var pluginLoader = loader.pluginLoader;
+
   if (config) {
-    exports.config(config);
+    this.config(config);
   }
 
   var System = loader.global.System;
@@ -301,7 +319,7 @@ exports.trace = function(moduleName, config, includePlugins) {
   .then(function(_moduleName) {
     moduleName = _moduleName;
     loader.global.System = System;
-    return visitTree(loader.loads, moduleName, includePlugins && loader.pluginLoader, function(load) {
+    return visitTree(loader.loads, moduleName, includePlugins && pluginLoader, function(load) {
       traceTree[load.name] = load;
     });
   })
@@ -315,7 +333,7 @@ exports.trace = function(moduleName, config, includePlugins) {
     loader.global.System = System;
     throw e;
   });
-}
+};
 
 function visitTree(tree, moduleName, pluginLoader, visit, seen) {
   seen = seen || [];
@@ -328,7 +346,7 @@ function visitTree(tree, moduleName, pluginLoader, visit, seen) {
   var load = tree[moduleName];
 
   if (!load)
-    return Promise.resolve()
+    return Promise.resolve();
 
   // visit the deps first
   return Promise.all(load.deps.map(function(dep) {
@@ -347,3 +365,20 @@ function visitTree(tree, moduleName, pluginLoader, visit, seen) {
     return visit(load);
   });
 }
+
+
+var legacy = new Builder();
+
+exports.reset = legacy.reset.bind(legacy);
+exports.build = legacy.build.bind(legacy);
+exports.buildTree = legacy.buildTree.bind(legacy);
+exports.buildSFX = legacy.buildSFX.bind(legacy);
+exports.loadConfig = legacy.loadConfig.bind(legacy);
+exports.config = legacy.config.bind(legacy);
+exports.intersectTrees = legacy.intersectTrees.bind(legacy);
+exports.addTrees = legacy.addTrees.bind(legacy);
+exports.subtractTrees = legacy.subtractTrees.bind(legacy);
+exports.extractTree = legacy.extractTree.bind(legacy);
+exports.trace = legacy.trace.bind(legacy);
+
+exports.Builder = Builder;
