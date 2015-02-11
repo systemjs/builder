@@ -33,7 +33,7 @@ function writeTestOutput() {
   .catch(err);
 }
 
-// writeTestOutput();
+writeTestOutput();
 
 describe('Source Maps', function() {
 

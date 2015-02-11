@@ -223,8 +223,10 @@ function executeConfigFile(loader, source) {
 var resolvePath = path.resolve.bind(path, process.cwd());
 
 Builder.prototype.loadConfig = function(configFile) {
+  var self = this;
   return asp(fs.readFile)(resolvePath(configFile))
-    .then(executeConfigFile.bind(null, this.loader));
+    .then(executeConfigFile.bind(null, this.loader))
+    .then(function() { return self; });
 };
 
 Builder.prototype.loadConfigSync = function(configFile) {
