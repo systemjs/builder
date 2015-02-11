@@ -60,40 +60,32 @@ Builder.prototype.build = function(moduleName, outFile, opts) {
   });
 };
 
+var compilerMap = {
+  'amd':      amdCompiler,
+  'cjs':      cjsCompiler,
+  'es6':      es6Compiler,
+  'global':   globalCompiler,
+  'register': registerCompiler
+};
+
 function compileLoad(loader, load, opts, compilers) {
   return Promise.resolve()
   .then(function() {
     // note which compilers we used
     compilers = compilers || {};
+    var format = load.metadata.format;
     if (load.metadata.build === false) {
       return {};
     }
-    // jshint sub:true
-    else if (load.metadata.format == 'es6') {
-      compilers['es6'] = true;
-      return es6Compiler.compile(load, opts, loader);
+    else if (format in compilerMap) {
+      compilers[format] = true;
+      return compilerMap[format].compile(load, opts, loader);
     }
-    else if (load.metadata.format == 'register') {
-      compilers['register'] = true;
-      return registerCompiler.compile(load, opts, loader);
-    }
-    else if (load.metadata.format == 'amd') {
-      compilers['amd'] = true;
-      return amdCompiler.compile(load, opts, loader);
-    }
-    else if (load.metadata.format == 'cjs') {
-      compilers['cjs'] = true;
-      return cjsCompiler.compile(load, opts, loader);
-    }
-    else if (load.metadata.format == 'global') {
-      compilers['global'] = true;
-      return globalCompiler.compile(load, opts, loader);
-    }
-    else if (load.metadata.format == 'defined') {
+    else if (format == 'defined') {
       return {source: ''};
     }
     else {
-      throw "unknown format " + load.metadata.format;
+      throw "unknown format " + format;
     }
   });
 }
@@ -172,34 +164,23 @@ Builder.prototype.buildSFX = function(moduleName, outFile, opts) {
   })
   // next add sfx headers for formats at the beginning
   .then(function() {
-    if (compilers.register && registerCompiler.sfx)
-      return registerCompiler.sfx(loader);
-  })
-  .then(function(result) {
-    outputs.unshift(result || '');
-    if (compilers.amd && amdCompiler.sfx)
-      return amdCompiler.sfx(loader);
-  })
-  .then(function(result) {
-    outputs.unshift(result || '');
-    if (compilers.cjs && cjsCompiler.sfx)
-      return cjsCompiler.sfx(loader);
-  })
-  .then(function(result) {
-    outputs.unshift(result || '');
-    if (compilers.global && globalCompiler.sfx)
-      return globalCompiler.sfx(loader);
+    Object.keys(compilers).forEach(function(format) {
+      compiler = compilerMap[format];
+      if (compiler.sfx)  {
+        var sfx = compiler.sfx(loader);
+        if (sfx) outputs.push(sfx);
+      }
+    });
   })
   // next wrap with the core code
-  .then(function(result) {
-    outputs.push(result || '');
+  .then(function() {
     return asp(fs.readFile)(path.resolve(__dirname, './sfx/sfx-core.js'));
   })
   .then(function(sfxcore) {
     outputs.unshift("('" + moduleName + "', function(System) {\n");
     outputs.unshift(sfxcore.toString());
   })
-  .then(function(result) {
+  .then(function() {
     outputs.push("});");
   })
   .then(function() {
