@@ -1,7 +1,5 @@
-SystemJS Build Tool
+SystemJS Build Tool [![Build Status][travis-image]][travis-url]
 ===
-
-[![Build Status][travis-image]][travis-url]
 
 Provides a single-file build for SystemJS of mixed-dependency module trees.
 
@@ -222,3 +220,5 @@ License
 
 MIT
 
+[travis-url]: https://travis-ci.org/systemjs/builder
+[travis-image]: https://travis-ci.org/systemjs/builder.svg?branch=master
