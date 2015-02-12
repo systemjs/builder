@@ -14,6 +14,16 @@ var builder = require('./lib/builder');
 
 var path = require('path');
 
+/* Very basic, null-friendly, shallow clone for object attributes only */
+function clone(obj) {
+  obj = obj || {};
+  var copy = {};
+  for (var key in obj) {
+    copy[key] = obj[key];
+  }
+  return copy;
+}
+
 function Builder(cfg) {
   this.System = System;
   this.loader = null;
@@ -132,7 +142,7 @@ function buildOutputs(loader, tree, opts, sfxCompilers) {
 Builder.prototype.buildTree = function(tree, outFile, opts) {
   var loader = this.loader;
 
-  opts = opts || {};
+  opts = clone(opts);
   opts.outFile = outFile;
 
   return buildOutputs(loader, tree, opts, false)
@@ -145,10 +155,10 @@ Builder.prototype.buildTree = function(tree, outFile, opts) {
 Builder.prototype.buildSFX = function(moduleName, outFile, opts) {
   var loader = this.loader;
 
-  opts = opts || {};
-  var config = opts.config;
-
+  opts = clone(opts);
   opts.outFile = outFile;
+
+  var config = opts.config;
 
   var outputs;
 
