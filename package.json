@@ -30,7 +30,8 @@
   },
   "scripts": {
     "test:traceur": "cd test && node run-build.js && open test-build.html",
-    "test:6to5": "cd test && node run-build.js 6to5 && open test-build.html"
+    "test:6to5": "cd test && node run-build.js 6to5 && open test-build.html",
+    "test:unit": "./node_modules/.bin/mocha test/unit-tests.js"
   },
   "author": "",
   "license": "MIT",

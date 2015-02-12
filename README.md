@@ -1,6 +1,8 @@
 SystemJS Build Tool
 ===
 
+[![Build Status][travis-image]][travis-url]
+
 Provides a single-file build for SystemJS of mixed-dependency module trees.
 
 Builds ES6 into ES3, CommonJS, AMD and globals into a single file in a way that supports the CSP SystemJS loader
