@@ -49,15 +49,15 @@ exports.compile = function(load, opts, loader) {
     if (normalize)
       options.resolveModuleSource = function(dep) {
         return load.depMap[dep];
-      }
+      };
 
     /* if (opts.runtime) {
       options.optional = options.optional || [];
       if (options.optional.indexOf('selfContained') == -1)
-        options.optional.push('selfContained') 
+        options.optional.push('selfContained')
     } */
     var output = to5.transform(source, options);
-    
+
     return Promise.resolve({
       source: output.code,
       sourceMap: output.map
@@ -90,10 +90,10 @@ exports.compile = function(load, opts, loader) {
     if (loader.transpiler == 'traceur')
       tree = compiler.transform(tree, load.name);
 
-    var source = compiler.write(tree, load.address);
+    var outputSource = compiler.write(tree, load.address);
 
     return Promise.resolve({
-      source: source,
+      source: outputSource,
       sourceMap: compiler.getSourceMap()
     });
   }
