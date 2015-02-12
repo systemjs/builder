@@ -38,7 +38,6 @@ function writeSourceMaps(moduleName, transpiler, sourceMapFile) {
   instance.loader.transpiler = transpiler || 'traceur';
   instance.build(moduleName, null, buildOpts)
   .then(function(output) {
-    console.log(sourceMapFile);
     fs.writeFile('test/expectations/' + sourceMapFile, output.sourceMap.toString());
   })
   .catch(err);
@@ -47,6 +46,56 @@ function writeSourceMaps(moduleName, transpiler, sourceMapFile) {
 writeTestOutput();
 
 describe('Source Maps', function() {
+
+  describe('sources paths', function() {
+
+    var getSources = function(map) {
+      return JSON.parse(map.toString()).sources;
+    };
+
+    it('are relative to outFile', function(done) {
+      var builder = new Builder('./test/cfg.js');
+      builder.buildSFX('tree/first', 'dist/output.js', buildOpts)
+      .then(function(outputs) {
+        var sources = getSources(outputs.sourceMap);
+        assert.deepEqual(sources,
+        [ '../test/tree/third.js',
+          '../test/tree/cjs.js',
+          '../test/tree/jquery.js',
+          '../test/tree/some',
+          '../test/tree/text.txt',
+          '../test/tree/component.jsx',
+          '../test/tree/second.js',
+          '../test/tree/global.js',
+          '../test/tree/amd.js',
+          '../test/tree/first.js' ]);
+      })
+      .then(done)
+      .catch(err);
+    });
+
+    it('are relative to baseURL, if no outFile', function(done) {
+      var builder = new Builder('./test/cfg.js');
+      var opts = { sourceMaps: true, config: { baseURL: 'test/tree' } };
+      builder.buildSFX('first', null, opts)
+      .then(function(outputs) {
+        var sources = getSources(outputs.sourceMap);
+        assert.deepEqual(sources,
+        [ 'third.js',
+          'cjs.js',
+          'jquery.js',
+          'some',
+          'text.txt',
+          'component.jsx',
+          'second.js',
+          'global.js',
+          'amd.js',
+          'first.js' ]);
+      })
+      .then(done)
+      .catch(err);
+    });
+  });
 
   describe('Traceur', function() {
     var transpiler = 'traceur';
