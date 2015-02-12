@@ -33,6 +33,17 @@ function writeTestOutput() {
   .catch(err);
 }
 
+function writeSourceMaps(moduleName, transpiler, sourceMapFile) {
+  var instance = new Builder('./test/cfg.js');
+  instance.loader.transpiler = transpiler || 'traceur';
+  instance.build(moduleName, null, buildOpts)
+  .then(function(output) {
+    console.log(sourceMapFile);
+    fs.writeFile('test/expectations/' + sourceMapFile, output.sourceMap.toString());
+  })
+  .catch(err);
+}
+
 writeTestOutput();
 
 describe('Source Maps', function() {
@@ -42,25 +53,37 @@ describe('Source Maps', function() {
 
     describe('without input source maps', function() {
       it('handles single compilation targets correctly', function(done) {
-        var expected = readExpectation('traceur.tree.single.json');
-        compareSourceMaps('tree/amd-2', expected, done, transpiler);
+        var module = 'tree/amd-2';
+        var source = 'traceur.tree.single.json';
+        //writeSourceMaps(module, transpiler, source);
+        var expected = readExpectation(source);
+        compareSourceMaps(module, expected, done, transpiler);
       });
 
       it('handles multiple compilation targets correctly', function(done) {
-        var expected = readExpectation('traceur.tree.multi.json');
-        compareSourceMaps('tree/first', expected, done, transpiler);
+        var module = 'tree/first';
+        var source = 'traceur.tree.multi.json';
+        //writeSourceMaps(module, transpiler, source);
+        var expected = readExpectation(source);
+        compareSourceMaps(module, expected, done, transpiler);
       });
     });
 
     describe('with input source maps', function() {
       it('handles single compilation targets correctly', function(done) {
-      var single= readExpectation('traceur.chain.single.json');
-        compareSourceMaps('chain/second', single, done, transpiler);
+        var module = 'chain/second';
+        var source = 'traceur.chain.single.json';
+        //writeSourceMaps(module, transpiler, source);
+        var expected = readExpectation(source);
+        compareSourceMaps(module, expected, done, transpiler);
       });
 
       it('handles multiple compilation targets correctly', function(done) {
-      var multiple= readExpectation('traceur.chain.multi.json');
-        compareSourceMaps('chain/first', multiple, done, transpiler);
+        var module = 'chain/first';
+        var source = 'traceur.chain.multi.json';
+        //writeSourceMaps(module, transpiler, source);
+        var expected = readExpectation(source);
+        compareSourceMaps(module, expected, done, transpiler);
       });
     });
   });
@@ -70,25 +93,37 @@ describe('Source Maps', function() {
 
     describe('without input source maps', function() {
       it('handles single compilation targets correctly', function(done) {
-        var single = readExpectation('6to5.tree.single.json');
-        compareSourceMaps('tree/amd-2', single, done, transpiler);
+        var module = 'tree/amd-2';
+        var source = '6to5.tree.single.json';
+        //writeSourceMaps(module, transpiler, source);
+        var expected = readExpectation(source);
+        compareSourceMaps(module, expected, done, transpiler);
       });
 
       it('handles multiple compilation targets correctly', function(done) {
-        var multiple = readExpectation('6to5.tree.multi.json');
-        compareSourceMaps('tree/first', multiple, done, transpiler);
+        var module = 'tree/first';
+        var source = '6to5.tree.multi.json';
+        //writeSourceMaps(module, transpiler, source);
+        var expected = readExpectation(source);
+        compareSourceMaps(module, expected, done, transpiler);
       });
     });
 
     describe('with input source maps', function() {
       it('handles single compilation targets correctly', function(done) {
-        var single= readExpectation('6to5.chain.single.json');
-        compareSourceMaps('chain/second', single, done, transpiler);
+        var module = 'chain/second';
+        var source = '6to5.chain.single.json';
+        //writeSourceMaps(module, transpiler, source);
+        var expected = readExpectation(source);
+        compareSourceMaps(module, expected, done, transpiler);
       });
 
       it('handles multipl compilation targets correctly', function(done) {
-        var multiple= readExpectation('6to5.chain.multi.json');
-        compareSourceMaps('chain/first', multiple, done, transpiler);
+        var module = 'chain/first';
+        var source = '6to5.chain.multi.json';
+        //writeSourceMaps(module, transpiler, source);
+        var expected = readExpectation(source);
+        compareSourceMaps(module, expected, done, transpiler);
       });
     });
   });
