@@ -1,4 +1,4 @@
-var builder = require('../index');
+var Builder = require('../index');
 var inline = require('../lib/builder').inlineSourceMap;
 var fs = require('fs');
 
@@ -8,8 +8,11 @@ var err = function(e) {
   });
 };
 
+var builder = new Builder();
+var cfg = './cfg-manual.js';
+
 console.log('Running in-memory build...');
-builder.loadConfig('./cfg.js')
+builder.loadConfig(cfg)
 .then(function() {
   builder.build('tree/first', null, { sourceMaps: true, minify: true })
   .then(function(output) {
@@ -21,7 +24,7 @@ builder.loadConfig('./cfg.js')
 
 console.log('Running a multi-format build...');
 
-builder.loadConfig('./cfg.js')
+builder.loadConfig(cfg)
 .then(function() {
 
   if (process.argv[2] == '6to5')

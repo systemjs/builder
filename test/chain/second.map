@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "second.js",
+  "sourceRoot": "",
+  "sources": [
+    "second.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;AAAA,MAAA,IAAA;;AAAA,EAAA,IAAA,GAAO,CAAA,SAAA,KAAA,GAAA;WAAA,SAAC,CAAD,GAAA;aAAO,CAAA,GAAI,CAAJ,GAAQ,EAAf;IAAA,EAAA;EAAA,CAAA,CAAA,CAAA,IAAA,CAAP,CAAA;AAAA"
+}
