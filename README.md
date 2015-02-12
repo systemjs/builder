@@ -39,8 +39,7 @@ Usage
 
 ```javascript
   var path = require("path");
-  var Builder = require('systemjs-builder');
-  var builder = new Builder();
+  var builder = require('systemjs-builder');
 
   builder.build('myModule', 'outfile.js', {
     config: {
@@ -74,15 +73,17 @@ System.config({ ... });
 Then we can load this config file through the builder:
 
 ```javascript
+  var builder = require('systemjs-builder');
+
   // `builder.loadConfig` will load config from a file
   builder.loadConfig('./cfg.js')
   .then(function() {
     // additional config can also be set through `builder.config`
     builder.config({ baseURL: 'file:' + process.cwd() });
-
+    
     return builder.build('myModule', 'outfile.js');
   });
-
+  
 ```
 
 Multiple config calls can be run, which will combine into the loader configuration.
@@ -95,6 +96,7 @@ To reset the loader state and configuration for a new build, run `builder.reset(
 To make a bundle that is independent of the SystemJS loader entirely, we can make SFX bundles:
 
 ```javascript
+  var builder = require('systemjs-builder');
   builder.buildSFX('myModule', 'outfile.js', options);
 ```
 
@@ -114,6 +116,7 @@ jquery.js
 As well as an `options.config` parameter, it is also possible to specify minification and source maps options:
 
 ```javascript
+  var builder = require('systemjs-builder');
   builder.build('myModule', 'outfile.js', { minify: true, sourceMaps: true, config: cfg });
 ```
 
@@ -126,6 +129,7 @@ Compile time with source maps can also be improved with the `lowResSourceMaps` o
 If you want minification without mangling, you can set the config like this:
 
 ```javascript
+  var builder = require('systemjs-builder');
   builder.build('myModule', 'outfile.js', { minify: true, mangle: false });
 ```
 
@@ -153,8 +157,7 @@ Tree operations include `addTrees`, `subtractTrees`, `intersectTrees` and `extra
 In this example we build `app/core` excluding `app/corelibs`:
 
 ```javascript
-  var Builder = require('systemjs-builder');
-  var builder = new Builder();
+  var builder = require('systemjs-builder');
 
   builder.config({
     baseURL: '...',
@@ -165,7 +168,7 @@ In this example we build `app/core` excluding `app/corelibs`:
 
   builder.trace('app/main')
   .then(function(appTrace) {
-
+  
     return builder.trace('app/corelibs')
     .then(function(coreTrace) {
       return builder.subtractTrees(appTrace.tree, coreTrace.tree);
@@ -181,8 +184,7 @@ In this example we build `app/core` excluding `app/corelibs`:
 In this example we build `app/first` and `app/second` creating a separate `app/shared` library:
 
 ```javascript
-  var Builder = require('systemjs-builder');
-  var builder = new Builder();
+  var builder = require('systemjs-builder');
 
   builder.config({
     // ...
@@ -193,7 +195,7 @@ In this example we build `app/first` and `app/second` creating a separate `app/s
   builder.trace('app/first')
   .then(function(trace) {
     firstTree = trace.tree;
-
+    
     return builder.trace('app/second');
   })
   .then(function(trace) {
