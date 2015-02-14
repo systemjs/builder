@@ -41,6 +41,7 @@ exports.compile = function(load, opts, loader) {
       options.sourceMap = true;
     options.filename = load.address;
     options.filenameRelative = load.name;
+    options.sourceFileName = load.address;
     options.code = true;
     options.ast = false;
     options.moduleIds = true;
