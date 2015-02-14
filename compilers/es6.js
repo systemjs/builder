@@ -42,7 +42,7 @@ exports.compile = function(load, opts, loader) {
     options.filename = load.address;
     options.code = true;
     options.ast = false;
-    options.moduleIds = true;
+    // options.moduleIds = true;
 
     if (normalize)
       options.resolveModuleSource = function(dep) {
