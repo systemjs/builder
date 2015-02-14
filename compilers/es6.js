@@ -1,6 +1,5 @@
 var traceur = require('traceur');
 var to5 = require('6to5-core');
-var path = require('path');
 
 var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
 function TraceurImportNormalizeTransformer(map) {
@@ -41,7 +40,7 @@ exports.compile = function(load, opts, loader) {
     if (opts.sourceMaps)
       options.sourceMap = true;
     options.filename = load.address;
-    options.filenameRelative = path.relative(loader.baseURL, load.address);
+    options.filenameRelative = load.name;
     options.code = true;
     options.ast = false;
     options.moduleIds = true;
