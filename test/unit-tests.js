@@ -12,7 +12,7 @@ var buildOpts = { sourceMaps: true };
 
 var compareSourceMaps = function(filename, expectation, done, transpiler) {
   var instance = new Builder('./test/cfg.js');
-  instance.loader.transpiler = transpiler || 'traceur';
+  buildOpts.transpiler = transpiler || 'traceur';
   instance.build(filename, null, buildOpts)
   .then(function(output) {
     assert.equal(expectation, output.sourceMap.toString());
