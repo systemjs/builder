@@ -12,7 +12,8 @@ var buildOpts = { sourceMaps: true };
 
 var compareSourceMaps = function(filename, expectation, done, transpiler) {
   var instance = new Builder('./test/cfg.js');
-  buildOpts.transpiler = transpiler || 'traceur';
+  buildOpts.config = buildOpts.config || {};
+  buildOpts.config.transpiler = transpiler || 'traceur';
   instance.build(filename, null, buildOpts)
   .then(function(output) {
     assert.equal(expectation, output.sourceMap.toString());
@@ -35,7 +36,8 @@ function writeTestOutput() {
 
 function writeSourceMaps(moduleName, transpiler, sourceMapFile) {
   var instance = new Builder('./test/cfg.js');
-  instance.loader.transpiler = transpiler || 'traceur';
+  buildOpts.config = buildOpts.config || {};
+  buildOpts.config.transpiler = transpiler || 'traceur';
   instance.build(moduleName, null, buildOpts)
   .then(function(output) {
     fs.writeFile('test/expectations/' + sourceMapFile, output.sourceMap.toString());
