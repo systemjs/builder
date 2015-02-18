@@ -79,8 +79,8 @@ Builder.prototype.lookupOperatorFn = function(symbol) {
     throw 'Unknown operator ' + op.operator;
 };
 
-Builder.buildExpression = function(firstModule, operations, cfg) {
-  builder = new Builder();
+Builder.prototype.buildExpression = function(firstModule, operations, cfg) {
+  var builder = this;
 
   return Promise.resolve(builder.trace(firstModule, cfg))
   .then(function(trace) {
