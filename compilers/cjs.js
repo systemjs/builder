@@ -75,7 +75,7 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
 }
 
 exports.compile = function(load, opts, loader) {
-  var options = { script: true };
+  var options = { script: true, sourceRoot: true };
   if (opts.sourceMaps)
     options.sourceMaps = 'memory';
   if (opts.lowResSourceMaps)
@@ -108,7 +108,7 @@ exports.compile = function(load, opts, loader) {
 };
 
 function remap(source, map, fileName) {
-  var options = {script: true};
+  var options = {script: true, sourceRoot: true};
   var compiler = new traceur.Compiler(options);
   var tree = compiler.parse(source, fileName);
 
