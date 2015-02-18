@@ -70,6 +70,66 @@ Builder.prototype.build = function(moduleName, outFile, opts) {
   });
 };
 
+Builder.parseExpression = function(expressionString) {
+  var args = expressionString.split(' ');
+
+  var firstModule = args[0];
+
+  var operations = [];
+
+  for (var i = 1; i < args.length - 1; i = i + 2) {
+    var operator = args[i];
+    var moduleName = args[i + 1];
+
+    operations.push({
+      operator: operator,
+      moduleName: moduleName
+    });
+  }
+
+  return {firstModule: firstModule, operations: operations};
+};
+
+Builder.prototype.lookupOperatorFn = function(symbol) {
+  if (symbol == '+')
+    return this.addTrees;
+  else if (symbol == '-')
+    return this.subtractTrees;
+  else
+    throw 'Unknown operator ' + op.operator;
+};
+
+Builder.prototype.buildExpression = function(expression, cfg) {
+  var builder = this;
+
+  if (typeof expression == 'string')
+    expression = Builder.parseExpression(expression);
+
+  var firstModule = expression.firstModule;
+  var operations = expression.operations;
+
+  return Promise.resolve(builder.trace(firstModule, cfg))
+  .then(function(trace) {
+    // if there are no other operations, then we have the final tree
+    if (!operations.length)
+      return trace.tree;
+
+    var applyOperation = function(promise, op) {
+      return promise.then(function(curTree) {
+        return builder.trace(op.moduleName)
+        .then(function(nextTrace) {
+          var operatorFn = builder.lookupOperatorFn(op.operator);
+          return operatorFn.call(builder, curTree, nextTrace.tree);
+        });
+      });
+    };
+
+    // chain the operations, applying them with the trace of the next module
+    return operations.reduce(applyOperation, Promise.resolve(trace.tree));
+  });
+};
+
+
 var compilerMap = {
   'amd':      amdCompiler,
   'cjs':      cjsCompiler,
