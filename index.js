@@ -70,6 +70,11 @@ Builder.prototype.build = function(moduleName, outFile, opts) {
   });
 };
 
+var operatorFunctions = {
+  '+': builder.addTrees,
+  '-': builder.subtractTrees
+};
+
 Builder.buildExpression = function(firstModule, operations, cfg) {
   builder = new Builder();
 
@@ -79,29 +84,20 @@ Builder.buildExpression = function(firstModule, operations, cfg) {
     if (!operations.length)
       return trace.tree;
 
-    // chain the operations, applying them with the trace of the next module
-    var operationPromise = Promise.resolve(trace.tree);
-    operations.forEach(function(op) {
-      operationPromise = operationPromise
-      .then(function(curTree) {
-        return builder.trace(op.moduleName)
-        .then(function(nextTrace) {
-
-          var operatorFunction;
-
-          if (op.operator == '+')
-            operatorFunction = builder.addTrees;
-          else if (op.operator == '-')
-            operatorFunction = builder.subtractTrees;
-          else
-            throw 'Unknown operator ' + op.operator;
-
-          return operatorFunction(curTree, nextTrace.tree);
-        });
+    var applyOperation = function(promise, op) {
+      promise.then(function(curTree) {
+        return builder.trace(op.moduleName);
+      })
+      .then(function(nextTrace) {
+        var operatorFunction = operatorFunction[op.operator];
+        if (!operatorFunction)
+          throw 'Unknown operator ' + op.operator;
+        return operatorFunction(curTree, nextTrace.tree);
       });
-    });
+    };
 
-    return operationPromise;
+    // chain the operations, applying them with the trace of the next module
+    return operations.reduce(applyOperation, Promise.resolve(trace.tree));
   });
 };
 
