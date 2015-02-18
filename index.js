@@ -70,6 +70,42 @@ Builder.prototype.build = function(moduleName, outFile, opts) {
   });
 };
 
+Builder.buildExpression = function(firstModule, operations, cfg) {
+  builder = new Builder();
+
+  return Promise.resolve(builder.trace(firstModule, cfg))
+  .then(function(trace) {
+    // if there are no other operations, then we have the final tree
+    if (!operations.length)
+      return trace.tree;
+
+    // chain the operations, applying them with the trace of the next module
+    var operationPromise = Promise.resolve(trace.tree);
+    operations.forEach(function(op) {
+      operationPromise = operationPromise
+      .then(function(curTree) {
+        return builder.trace(op.moduleName)
+        .then(function(nextTrace) {
+
+          var operatorFunction;
+
+          if (op.operator == '+')
+            operatorFunction = builder.addTrees;
+          else if (op.operator == '-')
+            operatorFunction = builder.subtractTrees;
+          else
+            throw 'Unknown operator ' + op.operator;
+
+          return operatorFunction(curTree, nextTrace.tree);
+        });
+      });
+    });
+
+    return operationPromise;
+  });
+};
+
+
 var compilerMap = {
   'amd':      amdCompiler,
   'cjs':      cjsCompiler,
