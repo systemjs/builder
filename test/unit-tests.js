@@ -139,13 +139,13 @@ describe('Source Maps', function() {
     });
   });
 
-  describe('6to5', function() {
-    var transpiler = '6to5';
+  describe('babel', function() {
+    var transpiler = 'babel';
 
     describe('without input source maps', function() {
       it('handles single compilation targets correctly', function(done) {
         var module = 'tree/amd-2';
-        var source = '6to5.tree.single.json';
+        var source = 'babel.tree.single.json';
         //writeSourceMaps(module, transpiler, source);
         var expected = readExpectation(source);
         compareSourceMaps(module, expected, done, transpiler);
@@ -153,7 +153,7 @@ describe('Source Maps', function() {
 
       it('handles multiple compilation targets correctly', function(done) {
         var module = 'tree/first';
-        var source = '6to5.tree.multi.json';
+        var source = 'babel.tree.multi.json';
         //writeSourceMaps(module, transpiler, source);
         var expected = readExpectation(source);
         compareSourceMaps(module, expected, done, transpiler);
@@ -163,7 +163,7 @@ describe('Source Maps', function() {
     describe('with input source maps', function() {
       it('handles single compilation targets correctly', function(done) {
         var module = 'chain/second';
-        var source = '6to5.chain.single.json';
+        var source = 'babel.chain.single.json';
         //writeSourceMaps(module, transpiler, source);
         var expected = readExpectation(source);
         compareSourceMaps(module, expected, done, transpiler);
@@ -171,7 +171,7 @@ describe('Source Maps', function() {
 
       it('handles multipl compilation targets correctly', function(done) {
         var module = 'chain/first';
-        var source = '6to5.chain.multi.json';
+        var source = 'babel.chain.multi.json';
         //writeSourceMaps(module, transpiler, source);
         var expected = readExpectation(source);
         compareSourceMaps(module, expected, done, transpiler);

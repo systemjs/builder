@@ -1,5 +1,5 @@
 var traceur = require('traceur');
-var to5 = require('6to5-core');
+var babel = require('babel-core');
 
 var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
 function TraceurImportNormalizeTransformer(map) {
@@ -34,8 +34,8 @@ exports.compile = function(load, opts, loader) {
 
   var source = load.source;
 
-  if (loader.transpiler == '6to5') {
-    options = loader.to5Options || {};
+  if (loader.transpiler == 'babel') {
+    options = loader.babelOptions || {};
     options.modules = 'system';
     if (opts.sourceMaps)
       options.sourceMap = true;
@@ -57,7 +57,7 @@ exports.compile = function(load, opts, loader) {
       if (options.optional.indexOf('selfContained') == -1)
         options.optional.push('selfContained')
     } */
-    var output = to5.transform(source, options);
+    var output = babel.transform(source, options);
 
     return Promise.resolve({
       source: output.code,

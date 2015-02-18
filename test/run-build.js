@@ -27,8 +27,8 @@ console.log('Running a multi-format build...');
 builder.loadConfig(cfg)
 .then(function() {
 
-  if (process.argv[2] == '6to5')
-    builder.loader.transpiler = '6to5';
+  if (process.argv[2] == 'babel')
+    builder.loader.transpiler = 'babel';
 
   builder.build('tree/first', 'tree-build.js', { sourceMaps: true })
   .then(function() {
