@@ -49,6 +49,20 @@ writeTestOutput();
 
 describe('Source Maps', function() {
 
+  it('can render inline', function(done) {
+    var module = 'tree/amd-2';
+    var filename = 'inline-source-map.js';
+    var expected = readExpectation(filename);
+
+    var instance = new Builder('./test/cfg.js');
+    instance.build(module, null, { sourceMaps: 'inline' })
+    .then(function(output) {
+      assert.equal(undefined, output.sourceMaps);
+      assert.equal(expected, output.source);
+      done();
+    });
+  });
+
   describe('sources paths', function() {
 
     var getSources = function(map) {
