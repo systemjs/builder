@@ -70,6 +70,26 @@ Builder.prototype.build = function(moduleName, outFile, opts) {
   });
 };
 
+Builder.parseExpression = function(expressionString) {
+  var args = expressionString.split(' ');
+
+  var firstModule = args[0];
+
+  var operations = [];
+
+  for (var i = 1; i < args.length - 1; i = i + 2) {
+    var operator = args[i];
+    var moduleName = args[i + 1];
+
+    operations.push({
+      operator: operator,
+      moduleName: moduleName
+    });
+  }
+
+  return {firstModule: firstModule, operations: operations};
+};
+
 Builder.prototype.lookupOperatorFn = function(symbol) {
   if (symbol == '+')
     return this.addTrees;
@@ -79,8 +99,14 @@ Builder.prototype.lookupOperatorFn = function(symbol) {
     throw 'Unknown operator ' + op.operator;
 };
 
-Builder.prototype.buildExpression = function(firstModule, operations, cfg) {
+Builder.prototype.buildExpression = function(expression, cfg) {
   var builder = this;
+
+  if (typeof expression == 'string')
+    expression = Builder.parseExpression(expression);
+
+  var firstModule = expression.firstModule;
+  var operations = expression.operations;
 
   return Promise.resolve(builder.trace(firstModule, cfg))
   .then(function(trace) {
