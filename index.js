@@ -70,9 +70,13 @@ Builder.prototype.build = function(moduleName, outFile, opts) {
   });
 };
 
-var operatorFunctions = {
-  '+': builder.addTrees,
-  '-': builder.subtractTrees
+Builder.prototype.lookupOperatorFn = function(symbol) {
+  if (symbol == '+')
+    return this.addTrees;
+  else if (symbol == '-')
+    return this.subtractTrees;
+  else
+    throw 'Unknown operator ' + op.operator;
 };
 
 Builder.buildExpression = function(firstModule, operations, cfg) {
@@ -85,14 +89,12 @@ Builder.buildExpression = function(firstModule, operations, cfg) {
       return trace.tree;
 
     var applyOperation = function(promise, op) {
-      promise.then(function(curTree) {
-        return builder.trace(op.moduleName);
-      })
-      .then(function(nextTrace) {
-        var operatorFunction = operatorFunction[op.operator];
-        if (!operatorFunction)
-          throw 'Unknown operator ' + op.operator;
-        return operatorFunction(curTree, nextTrace.tree);
+      return promise.then(function(curTree) {
+        return builder.trace(op.moduleName)
+        .then(function(nextTrace) {
+          var operatorFn = builder.lookupOperatorFn(op.operator);
+          return operatorFn.call(builder, curTree, nextTrace.tree);
+        });
       });
     };
 
