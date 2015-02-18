@@ -1,8 +1,10 @@
-var traceur = require('traceur');
-var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
-var CallExpression = traceur.get('syntax/trees/ParseTrees.js').CallExpression;
-var ArgumentList = traceur.get('syntax/trees/ParseTrees.js').ArgumentList;
-var createStringLiteral = traceur.get('codegeneration/ParseTreeFactory.js').createStringLiteral;
+var traceur = require('../lib/traceur-wrapper');
+
+var ParseTreeTransformer = traceur.ParseTreeTransformer;
+var CallExpression = traceur.CallExpression;
+var ArgumentList = traceur.ArgumentList;
+var createStringLiteral = traceur.createStringLiteral;
+var createCompiler = traceur.createCompiler;
 
 // converts anonymous System.register([] into named System.register('name', [], ...
 // NB need to add that if no anon, last named must define this module
@@ -38,7 +40,7 @@ RegisterTransformer.prototype.transformCallExpression = function(tree) {
 }
 
 exports.compile = function(load, opts, loader) {
-  var options = { script: true, sourceRoot: true };
+  var options = { script: true };
 
   if (opts.sourceMaps)
     options.sourceMaps = 'memory';
@@ -48,7 +50,7 @@ exports.compile = function(load, opts, loader) {
   if (load.metadata.sourceMap)
     options.inputSourceMap = load.metadata.sourceMap;
 
-  var compiler = new traceur.Compiler(options);
+  var compiler = createCompiler(options);
   var tree = compiler.parse(load.source, load.address);
 
   var transformer = new RegisterTransformer(load.name);

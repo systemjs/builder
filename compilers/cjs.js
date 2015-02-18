@@ -1,8 +1,10 @@
 var path = require('path');
-var traceur = require('traceur');
-var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
-var Script = traceur.get('syntax/trees/ParseTrees.js').Script;
-var parseStatements = traceur.get('codegeneration/PlaceholderParser.js').parseStatements;
+var traceur = require('../lib/traceur-wrapper');
+
+var ParseTreeTransformer = traceur.ParseTreeTransformer;
+var Script = traceur.Script;
+var parseStatements = traceur.parseStatements;
+var createCompiler = traceur.createCompiler;
 
 // remap require() statements
 function CJSRequireTransformer(requireName, map) {
@@ -75,7 +77,7 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
 }
 
 exports.compile = function(load, opts, loader) {
-  var options = { script: true, sourceRoot: true };
+  var options = { script: true };
   if (opts.sourceMaps)
     options.sourceMaps = 'memory';
   if (opts.lowResSourceMaps)
@@ -84,7 +86,7 @@ exports.compile = function(load, opts, loader) {
   if (load.metadata.sourceMap)
     options.inputSourceMap = load.metadata.sourceMap;
 
-  var compiler = new traceur.Compiler(options);
+  var compiler = createCompiler(options);
   var tree = compiler.parse(load.source, load.address);
 
   var transformer;
@@ -108,8 +110,8 @@ exports.compile = function(load, opts, loader) {
 };
 
 function remap(source, map, fileName) {
-  var options = {script: true, sourceRoot: true};
-  var compiler = new traceur.Compiler(options);
+  var options = {script: true};
+  var compiler = createCompiler(options);
   var tree = compiler.parse(source, fileName);
 
   var transformer = new CJSRequireTransformer('require', map);

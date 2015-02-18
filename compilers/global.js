@@ -1,8 +1,10 @@
-var traceur = require('traceur');
-var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
-var parseStatements = traceur.get('codegeneration/PlaceholderParser.js').parseStatements;
-var parseStatement = traceur.get('codegeneration/PlaceholderParser.js').parseStatement;
-var Script = traceur.get('syntax/trees/ParseTrees.js').Script;
+var traceur = require('../lib/traceur-wrapper');
+
+var ParseTreeTransformer = traceur.ParseTreeTransformer;
+var parseStatements = traceur.parseStatements;
+var parseStatement = traceur.parseStatement;
+var Script = traceur.Script;
+var createCompiler = traceur.createCompiler;
 
 // wraps global scripts
 function GlobalTransformer(name, deps, exportName, init) {
@@ -78,7 +80,7 @@ GlobalTransformer.prototype.transformScript = function(tree) {
 }
 
 exports.compile = function(load, opts, loader) {
-  var options = { script: true, sourceRoot: true };
+  var options = { script: true };
 
   if (opts.sourceMaps)
     options.sourceMaps = 'memory';
@@ -88,7 +90,7 @@ exports.compile = function(load, opts, loader) {
   if (load.metadata.sourceMap)
     options.inputSourceMap = load.metadata.sourceMap;
 
-  var compiler = new traceur.Compiler(options);
+  var compiler = createCompiler(options);
   var tree = compiler.parse(load.source, load.address);
 
   var deps = opts.normalize ? load.metadata.deps.map(function(dep) { return load.depMap[dep]; }) : load.metadata.deps;
