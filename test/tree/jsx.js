@@ -1,4 +1,4 @@
-var react = System.pluginLoader._nodeRequire('react-tools');
+var react = System._nodeRequire('react-tools');
 
 exports.translate = function(load) {
   var output = react.transformWithDetails(load.source);
