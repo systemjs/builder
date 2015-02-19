@@ -24,6 +24,12 @@ function clone(obj) {
   return copy;
 }
 
+function processOpts(opts_, outFile) {
+  var opts = clone(opts_);
+  if (outFile) opts.outFile = outFile;
+  return opts;
+}
+
 function Builder(cfg) {
   this.System = System;
   this.loader = null;
@@ -201,9 +207,7 @@ function buildOutputs(loader, tree, opts, sfxCompilers) {
 
 Builder.prototype.buildTree = function(tree, outFile, opts) {
   var loader = this.loader;
-
-  opts = clone(opts);
-  opts.outFile = outFile;
+  opts = processOpts(opts, outFile);
 
   return buildOutputs(loader, tree, opts, false)
   .then(function(outputs) {
@@ -214,17 +218,12 @@ Builder.prototype.buildTree = function(tree, outFile, opts) {
 
 Builder.prototype.buildSFX = function(moduleName, outFile, opts) {
   var loader = this.loader;
-
-  opts = clone(opts);
-  opts.outFile = outFile;
-
-  var config = opts.config;
+  opts = processOpts(opts, outFile);
+  opts.normalize = true;
 
   var outputs;
-
   var compilers = {};
-  opts.normalize = true;
-  return this.trace(moduleName, config)
+  return this.trace(moduleName, opts.config)
   .then(function(trace) {
     moduleName = trace.moduleName;
     return buildOutputs(loader, trace.tree, opts, compilers);
