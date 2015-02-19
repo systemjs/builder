@@ -27,6 +27,8 @@ function clone(obj) {
 function processOpts(opts_, outFile) {
   var opts = clone(opts_);
   if (outFile) opts.outFile = outFile;
+  if (opts.sourceMaps == 'inline')
+    opts.sourceMapContents = true;
   return opts;
 }
 
