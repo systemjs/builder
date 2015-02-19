@@ -40,20 +40,18 @@ Usage
 ```javascript
   var path = require("path");
   var Builder = require('systemjs-builder');
-  var builder = new Builder();
+  
+  var builder = new Builder({
+    baseURL: path.resolve('some/folder'),
 
-  builder.build('myModule', 'outfile.js', {
-    config: {
-      baseURL: path.resolve('some/folder'),
+    // any map config
+    map: {
+      jquery: 'jquery-1.2.3/jquery'
+    },
 
-      // any map config
-      map: {
-        jquery: 'jquery-1.2.3/jquery'
-      },
-
-      // etc. any SystemJS config
-    }
+    // etc. any SystemJS config
   })
+  .build('myModule', 'outfile.js')
   .then(function() {
     console.log('Build complete');
   })
@@ -154,13 +152,11 @@ In this example we build `app/core` excluding `app/corelibs`:
 
 ```javascript
   var Builder = require('systemjs-builder');
-  var builder = new Builder();
-
-  builder.config({
+  
+  var builder = new Builder({
     baseURL: '...',
     map: {
-
-    }, // etc. config
+    } // etc. config
   });
 
   builder.trace('app/main')
@@ -182,9 +178,8 @@ In this example we build `app/first` and `app/second` creating a separate `app/s
 
 ```javascript
   var Builder = require('systemjs-builder');
-  var builder = new Builder();
-
-  builder.config({
+  
+  var builder = new Builder({
     // ...
   });
 
