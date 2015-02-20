@@ -1,6 +1,7 @@
 var fs = require('fs');
 var Builder = require('../index');
 var assert = require('chai').assert;
+var atob = require('atob');
 
 var err = function(e) {
   setTimeout(function() {
@@ -64,7 +65,10 @@ describe('Source Maps', function() {
       var commentPrefix = /^\/\/# sourceMappingURL=data:application\/json;base64,/;
       assert(lastLine.match(commentPrefix));
       var encoding = lastLine.replace(commentPrefix, "");
-      // would be nice to decode here and validate that it's a sourcemap
+      var decoded = JSON.parse(atob(encoding));
+      // not a regular array so tedious
+      assert.equal(1, decoded.sources.length);
+      assert.equal('tree/amd-2.js', decoded.sources[0]);
       done();
     });
   });

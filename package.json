@@ -22,7 +22,8 @@
     "es6-module-loader": "0.14.0",
     "mocha": "~2.0.0",
     "chai": "^1.10.0",
-    "react-tools": "^0.12.1"
+    "react-tools": "^0.12.1",
+    "atob": "^1.1.2"
   },
   "repository": {
     "type": "git",
