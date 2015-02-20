@@ -34,7 +34,10 @@ exports.compile = function(load, opts, loader) {
 
   var source = load.source;
 
-  if (loader.transpiler == 'babel') {
+  if (loader.transpiler == 'babel' || loader.transpiler == '6to5') {
+    if (loader.transpiler == '6to5')
+      console.log("WARNING: transpiler option should be updated from '6to5' to 'babel'");
+
     options = loader.babelOptions || {};
     options.modules = 'system';
     if (opts.sourceMaps)
@@ -65,6 +68,10 @@ exports.compile = function(load, opts, loader) {
     });
   }
   else {
+    if (loader.transpiler && loader.transpiler != 'traceur')
+      console.log("WARNING: unknown transpiler option '" + loader.transpiler + "', " +
+                  "falling back to default - traceur.");
+
     options = loader.traceurOptions || {};
     options.modules = 'instantiate';
     options.script = false;
