@@ -52,13 +52,19 @@ describe('Source Maps', function() {
   it('can render inline', function(done) {
     var module = 'tree/amd-2';
     var filename = 'inline-source-map.js';
-    var expected = readExpectation(filename);
 
     var instance = new Builder('./test/cfg.js');
     instance.build(module, null, { sourceMaps: 'inline' })
     .then(function(output) {
       assert.equal(undefined, output.sourceMaps);
-      assert.equal(expected, output.source);
+      var source = output.source;
+      assert.equal(1, source.match(/sourceMappingURL=/g).length);
+      var lines = output.source.split("\n");
+      var lastLine = lines[lines.length - 1];
+      var commentPrefix = /^\/\/# sourceMappingURL=data:application\/json;base64,/;
+      assert(lastLine.match(commentPrefix));
+      var encoding = lastLine.replace(commentPrefix, "");
+      // would be nice to decode here and validate that it's a sourcemap
       done();
     });
   });
