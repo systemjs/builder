@@ -1,7 +1,10 @@
 var fs = require('fs');
 var Builder = require('../index');
 var assert = require('chai').assert;
-var atob = require('atob');
+
+function atob(str) {
+  return new Buffer(str, 'base64').toString('binary');
+}
 
 var err = function(e) {
   setTimeout(function() {
@@ -57,7 +60,7 @@ describe('Source Maps', function() {
     var instance = new Builder('./test/cfg.js');
     instance.build(module, null, { sourceMaps: 'inline' })
     .then(function(output) {
-      assert.equal(undefined, output.sourceMaps);
+      assert.equal(undefined, output.sourceMap);
       var source = output.source;
       assert.equal(1, source.match(/sourceMappingURL=/g).length);
       var lines = output.source.split("\n");

@@ -14,18 +14,21 @@ var builder = require('./lib/builder');
 
 var path = require('path');
 
-/* Very basic, null-friendly, shallow clone for object attributes only */
-function clone(obj) {
-  obj = obj || {};
-  var copy = {};
-  for (var key in obj) {
-    copy[key] = obj[key];
-  }
-  return copy;
-}
-
 function processOpts(opts_, outFile) {
-  var opts = clone(opts_);
+  var keys = [
+    'config',
+    'lowResSourceMaps',
+    'minify',
+    'normalize',
+    'outFile',
+    'runtime',
+    'sourceMaps',
+    'sourceMapContents'
+  ];
+  var opts = {};
+  keys.forEach(function(key) {
+    opts[key] = opts_ && opts_[key];
+  });
   if (outFile) opts.outFile = outFile;
   if (opts.sourceMaps == 'inline')
     opts.sourceMapContents = true;
