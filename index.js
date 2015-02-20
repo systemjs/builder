@@ -15,23 +15,20 @@ var builder = require('./lib/builder');
 var path = require('path');
 
 function processOpts(opts_, outFile) {
-  var keys = [
-    'config',
-    'lowResSourceMaps',
-    'minify',
-    'normalize',
-    'outFile',
-    'runtime',
-    'sourceMaps',
-    'sourceMapContents'
-  ];
-  var opts = {};
-  keys.forEach(function(key) {
-    opts[key] = opts_ && opts_[key];
-  });
-  if (outFile) opts.outFile = outFile;
-  if (opts.sourceMaps == 'inline')
-    opts.sourceMapContents = true;
+  var opts = {
+    config: {},
+    lowResSourceMaps: false,
+    minify: false,
+    normalize: false,
+    outFile: outFile,
+    runtime: false,
+    sourceMaps: false,
+    sourceMapContents: opts_.sourceMaps == 'inline'
+  };
+  for (var key in opts_) {
+    if (key in opts)
+      opts[key] = opts_[key];
+  }
   return opts;
 }
 
