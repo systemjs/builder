@@ -14,14 +14,22 @@ var builder = require('./lib/builder');
 
 var path = require('path');
 
-/* Very basic, null-friendly, shallow clone for object attributes only */
-function clone(obj) {
-  obj = obj || {};
-  var copy = {};
-  for (var key in obj) {
-    copy[key] = obj[key];
+function processOpts(opts_, outFile) {
+  var opts = {
+    config: {},
+    lowResSourceMaps: false,
+    minify: false,
+    normalize: false,
+    outFile: outFile,
+    runtime: false,
+    sourceMaps: false,
+    sourceMapContents: opts_ && opts_.sourceMaps == 'inline'
+  };
+  for (var key in opts_) {
+    if (key in opts)
+      opts[key] = opts_[key];
   }
-  return copy;
+  return opts;
 }
 
 function Builder(cfg) {
@@ -201,9 +209,7 @@ function buildOutputs(loader, tree, opts, sfxCompilers) {
 
 Builder.prototype.buildTree = function(tree, outFile, opts) {
   var loader = this.loader;
-
-  opts = clone(opts);
-  opts.outFile = outFile;
+  opts = processOpts(opts, outFile);
 
   return buildOutputs(loader, tree, opts, false)
   .then(function(outputs) {
@@ -214,17 +220,12 @@ Builder.prototype.buildTree = function(tree, outFile, opts) {
 
 Builder.prototype.buildSFX = function(moduleName, outFile, opts) {
   var loader = this.loader;
-
-  opts = clone(opts);
-  opts.outFile = outFile;
-
-  var config = opts.config;
+  opts = processOpts(opts, outFile);
+  opts.normalize = true;
 
   var outputs;
-
   var compilers = {};
-  opts.normalize = true;
-  return this.trace(moduleName, config)
+  return this.trace(moduleName, opts.config)
   .then(function(trace) {
     moduleName = trace.moduleName;
     return buildOutputs(loader, trace.tree, opts, compilers);
