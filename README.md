@@ -48,6 +48,9 @@ Usage
     map: {
       jquery: 'jquery-1.2.3/jquery'
     },
+    
+    // opt in to Babel for transpiling over Traceur
+    transpiler: 'babel'
 
     // etc. any SystemJS config
   })
@@ -85,7 +88,7 @@ Then we can load this config file through the builder:
 
 Multiple config calls can be run, which will combine into the loader configuration.
 
-To reset the loader state and configuration for a new build, run `builder.reset()`.
+To reset the loader state and configuration use `builder.reset()`.
 
 
 ### SFX Bundles
