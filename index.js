@@ -23,7 +23,7 @@ function processOpts(opts_, outFile) {
     outFile: outFile,
     runtime: false,
     sourceMaps: false,
-    sourceMapContents: opts_.sourceMaps == 'inline'
+    sourceMapContents: opts_ && opts_.sourceMaps == 'inline'
   };
   for (var key in opts_) {
     if (key in opts)
