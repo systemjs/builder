@@ -1,7 +1,9 @@
-var traceur = require('traceur');
+var traceur = require('../lib/traceur-wrapper');
 var babel = require('babel-core');
 
-var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
+var ParseTreeTransformer = traceur.ParseTreeTransformer;
+var createCompiler = traceur.createCompiler;
+
 function TraceurImportNormalizeTransformer(map) {
   this.map = map;
   return ParseTreeTransformer.apply(this, arguments);
@@ -16,7 +18,7 @@ TraceurImportNormalizeTransformer.prototype.transformModuleSpecifier = function(
 
 
 function remap(source, map, fileName) {
-  var compiler = new traceur.Compiler();
+  var compiler = createCompiler();
 
   var tree = compiler.parse(source, fileName);
 
@@ -78,7 +80,7 @@ exports.compile = function(load, opts, loader) {
     if (load.metadata.sourceMap)
       options.inputSourceMap = load.metadata.sourceMap;
 
-    var compiler = new traceur.Compiler(options);
+    var compiler = createCompiler(options);
 
     var tree = compiler.parse(source, load.address);
 

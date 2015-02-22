@@ -1,8 +1,9 @@
 var System = require('systemjs');
-var traceur = require('traceur');
+var traceur = require('../lib/traceur-wrapper');
 
-var ScopeTransformer = traceur.get('codegeneration/ScopeTransformer.js').ScopeTransformer;
-var parseExpression = traceur.get('codegeneration/PlaceholderParser.js').parseExpression;
+var ScopeTransformer = traceur.ScopeTransformer;
+var parseExpression = traceur.parseExpression;
+var createCompiler = traceur.createCompiler;
 
 var CJSRequireTransformer = require('./cjs').CJSRequireTransformer;
 
@@ -347,7 +348,7 @@ exports.attach = function(loader) {
       // extract AMD dependencies using tree parsing
       // NB can remove after Traceur 0.0.77
       if (!load.source) load.source = ' ';
-      var compiler = new traceur.Compiler({ script: true });
+      var compiler = createCompiler({ script: true });
       load.metadata.parseTree = compiler.parse(load.source, load.address);
       var depTransformer = new AMDDependenciesTransformer();
       depTransformer.transformAny(load.metadata.parseTree);
@@ -374,7 +375,7 @@ exports.attach = function(loader) {
 
 exports.remap = function(source, map, fileName) {
   var options = {script: true};
-  var compiler = new traceur.Compiler(options);
+  var compiler = createiler(options);
   var tree = compiler.parse(source, fileName || '');
   var transformer = new AMDDependenciesTransformer(map);
   tree = transformer.transformAny(tree);
@@ -401,7 +402,7 @@ exports.compile = function(load, opts, loader) {
   if (load.metadata.sourceMap)
     options.inputSourceMap = load.metadata.sourceMap;
 
-  var compiler = new traceur.Compiler(options);
+  var compiler = createCompiler(options);
 
   var tree = load.metadata.parseTree;
   var transformer = new AMDDefineRegisterTransformer(load, load.metadata.isAnon, normalize ? load.depMap : {});
