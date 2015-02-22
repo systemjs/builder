@@ -138,7 +138,8 @@ suite('Source Maps', function() {
       test('handles single compilation targets correctly', function(done) {
         var module = 'amd-2';
         var source = 'traceur.tree.single.json';
-        //writeSourceMaps(module, transpiler, source);
+        if (process.env.UPDATE_EXPECTATIONS)
+          writeSourceMaps(module, transpiler, source);
         var expected = readExpectation(source);
         compareSourceMaps(module, expected, done, transpiler);
       });
@@ -146,7 +147,8 @@ suite('Source Maps', function() {
       test('handles multiple compilation targets correctly', function(done) {
         var module = 'first';
         var source = 'traceur.tree.multi.json';
-        //writeSourceMaps(module, transpiler, source);
+        if (process.env.UPDATE_EXPECTATIONS)
+          writeSourceMaps(module, transpiler, source);
         var expected = readExpectation(source);
         compareSourceMaps(module, expected, done, transpiler);
       });
@@ -156,7 +158,8 @@ suite('Source Maps', function() {
       test('handles single compilation targets correctly', function(done) {
         var module = 'chain/second';
         var source = 'traceur.chain.single.json';
-        //writeSourceMaps(module, transpiler, source);
+        if (process.env.UPDATE_EXPECTATIONS)
+          writeSourceMaps(module, transpiler, source);
         var expected = readExpectation(source);
         compareSourceMaps(module, expected, done, transpiler);
       });
@@ -164,7 +167,8 @@ suite('Source Maps', function() {
       test('handles multiple compilation targets correctly', function(done) {
         var module = 'chain/first';
         var source = 'traceur.chain.multi.json';
-        //writeSourceMaps(module, transpiler, source);
+        if (process.env.UPDATE_EXPECTATIONS)
+          writeSourceMaps(module, transpiler, source);
         var expected = readExpectation(source);
         compareSourceMaps(module, expected, done, transpiler);
       });
@@ -178,7 +182,8 @@ suite('Source Maps', function() {
       test('handles single compilation targets correctly', function(done) {
         var module = 'amd-2';
         var source = 'babel.tree.single.json';
-        //writeSourceMaps(module, transpiler, source);
+        if (process.env.UPDATE_EXPECTATIONS)
+          writeSourceMaps(module, transpiler, source);
         var expected = readExpectation(source);
         compareSourceMaps(module, expected, done, transpiler);
       });
@@ -186,7 +191,8 @@ suite('Source Maps', function() {
       test('handles multiple compilation targets correctly', function(done) {
         var module = 'first';
         var source = 'babel.tree.multi.json';
-        //writeSourceMaps(module, transpiler, source);
+        if (process.env.UPDATE_EXPECTATIONS)
+          writeSourceMaps(module, transpiler, source);
         var expected = readExpectation(source);
         compareSourceMaps(module, expected, done, transpiler);
       });
@@ -196,7 +202,8 @@ suite('Source Maps', function() {
       test('handles single compilation targets correctly', function(done) {
         var module = 'chain/second';
         var source = 'babel.chain.single.json';
-        //writeSourceMaps(module, transpiler, source);
+        if (process.env.UPDATE_EXPECTATIONS)
+          writeSourceMaps(module, transpiler, source);
         var expected = readExpectation(source);
         compareSourceMaps(module, expected, done, transpiler);
       });
@@ -204,7 +211,8 @@ suite('Source Maps', function() {
       test('handles multipl compilation targets correctly', function(done) {
         var module = 'chain/first';
         var source = 'babel.chain.multi.json';
-        //writeSourceMaps(module, transpiler, source);
+        if (process.env.UPDATE_EXPECTATIONS)
+          writeSourceMaps(module, transpiler, source);
         var expected = readExpectation(source);
         compareSourceMaps(module, expected, done, transpiler);
       });
