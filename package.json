@@ -14,7 +14,7 @@
     "rsvp": "^3.0.16",
     "source-map": "~0.2.0",
     "systemjs": "^0.14.0",
-    "traceur": "0.0.84",
+    "traceur": "0.0.85",
     "babel-core": "^4.1.1",
     "uglify-js": "^2.4.15"
   },
