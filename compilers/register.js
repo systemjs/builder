@@ -2,14 +2,16 @@ var traceur = require('traceur');
 var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
 var CallExpression = traceur.get('syntax/trees/ParseTrees.js').CallExpression;
 var ArgumentList = traceur.get('syntax/trees/ParseTrees.js').ArgumentList;
+var ArrayLiteralExpression = traceur.get('syntax/trees/ParseTrees.js').ArrayLiteralExpression;
 var createStringLiteral = traceur.get('codegeneration/ParseTreeFactory.js').createStringLiteral;
 
 // converts anonymous System.register([] into named System.register('name', [], ...
 // NB need to add that if no anon, last named must define this module
 // also this should be rewritten with a proper parser!
-function RegisterTransformer(moduleName) {
+function RegisterTransformer(moduleName, map) {
   this.name = moduleName;
   this.hasAnonRegister = false;
+  this.map = map;
   return ParseTreeTransformer.call(this);
 }
 
@@ -29,8 +31,15 @@ RegisterTransformer.prototype.transformCallExpression = function(tree) {
         throw 'Source ' + load.address + ' has multiple anonymous System.register calls.';
       }
 
+      // normalize dependencies in array
+      var map = this.map;
+      var normalizedDepArray = new ArrayLiteralExpression(firstArg.location, firstArg.elements.map(function(el) {
+        var str = el.literalToken.value.toString();
+        return createStringLiteral(map(str.substr(1, str.length - 2)));
+      }));
+
       this.hasAnonRegister = true;
-      return new CallExpression(tree.location, tree.operand, new ArgumentList(tree.args.location, [createStringLiteral(this.name)].concat(tree.args.args)));
+      return new CallExpression(tree.location, tree.operand, new ArgumentList(tree.args.location, [createStringLiteral(this.name), normalizedDepArray].concat(tree.args.args.splice(1))));
     }
   }
 
@@ -51,7 +60,7 @@ exports.compile = function(load, opts, loader) {
   var compiler = new traceur.Compiler(options);
   var tree = compiler.parse(load.source, load.address);
 
-  var transformer = new RegisterTransformer(load.name);
+  var transformer = new RegisterTransformer(load.name, function(dep) { return opts.normalize ? load.depMap[dep] : dep; });
   tree = transformer.transformAny(tree);
 
   // if the transformer didn't find an anonymous System.register
