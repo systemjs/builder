@@ -43,26 +43,16 @@ function Builder(cfg) {
 }
 
 Builder.prototype.reset = function() {
-  var loader = this.loader = new Loader(System);
+  var loader = this.loader = System.clone();
   loader.baseURL = System.baseURL;
-  loader.paths = { '*': '*.js' };
-  loader.config = System.config;
 
-  var pluginLoader = new Loader(System);
+  var pluginLoader = System.clone();
   pluginLoader.baseURL = System.baseURL;
-  pluginLoader.paths = { '*': '*.js' };
-  pluginLoader.config = System.config;
   pluginLoader.trace = true;
-  pluginLoader.import = loader.import = System.import;
-
-  pluginLoader._nodeRequire = loader._nodeRequire = require;
 
   loader.trace = true;
   loader.execute = false;
   loader.pluginLoader = pluginLoader;
-
-  loader.set('@empty', loader.newModule({}));
-  pluginLoader.set('@empty', loader.newModule({}));
 
   amdCompiler.attach(loader);
   amdCompiler.attach(pluginLoader);
