@@ -1,7 +1,7 @@
-var react = System._nodeRequire('react-tools');
+var babel = require('@babel');
 
 exports.translate = function(load) {
-  var output = react.transformWithDetails(load.source);
+  var output = babel.transform(load.source, { format: 'register' });
 	load.source = output.code;
-  load.metadata.sourceMap = output.sourceMap;
+  load.metadata.sourceMap = output.map;
 };

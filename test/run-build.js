@@ -1,5 +1,5 @@
 var Builder = require('../index');
-var inline = require('../lib/builder').inlineSourceMap;
+var inline = require('../lib/output').inlineSourceMap;
 var fs = require('fs');
 
 var err = function(e) {
@@ -48,7 +48,7 @@ builder.loadConfig(cfg)
   .then(function(traceTree) {
     depTree = traceTree;
     return builder.buildTree(
-      builder.subtractTrees(treeFirst, traceTree.tree), 'excluded.js'
+      Builder.subtractTrees(treeFirst, traceTree.tree), 'excluded.js'
     );
   })
 
@@ -66,55 +66,55 @@ builder.loadConfig(cfg)
 
   .then(function() {
     return builder.trace('tree/amd-1').then(function(trace) {
-      return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'amd-1.js');
+      return builder.buildTree(Builder.subtractTrees(trace.tree, treeFirst), 'amd-1.js');
     });
   })
 
   .then(function() {
     return builder.trace('tree/amd-2').then(function(trace) {
-      return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'amd-2.js');
+      return builder.buildTree(Builder.subtractTrees(trace.tree, treeFirst), 'amd-2.js');
     });
   })
 
   .then(function() {
     return builder.trace('tree/amd-3').then(function(trace) {
-      return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'amd-3.js');
+      return builder.buildTree(Builder.subtractTrees(trace.tree, treeFirst), 'amd-3.js');
     });
   })
 
   .then(function() {
     return builder.trace('tree/amd-4').then(function(trace) {
-      return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'amd-4.js');
+      return builder.buildTree(Builder.subtractTrees(trace.tree, treeFirst), 'amd-4.js');
     });
   })
 
   .then(function() {
     return builder.trace('tree/amd-5a').then(function(trace) {
-      return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'amd-5a.js');
+      return builder.buildTree(Builder.subtractTrees(trace.tree, treeFirst), 'amd-5a.js');
     });
   })
 
   .then(function() {
     return builder.trace('tree/amd-5b').then(function(trace) {
-      return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'amd-5b.js');
+      return builder.buildTree(Builder.subtractTrees(trace.tree, treeFirst), 'amd-5b.js');
     });
   })
 
   .then(function() {
     return builder.trace('tree/amd-6a').then(function(trace) {
-      return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'amd-6a.js');
+      return builder.buildTree(Builder.subtractTrees(trace.tree, treeFirst), 'amd-6a.js');
     });
   })
 
   .then(function() {
     return builder.trace('tree/amd-6b').then(function(trace) {
-      return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'amd-6b.js');
+      return builder.buildTree(Builder.subtractTrees(trace.tree, treeFirst), 'amd-6b.js');
     });
   })
 
   .then(function() {
     return builder.trace('tree/umd').then(function(trace) {
-      return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'umd.js');
+      return builder.buildTree(Builder.subtractTrees(trace.tree, treeFirst), 'umd.js');
     });
   })
 
