@@ -14,6 +14,8 @@ TraceurImportNormalizeTransformer.prototype.transformModuleSpecifier = function(
   return tree;
 };
 
+exports.TraceurImportNormalizeTransformer = TraceurImportNormalizeTransformer;
+
 
 function remap(source, map, fileName) {
   var compiler = new traceur.Compiler();
@@ -68,7 +70,8 @@ exports.compile = function(load, opts, loader) {
     options = loader.traceurOptions || {};
     options.modules = 'instantiate';
     options.script = false;
-    options.moduleName = load.name;
+    options.sourceRoot = true;
+    options.moduleName = true;
 
     if (opts.sourceMaps)
       options.sourceMaps = 'memory';

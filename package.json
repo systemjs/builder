@@ -1,25 +1,19 @@
 {
   "name": "systemjs-builder",
   "version": "0.9.1",
-  "description": "SystemJS Build Tool ===",
+  "description": "SystemJS Build Tool",
   "main": "index.js",
-  "directories": {
-    "test": "test",
-    "baseURL": "test",
-    "lib": "test",
-    "packages": "test/jspm_packages"
-  },
   "dependencies": {
     "mkdirp": "^0.5.0",
     "rsvp": "^3.0.16",
-    "source-map": "~0.2.0",
-    "systemjs": "^0.14.0",
-    "traceur": "0.0.82",
-    "babel-core": "^4.1.1",
+    "source-map": "^0.4.1",
+    "systemjs": "^0.15.0",
+    "traceur": "0.0.86",
+    "babel-core": "^4.6.6",
     "uglify-js": "^2.4.15"
   },
   "devDependencies": {
-    "es6-module-loader": "0.14.0",
+    "es6-module-loader": "0.15.0",
     "mocha": "~2.0.0",
     "chai": "^1.10.0",
     "react-tools": "^0.12.1"
@@ -29,8 +23,8 @@
     "url": "http://github.com/systemjs/builder.git"
   },
   "scripts": {
-    "test:traceur": "cd test && node run-build.js && open test-build.html",
-    "test:6to5": "cd test && node run-build.js 6to5 && open test-build.html",
+    "test:traceur": "cd test && node run-build.js && open test-build.html && open test-sfx.html",
+    "test:babel": "cd test && node run-build.js babel && open test-build.html && open test-sfx.html",
     "test:unit": "./node_modules/.bin/mocha test/unit-tests.js"
   },
   "author": "",
@@ -38,11 +32,5 @@
   "bugs": {
     "url": "https://github.com/systemjs/builder/issues"
   },
-  "homepage": "https://github.com/systemjs/builder",
-  "jspm": {
-    "directories": {
-      "baseURL": "test",
-      "lib": "test"
-    }
-  }
+  "homepage": "https://github.com/systemjs/builder"
 }

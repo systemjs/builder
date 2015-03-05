@@ -47,7 +47,7 @@ RegisterTransformer.prototype.transformCallExpression = function(tree) {
 }
 
 exports.compile = function(load, opts, loader) {
-  var options = { script: true };
+  var options = { script: true, sourceRoot: true };
 
   if (opts.sourceMaps)
     options.sourceMaps = 'memory';

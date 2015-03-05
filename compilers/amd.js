@@ -109,6 +109,7 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
 
   return tree;
 }
+exports.AMDDependenciesTransformer = AMDDependenciesTransformer;
 
 // AMD System.register transpiler
 // This is the second of the two pass transform
@@ -335,7 +336,8 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
   }
 
   return ScopeTransformer.prototype.transformCallExpression.call(this, tree);
-}
+};
+exports.AMDDefineRegisterTransformer = AMDDefineRegisterTransformer;
 
 // override System instantiate to handle AMD dependencies
 exports.attach = function(loader) {
@@ -347,7 +349,7 @@ exports.attach = function(loader) {
       // extract AMD dependencies using tree parsing
       // NB can remove after Traceur 0.0.77
       if (!load.source) load.source = ' ';
-      var compiler = new traceur.Compiler({ script: true });
+      var compiler = new traceur.Compiler({ script: true, sourceRoot: true });
       load.metadata.parseTree = compiler.parse(load.source, load.address);
       var depTransformer = new AMDDependenciesTransformer();
       depTransformer.transformAny(load.metadata.parseTree);
@@ -373,7 +375,7 @@ exports.attach = function(loader) {
 };
 
 exports.remap = function(source, map, fileName) {
-  var options = {script: true};
+  var options = { script: true, sourceRoot: true };
   var compiler = new traceur.Compiler(options);
   var tree = compiler.parse(source, fileName || '');
   var transformer = new AMDDependenciesTransformer(map);
@@ -392,7 +394,7 @@ exports.remap = function(source, map, fileName) {
 // converts anonymous AMDs into named AMD for the module
 exports.compile = function(load, opts, loader) {
   var normalize = opts.normalize;
-  var options = {};
+  var options = { sourceRoot: true, script: true };
   if (opts.sourceMaps)
     options.sourceMaps = 'memory';
   if (opts.lowResSourceMaps)

@@ -162,12 +162,13 @@ var builder = new Builder({
   } // etc. config
 });
 
+
 builder.trace('app/main')
 .then(function(appTrace) {
 
   return builder.trace('app/corelibs')
   .then(function(coreTrace) {
-    return builder.subtractTrees(appTrace.tree, coreTrace.tree);
+    return Builder.subtractTrees(appTrace.tree, coreTrace.tree);
   });
 })
 .then(function(appMinusCoreTree) {
@@ -196,10 +197,10 @@ builder.trace('app/first')
 })
 .then(function(trace) {
   secondTree = trace.tree;
-  commonTree = builder.intersectTrees(firstTree, secondTree);
+  commonTree = Builder.intersectTrees(firstTree, secondTree);
 
-  firstTree = builder.subtractTrees(firstTree, commonTree);
-  secondTree = builder.subtractTrees(secondTree, commonTree);
+  firstTree = Builder.subtractTrees(firstTree, commonTree);
+  secondTree = Builder.subtractTrees(secondTree, commonTree);
 
   return builder.buildTree(firstTree, 'first-bundle.js');
 })

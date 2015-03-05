@@ -46,7 +46,7 @@ CJSRegisterTransformer.prototype.transformIdentifierExpression = function(tree) 
   if (!this.usesFilePaths && value == '__filename' || value == '__dirname')
     this.usesFilePaths = true;
   return ParseTreeTransformer.prototype.transformIdentifierExpression.call(this, tree);
-}
+};
 
 CJSRegisterTransformer.prototype.transformScript = function(tree) {
   tree = ParseTreeTransformer.prototype.transformScript.call(this, tree);
@@ -72,10 +72,11 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
   return new Script(tree.location, parseStatements([
     'System.register("' + this.name + '", ' + JSON.stringify(this.deps) + ', true, function(require, exports, module) {\n',
     '});'], scriptItemList));
-}
+};
+exports.CJSRegisterTransformer = CJSRequireTransformer;
 
 exports.compile = function(load, opts, loader) {
-  var options = { script: true };
+  var options = { script: true, sourceRoot: true };
   if (opts.sourceMaps)
     options.sourceMaps = 'memory';
   if (opts.lowResSourceMaps)
