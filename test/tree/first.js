@@ -5,7 +5,7 @@ import './amd';
 import './component.jsx!./jsx';
 
 export var p = 5;
-export class test {
+export class test extends Object {
   constructor() {
     super();
   }

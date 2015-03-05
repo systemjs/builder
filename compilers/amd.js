@@ -109,6 +109,7 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
 
   return tree;
 }
+exports.AMDDependenciesTransformer = AMDDependenciesTransformer;
 
 // AMD System.register transpiler
 // This is the second of the two pass transform
@@ -335,7 +336,8 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
   }
 
   return ScopeTransformer.prototype.transformCallExpression.call(this, tree);
-}
+};
+exports.AMDDefineRegisterTransformer = AMDDefineRegisterTransformer;
 
 // override System instantiate to handle AMD dependencies
 exports.attach = function(loader) {

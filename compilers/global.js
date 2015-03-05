@@ -76,6 +76,7 @@ GlobalTransformer.prototype.transformScript = function(tree) {
   + '  return System.get("@@global-helpers").retrieveGlobal(__module.id, ' + (this.exportName ? '"' + this.exportName + '"' : 'false') + (this.init ? ', ' + this.init.toString().replace(/\n/g, '\n      ') : '') + ');\n'
   + '});'], scriptItemList));
 }
+exports.GlobalTransformer = GlobalTransformer;
 
 exports.compile = function(load, opts, loader) {
   var options = { script: true, sourceRoot: true };
