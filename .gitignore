@@ -4,3 +4,4 @@ test/memory-test
 test/jspm_packages/
 test/output.*
 test/output
+.DS_Store
