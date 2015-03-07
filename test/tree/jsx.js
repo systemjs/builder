@@ -1,4 +1,4 @@
-var babel = require('@babel');
+var babel = require('babel');
 
 exports.translate = function(load) {
   var output = babel.transform(load.source, { format: 'register' });
