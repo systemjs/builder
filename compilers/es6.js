@@ -48,6 +48,7 @@ exports.compile = function(load, opts, loader) {
     options.code = true;
     options.ast = false;
     options.moduleIds = true;
+    options.externalHelpers = true;
 
     if (normalize)
       options.resolveModuleSource = function(dep) {
