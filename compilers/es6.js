@@ -30,76 +30,94 @@ function remap(source, map, fileName) {
 }
 exports.remap = remap;
 
+// load the transpiler module with the plugin loader
+exports.attach = function(loader) {
+  // NB for better performance, we should just parse and 
+  // cache the AST and store on the metadata, returning the deps only
+  var loaderTranspile = loader.transpile;
+  loader.transpile = function(load) {
+    return loaderTranspile.call(this.pluginLoader || this, load);
+  }
+}
+
 exports.compile = function(load, opts, loader) {
   var normalize = opts.normalize;
   var options;
 
   var source = load.source;
 
-  if (loader.transpiler == 'babel') {
-    options = loader.babelOptions || {};
-    options.modules = 'system';
-    if (opts.sourceMaps)
-      options.sourceMap = true;
-    options.filename = load.address;
-    options.filenameRelative = load.name;
-    options.sourceFileName = load.address;
-    options.keepModuleIdExtensions = true;
-    options.code = true;
-    options.ast = false;
-    options.moduleIds = true;
-    options.externalHelpers = true;
+  return loader.pluginLoader.import(loader.transpiler).then(function(transpiler) {
+    if (transpiler.__useDefault)
+      transpiler = transpiler['default'];
 
-    if (normalize)
-      options.resolveModuleSource = function(dep) {
-        return load.depMap[dep];
-      };
+    if (transpiler.Compiler) {
+      options = loader.traceurOptions || {};
+      options.modules = 'instantiate';
+      options.script = false;
+      options.sourceRoot = true;
+      options.moduleName = true;
 
-    /* if (opts.runtime) {
-      options.optional = options.optional || [];
-      if (options.optional.indexOf('selfContained') == -1)
-        options.optional.push('selfContained')
-    } */
-    var output = babel.transform(source, options);
+      if (opts.sourceMaps)
+        options.sourceMaps = 'memory';
+      if (opts.lowResSourceMaps)
+        options.lowResolutionSourceMap = true;
 
-    return Promise.resolve({
-      source: output.code,
-      sourceMap: output.map
-    });
-  }
-  else {
-    options = loader.traceurOptions || {};
-    options.modules = 'instantiate';
-    options.script = false;
-    options.sourceRoot = true;
-    options.moduleName = true;
+      if (load.metadata.sourceMap)
+        options.inputSourceMap = load.metadata.sourceMap;
 
-    if (opts.sourceMaps)
-      options.sourceMaps = 'memory';
-    if (opts.lowResSourceMaps)
-      options.lowResolutionSourceMap = true;
+      var compiler = new transpiler.Compiler(options);
 
-    if (load.metadata.sourceMap)
-      options.inputSourceMap = load.metadata.sourceMap;
+      var tree = compiler.parse(source, load.address);
 
-    var compiler = new traceur.Compiler(options);
+      var transformer = new TraceurImportNormalizeTransformer(function(dep) {
+        return normalize ? load.depMap[dep] : dep;
+      });
 
-    var tree = compiler.parse(source, load.address);
+      tree = transformer.transformAny(tree);
 
-    var transformer = new TraceurImportNormalizeTransformer(function(dep) {
-      return normalize ? load.depMap[dep] : dep;
-    });
-
-    tree = transformer.transformAny(tree);
-
-    if (loader.transpiler == 'traceur')
       tree = compiler.transform(tree, load.name);
 
-    var outputSource = compiler.write(tree, load.address);
+      var outputSource = compiler.write(tree, load.address);
 
-    return Promise.resolve({
-      source: outputSource,
-      sourceMap: compiler.getSourceMap()
-    });
-  }
+      if (outputSource.match(/\$traceurRuntime/))
+        load.metadata.usesTraceurRuntimeGlobal = true;
+
+      return Promise.resolve({
+        source: outputSource,
+        sourceMap: compiler.getSourceMap()
+      });
+    }
+    else {
+      options = loader.babelOptions || {};
+      options.modules = 'system';
+      if (opts.sourceMaps)
+        options.sourceMap = true;
+      if (load.metadata.sourceMap)
+        options.inputSourceMap = load.metadata.sourceMap;
+      options.filename = load.address;
+      options.filenameRelative = load.name;
+      options.sourceFileName = load.address;
+      options.keepModuleIdExtensions = true;
+      options.code = true;
+      options.ast = false;
+      options.moduleIds = true;
+      options.externalHelpers = true;
+      options.returnUsedHelpers = true;
+
+      if (normalize)
+        options.resolveModuleSource = function(dep) {
+          return load.depMap[dep];
+        };
+
+      var output = transpiler.transform(source, options);
+
+      if ((!options.optional || options.optional.indexOf('runtime') == -1) && output.usedHelpers.length)
+        load.metadata.usesBabelHelpersGlobal = true;
+
+      return Promise.resolve({
+        source: output.code,
+        sourceMap: output.map
+      });
+    }
+  });
 };
