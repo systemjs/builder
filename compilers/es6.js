@@ -1,5 +1,4 @@
 var traceur = require('traceur');
-var babel = require('babel-core');
 
 var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
 function TraceurImportNormalizeTransformer(map) {

@@ -8,11 +8,11 @@
     "rsvp": "^3.0.16",
     "source-map": "^0.4.1",
     "systemjs": "^0.15.0",
-    "traceur": "0.0.86",
-    "babel-core": "^4.6.6",
+    "traceur": "0.0.87",
     "uglify-js": "^2.4.15"
   },
   "devDependencies": {
+    "babel-core": "^4.6.6",
     "es6-module-loader": "0.15.0",
     "mocha": "~2.0.0",
     "chai": "^1.10.0",
