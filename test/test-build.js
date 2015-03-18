@@ -137,8 +137,8 @@ builder.trace('first').then(function(traceTree) {
 .then(function() {
   builder.reset();
   builder.config(cfg);
-  builder.config({ map: { 'jquery-cdn': '@empty' }, transpiler: 'babel' });
-  return builder.buildSFX('amd-1', 'output/sfx.js');
+  builder.config({ map: { 'jquery-cdn': '@empty' } });
+  return builder.buildSFX('amd-1', 'output/sfx.js', { runtime: true });
 })
 
 .catch(err);
