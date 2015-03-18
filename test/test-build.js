@@ -49,84 +49,75 @@ builder.build('first', 'output/tree-build.js', { sourceMaps: true })
 .catch(err);
 
 var treeFirst;
-builder.trace('first').then(function(traceTree) {
-  treeFirst = traceTree.tree;
-  // console.log(JSON.stringify(traceTree, null, 2));
-})
-.then(function() {
-  console.log('Build exclusion');
-  return builder.trace('amd');
-})
-.then(function(traceTree) {
-  depTree = traceTree;
-  return builder.buildTree(
-    builder.subtractTrees(treeFirst, traceTree.tree), 'output/excluded.js'
-  );
+Promise.all(['first', 'amd'].map(builder.trace.bind(builder)))
+.then(function(trees) {
+  treeFirst = trees[0];
+  return builder.buildTree(builder.subtractTrees(trees[0], trees[1]), 'output/excluded.js');
 })
 
 .then(function() {
-  return builder.trace('global-inner').then(function(trace) {
-    return builder.buildTree(trace.tree, 'output/global-inner.js');
+  return builder.trace('global-inner').then(function(tree) {
+    return builder.buildTree(tree, 'output/global-inner.js');
   });
 })
 
 .then(function() {
-  return builder.trace('global-outer').then(function(trace) {
-    return builder.buildTree(trace.tree, 'output/global-outer.js');
+  return builder.trace('global-outer').then(function(tree) {
+    return builder.buildTree(tree, 'output/global-outer.js');
   });
 })
 
 .then(function() {
-  return builder.trace('amd-1').then(function(trace) {
-    return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'output/amd-1.js');
+  return builder.trace('amd-1').then(function(tree) {
+    return builder.buildTree(builder.subtractTrees(tree, treeFirst), 'output/amd-1.js');
   });
 })
 
 .then(function() {
-  return builder.trace('amd-2').then(function(trace) {
-    return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'output/amd-2.js');
+  return builder.trace('amd-2').then(function(tree) {
+    return builder.buildTree(builder.subtractTrees(tree, treeFirst), 'output/amd-2.js');
   });
 })
 
 .then(function() {
-  return builder.trace('amd-3').then(function(trace) {
-    return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'output/amd-3.js');
+  return builder.trace('amd-3').then(function(tree) {
+    return builder.buildTree(builder.subtractTrees(tree, treeFirst), 'output/amd-3.js');
   });
 })
 
 .then(function() {
-  return builder.trace('amd-4').then(function(trace) {
-    return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'output/amd-4.js');
+  return builder.trace('amd-4').then(function(tree) {
+    return builder.buildTree(builder.subtractTrees(tree, treeFirst), 'output/amd-4.js');
   });
 })
 
 .then(function() {
-  return builder.trace('amd-5a').then(function(trace) {
-    return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'output/amd-5a.js');
+  return builder.trace('amd-5a').then(function(tree) {
+    return builder.buildTree(builder.subtractTrees(tree, treeFirst), 'output/amd-5a.js');
   });
 })
 
 .then(function() {
-  return builder.trace('amd-5b').then(function(trace) {
-    return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'output/amd-5b.js');
+  return builder.trace('amd-5b').then(function(tree) {
+    return builder.buildTree(builder.subtractTrees(tree, treeFirst), 'output/amd-5b.js');
   });
 })
 
 .then(function() {
-  return builder.trace('amd-6a').then(function(trace) {
-    return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'output/amd-6a.js');
+  return builder.trace('amd-6a').then(function(tree) {
+    return builder.buildTree(builder.subtractTrees(tree, treeFirst), 'output/amd-6a.js');
   });
 })
 
 .then(function() {
-  return builder.trace('amd-6b').then(function(trace) {
-    return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'output/amd-6b.js');
+  return builder.trace('amd-6b').then(function(tree) {
+    return builder.buildTree(builder.subtractTrees(tree, treeFirst), 'output/amd-6b.js');
   });
 })
 
 .then(function() {
-  return builder.trace('umd').then(function(trace) {
-    return builder.buildTree(builder.subtractTrees(trace.tree, treeFirst), 'output/umd.js');
+  return builder.trace('umd').then(function(tree) {
+    return builder.buildTree(builder.subtractTrees(tree, treeFirst), 'output/umd.js');
   });
 })
 

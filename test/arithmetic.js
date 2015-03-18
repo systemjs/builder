@@ -3,7 +3,7 @@ var builder = new Builder('./test/fixtures/test-tree.config.js');
 
 suite('Bundle Expressions', function() {
   test('Addition', function(done) {
-    builder.traceExpression('amd + amd-2')
+    builder.trace('amd + amd-2')
     .then(function(tree) {
       assert.deepEqual(Object.keys(tree), 
           ['amd-2', 'jquery', 'some!plugin', 'text.txt!text-plugin', 'global', 'amd']);
@@ -12,7 +12,7 @@ suite('Bundle Expressions', function() {
   });
 
   test('Single module subtraction', function(done) {
-    builder.traceExpression('amd + amd-2 - [amd-1]')
+    builder.trace('amd + amd-2 - [amd-1]')
     .then(function(tree) {
       assert.deepEqual(Object.keys(tree), 
           ['amd-2', 'jquery', 'some!plugin', 'text.txt!text-plugin', 'global', 'amd']);
@@ -21,7 +21,7 @@ suite('Bundle Expressions', function() {
   });
 
   test('Commonality operator', function(done) {
-    builder.traceExpression('amd-5b & second')
+    builder.trace('amd-5b & second')
     .then(function(tree) {
       assert.deepEqual(Object.keys(tree), ['third', 'cjs', 'second']);
     })
@@ -29,7 +29,7 @@ suite('Bundle Expressions', function() {
   });
 
   test('Wildcard bundling', function(done) {
-    builder.traceExpression('* - [amd-*]')
+    builder.trace('* - [amd-*]')
     .then(function(tree) {
       assert.deepEqual(Object.keys(tree), [
           'cjs', 'umd', 'second', 'third', 'text-plugin', 'plugin', 'babel',
@@ -40,7 +40,7 @@ suite('Bundle Expressions', function() {
   });
 
   test('Wildcard plugin', function(done) {
-    builder.traceExpression('*.jsx! - [component.jsx!]')
+    builder.trace('*.jsx! - [component.jsx!]')
     .then(function(tree) {
       assert.deepEqual(Object.keys(tree), []);
     })
