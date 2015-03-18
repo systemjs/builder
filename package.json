@@ -4,6 +4,7 @@
   "description": "SystemJS Build Tool",
   "main": "index.js",
   "dependencies": {
+    "glob": "^5.0.3",
     "mkdirp": "^0.5.0",
     "rsvp": "^3.0.16",
     "source-map": "^0.4.1",
@@ -25,7 +26,8 @@
   "scripts": {
     "test:traceur": "cd test && node run-build.js && open test-build.html && open test-sfx.html",
     "test:babel": "cd test && node run-build.js babel && open test-build.html && open test-sfx.html",
-    "test:unit": "./node_modules/.bin/mocha test/unit-tests.js"
+    "test:unit": "./node_modules/.bin/mocha test/unit-tests.js",
+    "test": "./node_modules/.bin/mocha"
   },
   "author": "",
   "license": "MIT",

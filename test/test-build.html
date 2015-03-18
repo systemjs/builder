@@ -29,14 +29,17 @@
         });
       }
 
-      System.paths['traceur-runtime'] = '../node_modules/traceur/bin/traceur-runtime.js';
-      System.paths['babel/external-helpers'] = '../node_modules/babel-core/external-helpers.js';
+      System.paths['traceur-runtime'] = System.baseURL + '../node_modules/traceur/bin/traceur-runtime.js';
+      System.paths['babel/external-helpers'] = System.baseURL + '../node_modules/babel-core/external-helpers.js';
       System.paths['jquery-cdn'] = 'https://github.jspm.io/components/jquery@2.1.3/jquery.js';
-      System.bundles['output/tree-build'] = ['tree/third', 'tree/cjs', 'tree/jquery', 'tree/second', 'tree/global', 'tree/amd', 'tree/first'];
-      System.bundles['output/umd'] = ['tree/umd'];
+      System.paths['output/*'] = System.baseURL + 'output/*.js';
+      System.bundles['output/tree-build'] = ['third', 'cjs', 'jquery', 'second', 'global', 'amd', 'first'];
+      System.bundles['output/umd'] = ['umd'];
+
+      System.baseURL = './fixtures/test-tree/'
 
       asyncTest('Loading AMD from a bundle', function() {
-        System['import']('tree/amd').then(function(m) {
+        System['import']('amd').then(function(m) {
           ok(m.is == 'amd');
           ok(m.text == 'This is some text');
           start();
@@ -44,28 +47,28 @@
       });
 
       asyncTest('Loading CommonJS from a bundle', function() {
-        System['import']('tree/cjs').then(function(m) {
+        System['import']('cjs').then(function(m) {
           ok(m.cjs === true);
           start();
         }, err);
       });
 
       asyncTest('Loading a Global from a bundle', function() {
-        System['import']('tree/global').then(function(m) {
+        System['import']('global').then(function(m) {
           ok(m === 'output');
           start();
         }, err);
       });
 
       asyncTest('Loading named System.register', function() {
-        System['import']('tree/third').then(function(m) {
+        System['import']('third').then(function(m) {
           ok(m.some == 'exports');
           start();
         }, err);
       });
 
       asyncTest('Loading System.register from ES6', function() {
-        System['import']('tree/first').then(function(m) {
+        System['import']('first').then(function(m) {
           ok(m.p == 5);
           start();
         }, err);
@@ -73,7 +76,7 @@
 
       asyncTest('AMD rewriting 1', function() {
         System['import']('output/amd-1').then(function(m) {
-          return System['import']('tree/amd-1');
+          return System['import']('amd-1');
         })
         .then(function(m) {
           ok(m.first.p == 5);
@@ -84,7 +87,7 @@
 
       asyncTest('AMD rewriting 2', function() {
         System['import']('output/amd-2').then(function(m) {
-          return System['import']('tree/amd-2');
+          return System['import']('amd-2');
         })
         .then(function(m) {
           ok(m.amd == 2);
@@ -95,7 +98,7 @@
 
       asyncTest('AMD rewriting 3', function() {
         System['import']('output/amd-3').then(function(m) {
-          return System['import']('tree/amd-3');
+          return System['import']('amd-3');
         })
         .then(function(m) {
           ok(m.p == 5);
@@ -106,7 +109,7 @@
 
       asyncTest('AMD rewriting 4', function() {
         System['import']('output/amd-4').then(function(m) {
-          return System['import']('tree/amd-4');
+          return System['import']('amd-4');
         })
         .then(function(m) {
           ok(m.q == 4);
@@ -117,7 +120,7 @@
 
       asyncTest('AMD rewriting 5a', function() {
         System['import']('output/amd-5a').then(function(m) {
-          return System['import']('tree/amd-5a');
+          return System['import']('amd-5a');
         })
         .then(function(m) {
           ok(m.jquery == 1);
@@ -128,7 +131,7 @@
 
       asyncTest('AMD rewriting 5b', function() {
         System['import']('output/amd-5b').then(function(m) {
-          return System['import']('tree/amd-5b');
+          return System['import']('amd-5b');
         })
         .then(function(m) {
           ok(m.jquery == 1);
@@ -139,7 +142,7 @@
 
       asyncTest('AMD rewriting 6a', function() {
         System['import']('output/amd-6a').then(function(m) {
-          return System['import']('tree/amd-6a');
+          return System['import']('amd-6a');
         })
         .then(function(m) {
           ok(window.p == 'a');
@@ -150,7 +153,7 @@
 
       asyncTest('AMD rewriting 6b', function() {
         System['import']('output/amd-6b').then(function(m) {
-          return System['import']('tree/amd-6b');
+          return System['import']('amd-6b');
         })
         .then(function(m) {
           ok(m.p == 'b');
@@ -160,7 +163,7 @@
       });
 
       asyncTest('Loading UMD', function() {
-        System['import']('tree/umd').then(function(m) {
+        System['import']('umd').then(function(m) {
           ok(m.umd == 'detection');
           start();
         });
@@ -168,7 +171,7 @@
 
       asyncTest('AMD 7', function() {
         System['import']('output/amd-7').then(function() {
-          return System['import']('tree/amd-7');
+          return System['import']('amd-7');
         })
         .then(function(m) {
           ok(m.amd == 'object');

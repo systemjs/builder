@@ -9,4 +9,4 @@ node_js:
 before_install:
   - npm install
 script:
-  - npm run test:unit
+  - npm run test
