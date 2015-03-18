@@ -1,3 +1,6 @@
+// disabled!
+return;
+
 var fs = require('fs');
 var Builder = require('../index');
 
