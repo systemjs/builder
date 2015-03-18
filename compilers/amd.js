@@ -339,6 +339,14 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
 };
 exports.AMDDefineRegisterTransformer = AMDDefineRegisterTransformer;
 
+function dedupe(deps) {
+  var newDeps = [];
+  for (var i = 0, l = deps.length; i < l; i++)
+    if (newDeps.indexOf(deps[i]) == -1)
+      newDeps.push(deps[i])
+  return newDeps;
+}
+
 // override System instantiate to handle AMD dependencies
 exports.attach = function(loader) {
   var systemInstantiate = loader.instantiate;
@@ -365,7 +373,7 @@ exports.attach = function(loader) {
       }
 
       return {
-        deps: depTransformer.deps,
+        deps: dedupe(depTransformer.deps),
         execute: function() {}
       };
     }
