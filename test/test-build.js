@@ -129,7 +129,7 @@ Promise.all(['first', 'amd'].map(builder.trace.bind(builder)))
   builder.reset();
   builder.config(cfg);
   builder.config({ map: { 'jquery-cdn': '@empty' } });
-  return builder.buildSFX('amd-1', 'output/sfx.js', { runtime: true });
+  return builder.buildSFX('amd-1', 'output/sfx.js', { runtime: true, minify: true, globalDefs: { DEBUG: false } });
 })
 
 .catch(err);
