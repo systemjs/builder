@@ -5,4 +5,8 @@ define(['./first', './second', 'require', 'module'], function(first, second, req
     second: require('./second')
   };
 
+  if (DEBUG) {
+    console.log('debug mode');
+  }
+
 });

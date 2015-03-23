@@ -42,7 +42,7 @@ builder.config(cfg);
 if (process.argv[2] == 'babel')
   builder.loader.transpiler = 'babel';
 
-builder.build('first', 'output/tree-build.js', { sourceMaps: true })
+builder.build('first', 'output/tree-build.js', { sourceMaps: true, minify: true, globalDefs: { DEBUG: false } })
 .then(function() {
   console.log('Done');
 })
