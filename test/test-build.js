@@ -11,6 +11,7 @@ var err = function(e) {
 var builder = new Builder();
 var cfg = {
   baseURL: './fixtures/test-tree/',
+  transpiler: process.argv[2] == 'babel' ? 'babel' : 'traceur',
   paths: {
     'jquery-cdn': 'https://code.jquery.com/jquery-2.1.1.min.js',
     'babel': '../../../node_modules/babel-core/browser.js',
@@ -38,9 +39,6 @@ builder.build('first', null, { sourceMaps: true, minify: true })
 console.log('Running a multi-format build...');
 
 builder.config(cfg);
-
-if (process.argv[2] == 'babel')
-  builder.loader.transpiler = 'babel';
 
 builder.build('first', 'output/tree-build.js', { sourceMaps: true, minify: true, globalDefs: { DEBUG: false } })
 .then(function() {
