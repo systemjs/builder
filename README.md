@@ -1,6 +1,8 @@
 SystemJS Build Tool [![Build Status][travis-image]][travis-url]
 ===
 
+_For upgrading to 0.10, [see the release notes here](https://github.com/systemjs/builder/releases/tag/0.10.0)._
+
 Provides a single-file build for SystemJS of mixed-dependency module trees.
 
 Builds ES6 into ES5, CommonJS, AMD and globals into a single file in a way that supports the CSP SystemJS loader
