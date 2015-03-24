@@ -94,7 +94,7 @@ Multiple config calls can be run, which will combine into the loader configurati
 
 To reset the loader state and configuration use `builder.reset()`.
 
-### SFX Bundles
+### Self-Executing (SFX) Bundles
 
 To make a bundle that is independent of the SystemJS loader entirely, we can make SFX bundles:
 
