@@ -113,6 +113,13 @@ exports.compile = function(load, opts, loader) {
       if ((!options.optional || options.optional.indexOf('runtime') == -1) && output.usedHelpers.length)
         load.metadata.usesBabelHelpersGlobal = true;
 
+      // pending Babel v5, we need to manually map the helpers
+      if (options.optional && options.optional.indexOf('runtime') != -1)
+        load.deps.forEach(function(dep) {
+          if (dep.match(/^babel-runtime/))
+            output.code = output.code.replace(dep, load.depMap[dep]);
+        });
+
       return Promise.resolve({
         source: output.code,
         sourceMap: output.map
