@@ -1,6 +1,8 @@
 var Builder = require('../index');
 var builder = new Builder('./test/fixtures/test-tree.config.js');
 
+builder.config({ transpiler: 'babel' });
+
 suite('Bundle Expressions', function() {
   test('Addition', function(done) {
     builder.trace('amd + amd-2')
