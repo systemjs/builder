@@ -5,3 +5,4 @@ test/jspm_packages/
 test/output.*
 test/output
 npm-debug.log
+optimization/output/*
