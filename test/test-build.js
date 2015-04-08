@@ -2,6 +2,8 @@ var Builder = require('../index');
 var inline = require('../lib/output').inlineSourceMap;
 var fs = require('fs');
 
+var minify = true;
+
 var err = function(e) {
   setTimeout(function() {
     throw e;
@@ -29,7 +31,7 @@ var cfg = {
 console.log('Running in-memory build...');
 builder.config(cfg)
 
-builder.build('first', null, { sourceMaps: true, minify: true })
+builder.build('first', null, { sourceMaps: true, minify: minify })
 .then(function(output) {
   fs.writeFile('output/memory-test.js', inline(output));
   console.log('Wrote in-memory build to ./memory-test');
@@ -40,7 +42,7 @@ console.log('Running a multi-format build...');
 
 builder.config(cfg);
 
-builder.build('first', 'output/tree-build.js', { sourceMaps: true, minify: true, globalDefs: { DEBUG: false } })
+builder.build('first', 'output/tree-build.js', { sourceMaps: true, minify: minify, globalDefs: { DEBUG: false } })
 .then(function() {
   console.log('Done');
 })
@@ -127,7 +129,7 @@ Promise.all(['first', 'amd'].map(builder.trace.bind(builder)))
   builder.reset();
   builder.config(cfg);
   builder.config({ map: { 'jquery-cdn': '@empty' } });
-  return builder.buildSFX('amd-1', 'output/sfx.js', { runtime: true, minify: true, globalDefs: { DEBUG: false } });
+  return builder.buildSFX('amd-1', 'output/sfx.js', { runtime: true, minify: minify, globalDefs: { DEBUG: false } });
 })
 
 .catch(err);
