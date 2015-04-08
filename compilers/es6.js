@@ -101,7 +101,7 @@ exports.compile = function(load, opts, loader) {
       options.ast = false;
       options.moduleIds = true;
       options.externalHelpers = true;
-      options.returnUsedHelpers = true;
+      options.metadataUsedHelpers = true;
 
       if (normalize)
         options.resolveModuleSource = function(dep) {
