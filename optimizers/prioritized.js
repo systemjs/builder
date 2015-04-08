@@ -1,5 +1,5 @@
 var path = require("path");
-var Builder = require('systemjs-builder');
+var Builder = require('../lib/builder');
 var fs = require('fs');
 var util = require('util');
 var Promise = require('rsvp').Promise;
