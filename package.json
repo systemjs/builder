@@ -27,7 +27,7 @@
     "test:traceur": "cd test && node run-build.js && open test-build.html && open test-sfx.html",
     "test:babel": "cd test && node run-build.js babel && open test-build.html && open test-sfx.html",
     "test:unit": "./node_modules/.bin/mocha test/unit-tests.js",
-    "test": "./node_modules/.bin/mocha"
+    "test": "./node_modules/.bin/mocha test/arithmetic.js"
   },
   "author": "",
   "license": "MIT",
