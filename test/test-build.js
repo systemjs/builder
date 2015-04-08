@@ -128,8 +128,13 @@ Promise.all(['first', 'amd'].map(builder.trace.bind(builder)))
 .then(function() {
   builder.reset();
   builder.config(cfg);
-  builder.config({ map: { 'jquery-cdn': '@empty' } });
-  return builder.buildSFX('amd-1', 'output/sfx.js', { runtime: true, minify: minify, globalDefs: { DEBUG: false } });
+  builder.config({ 
+    map: { 
+    'jquery-cdn': '@empty',
+    'toamd1': 'amd-1'
+    }
+  });
+  return builder.buildSFX('toamd1', 'output/sfx.js', { runtime: true, minify: minify, globalDefs: { DEBUG: false } });
 })
 
 .catch(err);
