@@ -31,13 +31,13 @@ exports.remap = remap;
 
 // load the transpiler module with the plugin loader
 exports.attach = function(loader) {
-  // NB for better performance, we should just parse and 
+  // NB for better performance, we should just parse and
   // cache the AST and store on the metadata, returning the deps only
   var loaderTranspile = loader.transpile;
   loader.transpile = function(load) {
     return loaderTranspile.call(this.pluginLoader || this, load);
-  }
-}
+  };
+};
 
 exports.compile = function(load, opts, loader) {
   var normalize = opts.normalize;
@@ -102,11 +102,10 @@ exports.compile = function(load, opts, loader) {
       options.moduleIds = true;
       options.externalHelpers = true;
 
-      // Babel 4
-      options.returnUsedHelpers = true;
-
-      // Babel 5
-      options.metadataUsedHelpers = true;
+      if (babel.version.match(/^4/))
+        options.returnUsedHelpers = true;
+      else
+        options.metadataUsedHelpers = true;
 
       if (normalize)
         options.resolveModuleSource = function(dep) {
