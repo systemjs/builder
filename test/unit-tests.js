@@ -5,6 +5,7 @@ var assert = chai.assert;
 var extend = require('util')._extend;
 var sinon = require('sinon');
 var path = require('path');
+var Promise = require('rsvp').Promise;
 
 chai.use(require('chai-fs'));
 sinon.assert.expose(assert, { prefix: "" });
@@ -552,7 +553,48 @@ describe('Builder', function() {
 });
 
 
-// describe('optimization/prioritized', function() {
+describe('optimization/prioritized', function() {
+  var builder, entryPoints, traces, options,
+      prioritized = require('../optimizers/prioritized'),
+      modulePath = 'optimization'+path.sep,
+      defaultEntryPoints = {
+        ep1:'optimization/ep1',
+        ep2:'optimization/ep2',
+        ep3:'optimization/ep3',
+        ep4:'optimization/ep4'
+      },
+      defaultOptions = {
+        sourceMaps: false,
+        uglify: false,
+        minify: false,
+        outputBundles: 5,
+        analyze: false,
+        entrypointPriorities: ['ep1','ep2','ep3','ep4']
+      },
+      dependencyMap = {
+        ep1: ['ep1','dep1','dep2'],
+        ep2: ['ep2','dep2','dep3'],
+        ep3: ['ep3','dep4','dep5','dep2'],
+        ep4: ['ep4','dep6'],
+      };
+
+  beforeEach(function(done) {
+    builder = new Builder('./test/cfg.js');
+    entryPoints = extend({},defaultEntryPoints);
+    options = extend({},defaultOptions);
+    var traced = {};
+    Promise.all(Object.keys(entryPoints).map(function(entryPointIndex) {
+      var entryPoint = entryPoints[entryPointIndex];
+      return builder.trace(entryPoint).then(function(trace) {
+        traced[entryPointIndex] = trace;
+      });
+    })).
+    then(function() {
+      traces = traced;
+      done();
+    });
+  });
+
 //   // Generic optimization function tests
 //   it('should return a promise', function() {
 //     assert.fail("Requires implementation");
@@ -691,8 +733,38 @@ describe('Builder', function() {
 //     assert.fail("Requires implementation");
 //   });
 
-//   it('should output the analysis to the console iff options.analyse is set to true', function() {
-//     assert.fail("Requires implementation");
-//   });
+  it('should output the analysis to the console if options.analyse is set to true', function(done) {
+    var oldConsoleLog = console.log,
+        loggedLines = [];
 
-// });
+    console.log = function() {
+      loggedLines.push(arguments);
+    };
+    options.analyse = true;
+
+    prioritized(entryPoints, traces, options).
+    then(function() {
+      assert.isTrue(loggedLines.length > 0, 'there should be some lines loggged to the console');
+      console.log = oldConsoleLog;
+      done();
+    });
+  });
+
+  it('should NOT output the analysis to the console if options.analyse is set to false', function(done) {
+    var oldConsoleLog = console.log,
+        loggedLines = [];
+
+    console.log = function() {
+      loggedLines.push(arguments);
+    };
+    options.analyse = false;
+
+    prioritized(entryPoints, traces, options).
+    then(function() {
+      assert.equal(0, loggedLines, 'there should be no lines loggged to the console');
+      console.log = oldConsoleLog;
+      done();
+    });
+  });
+
+});
