@@ -1,6 +1,6 @@
 System.register(['./second'], function($__export) {
   return {
-    setters: [],
+    setters: [function() {}],
     execute: function() {
       $__export('some', 'exports');
     }

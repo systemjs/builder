@@ -1,8 +1,5 @@
 System.config({
-  baseURL: 'test',
-  paths: {
-    'jquery-cdn': 'https://code.jquery.com/jquery-2.1.1.min.js'
-  },
+  baseURL: './test/fixtures/test-tree/',
   map: {
     'jquery-cdn': '@empty'
   },

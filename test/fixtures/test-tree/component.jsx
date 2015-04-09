@@ -1,3 +1,3 @@
 var React = {};
 React.createElement = function() {;};
-exports.component = <div className="foo" />;
+export var component = <div className="foo" />;

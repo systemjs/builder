@@ -1,8 +1,6 @@
 bower_components
 node_modules
-test/memory-test
-test/jspm_packages/
-test/output.*
 test/output
 npm-debug.log
 optimization/output/*
+.DS_Store

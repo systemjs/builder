@@ -1,21 +1,22 @@
 {
   "name": "systemjs-builder",
-  "version": "0.9.1",
+  "version": "0.10.4",
   "description": "SystemJS Build Tool",
   "main": "index.js",
   "dependencies": {
-    "babel-core": "^4.6.6",
     "chai-fs": "^0.1.0",
-    "mkdirp": "^0.5.0",
-    "rsvp": "^3.0.16",
     "sinon": "^1.14.1",
+    "glob": "^5.0.3",
+    "mkdirp": "^0.5.0",
+    "rsvp": "^3.0.17",
     "source-map": "^0.4.1",
-    "systemjs": "^0.15.0",
-    "traceur": "0.0.86",
-    "uglify-js": "^2.4.15"
+    "systemjs": "^0.16.7",
+    "traceur": "0.0.87",
+    "uglify-js": "^2.4.17"
   },
   "devDependencies": {
-    "es6-module-loader": "0.15.0",
+    "babel-core": "^5.0.12",
+    "es6-module-loader": "^0.16.5",
     "mocha": "~2.0.0",
     "chai": "^1.10.0",
     "react-tools": "^0.12.1"
@@ -27,7 +28,8 @@
   "scripts": {
     "test:traceur": "cd test && node run-build.js && open test-build.html && open test-sfx.html",
     "test:babel": "cd test && node run-build.js babel && open test-build.html && open test-sfx.html",
-    "test:unit": "./node_modules/.bin/mocha test/unit-tests.js"
+    "test:unit": "./node_modules/.bin/mocha test/unit-tests.js",
+    "test": "./node_modules/.bin/mocha test/arithmetic.js"
   },
   "author": "",
   "license": "MIT",
