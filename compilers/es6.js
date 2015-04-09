@@ -101,7 +101,12 @@ exports.compile = function(load, opts, loader) {
       options.ast = false;
       options.moduleIds = true;
       options.externalHelpers = true;
+
+      // Babel 4
       options.returnUsedHelpers = true;
+
+      // Babel 5
+      options.metadataUsedHelpers = true;
 
       if (normalize)
         options.resolveModuleSource = function(dep) {
@@ -110,7 +115,9 @@ exports.compile = function(load, opts, loader) {
 
       var output = transpiler.transform(source, options);
 
-      if ((!options.optional || options.optional.indexOf('runtime') == -1) && output.usedHelpers.length)
+      var usedHelpers = output.usedHelpers || output.metadata && output.metadata.usedHelpers;
+
+      if ((!options.optional || options.optional.indexOf('runtime') == -1) && usedHelpers.length)
         load.metadata.usesBabelHelpersGlobal = true;
 
       // pending Babel v5, we need to manually map the helpers
