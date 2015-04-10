@@ -31,7 +31,7 @@ var readExpectation = function(filename) {
 };
 
 function writeTestOutput() {
-  (new Builder()).loadConfig('./test/cfg.js')
+  (new Builder()).loadConfig(configFile)
     .then(function(builder) {
       builder.buildSFX('first', 'test/output.js', buildOpts);
     })
@@ -50,6 +50,14 @@ function writeSourceMaps(moduleName, transpiler, sourceMapFile) {
 }
 
 writeTestOutput();
+
+var toJSON = function(map) {
+  return JSON.parse(map.toString());
+};
+
+var getSources = function(map) {
+  return toJSON(map).sources;
+};
 
 suite('Source Maps', function() {
 
@@ -77,10 +85,6 @@ suite('Source Maps', function() {
   });
 
   suite('sources paths', function() {
-
-    var getSources = function(map) {
-      return JSON.parse(map.toString()).sources;
-    };
 
     test('are relative to outFile', function(done) {
       var builder = new Builder(configFile);
@@ -125,6 +129,28 @@ suite('Source Maps', function() {
       .catch(err);
     });
   });
+
+  suite('Option: sourceMapContents', function() {
+    suite('includes all file contents', function(done) {
+      var builder = new Builder(configFile);
+      var opts = { sourceMaps: true, sourceMapContents: true };
+      builder.buildSFX('first', null, opts)
+      .then(function(outputs) {
+        var map = toJSON(outputs.sourceMap);
+        var sources = map.sources;
+        var contents = map.sourcesContent;
+        assert.equal(sources.length, contents.length);
+        for (var i=0; i<contents.length; i++) {
+          var content = contents[i];
+          assert(content && content.length > 0);
+          assert.equal(content, fs.readFileSync('test/fixtures/test-tree/' + sources[i]).toString());
+        }
+      })
+      .then(done)
+      .catch(err);
+    });
+  });
+
 
   suite('Traceur', function() {
     var transpiler = 'traceur';
