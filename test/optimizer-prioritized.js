@@ -191,38 +191,38 @@ describe('optimization/prioritized', function() {
 //     assert.fail("Requires implementation");
 //   });
 
-  it('should output the analysis to the console if options.analyse is set to true', function(done) {
-    var oldConsoleLog = console.log,
-        loggedLines = [];
+  // it('should output the analysis to the console if options.analyse is set to true', function(done) {
+  //   var oldConsoleLog = console.log,
+  //       loggedLines = [];
 
-    console.log = function() {
-      loggedLines.push(arguments);
-    };
-    options.analyse = true;
+  //   console.log = function() {
+  //     loggedLines.push(arguments);
+  //   };
+  //   options.analyse = true;
 
-    prioritized(entryPoints, traces, options).
-    then(function() {
-      assert.isTrue(loggedLines.length > 0, 'there should be some lines loggged to the console');
-      console.log = oldConsoleLog;
-      done();
-    });
-  });
+  //   prioritized(entryPoints, traces, options).
+  //   then(function() {
+  //     assert.isTrue(loggedLines.length > 0, 'there should be some lines loggged to the console');
+  //     console.log = oldConsoleLog;
+  //     done();
+  //   });
+  // });
 
-  it('should NOT output the analysis to the console if options.analyse is set to false', function(done) {
-    var oldConsoleLog = console.log,
-        loggedLines = [];
+  // it('should NOT output the analysis to the console if options.analyse is set to false', function(done) {
+  //   var oldConsoleLog = console.log,
+  //       loggedLines = [];
 
-    console.log = function() {
-      loggedLines.push(arguments);
-    };
-    options.analyse = false;
+  //   console.log = function() {
+  //     loggedLines.push(arguments);
+  //   };
+  //   options.analyse = false;
 
-    prioritized(entryPoints, traces, options).
-    then(function() {
-      assert.equal(0, loggedLines, 'there should be no lines loggged to the console');
-      console.log = oldConsoleLog;
-      done();
-    });
-  });
+  //   prioritized(entryPoints, traces, options).
+  //   then(function() {
+  //     assert.equal(0, loggedLines, 'there should be no lines loggged to the console');
+  //     console.log = oldConsoleLog;
+  //     done();
+  //   });
+  // });
 
 });
