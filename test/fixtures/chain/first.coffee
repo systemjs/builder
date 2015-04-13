@@ -1,1 +1,0 @@
-second = require('./second')

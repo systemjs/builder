@@ -26,10 +26,11 @@
     "url": "http://github.com/systemjs/builder.git"
   },
   "scripts": {
+    "test:accept-source-maps": "UPDATE_EXPECTATIONS=true mocha test/sourcemaps.js",
     "test:traceur": "cd test && node run-build.js && open test-build.html && open test-sfx.html",
     "test:babel": "cd test && node run-build.js babel && open test-build.html && open test-sfx.html",
     "test:unit": "./node_modules/.bin/mocha test/unit-tests.js",
-    "test": "./node_modules/.bin/mocha test/arithmetic.js"
+    "test": "./node_modules/.bin/mocha"
   },
   "author": "",
   "license": "MIT",

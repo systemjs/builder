@@ -1,6 +1,3 @@
-// disabled!
-return;
-
 var fs = require('fs');
 var Builder = require('../index');
 
@@ -18,8 +15,6 @@ var buildOpts = { sourceMaps: true };
 var configFile = './test/fixtures/test-tree.config.js';
 
 var compareSourceMaps = function(filename, expectation, done, transpiler) {
-  // NB need to change baseURL depending on if using "test-tree" or "chain"
-  // perhaps better to have lower baseURL? I don't know.
   var instance = new Builder(configFile);
   buildOpts.config = buildOpts.config || {};
   buildOpts.config.transpiler = transpiler || 'traceur';
@@ -36,7 +31,7 @@ var readExpectation = function(filename) {
 };
 
 function writeTestOutput() {
-  (new Builder()).loadConfig('./test/cfg.js')
+  (new Builder()).loadConfig(configFile)
     .then(function(builder) {
       builder.buildSFX('first', 'test/output.js', buildOpts);
     })
@@ -55,6 +50,14 @@ function writeSourceMaps(moduleName, transpiler, sourceMapFile) {
 }
 
 writeTestOutput();
+
+var toJSON = function(map) {
+  return JSON.parse(map.toString());
+};
+
+var getSources = function(map) {
+  return toJSON(map).sources;
+};
 
 suite('Source Maps', function() {
 
@@ -83,26 +86,22 @@ suite('Source Maps', function() {
 
   suite('sources paths', function() {
 
-    var getSources = function(map) {
-      return JSON.parse(map.toString()).sources;
-    };
-
     test('are relative to outFile', function(done) {
       var builder = new Builder(configFile);
       builder.buildSFX('first', 'dist/output.js', buildOpts)
       .then(function(outputs) {
         var sources = getSources(outputs.sourceMap);
         assert.deepEqual(sources,
-        [ '../test/third.js',
-          '../test/cjs.js',
-          '../test/jquery.js',
-          '../test/some',
-          '../test/text.txt',
-          '../test/component.jsx',
-          '../test/second.js',
-          '../test/global.js',
-          '../test/amd.js',
-          '../test/first.js' ]);
+        [ '../test/fixtures/test-tree/third.js',
+          '../test/fixtures/test-tree/cjs.js',
+          '../test/fixtures/test-tree/jquery.js',
+          '../test/fixtures/test-tree/some',
+          '../test/fixtures/test-tree/text.txt',
+          '../test/fixtures/test-tree/component.jsx',
+          '../test/fixtures/test-tree/global.js',
+          '../test/fixtures/test-tree/amd.js',
+          '../test/fixtures/test-tree/second.js',
+          '../test/fixtures/test-tree/first.js' ]);
       })
       .then(done)
       .catch(err);
@@ -110,7 +109,7 @@ suite('Source Maps', function() {
 
     test('are relative to baseURL, if no outFile', function(done) {
       var builder = new Builder(configFile);
-      var opts = { sourceMaps: true, config: { baseURL: 'test/tree' } };
+      var opts = { sourceMaps: true, config: { baseURL: 'test/fixtures/test-tree' } };
       builder.buildSFX('first', null, opts)
       .then(function(outputs) {
         var sources = getSources(outputs.sourceMap);
@@ -121,15 +120,37 @@ suite('Source Maps', function() {
           'some',
           'text.txt',
           'component.jsx',
-          'second.js',
           'global.js',
           'amd.js',
+          'second.js',
           'first.js' ]);
       })
       .then(done)
       .catch(err);
     });
   });
+
+  suite('Option: sourceMapContents', function() {
+    suite('includes all file contents', function(done) {
+      var builder = new Builder(configFile);
+      var opts = { sourceMaps: true, sourceMapContents: true };
+      builder.buildSFX('first', null, opts)
+      .then(function(outputs) {
+        var map = toJSON(outputs.sourceMap);
+        var sources = map.sources;
+        var contents = map.sourcesContent;
+        assert.equal(sources.length, contents.length);
+        for (var i=0; i<contents.length; i++) {
+          var content = contents[i];
+          assert(content && content.length > 0);
+          assert.equal(content, fs.readFileSync('test/fixtures/test-tree/' + sources[i]).toString());
+        }
+      })
+      .then(done)
+      .catch(err);
+    });
+  });
+
 
   suite('Traceur', function() {
     var transpiler = 'traceur';
@@ -147,26 +168,6 @@ suite('Source Maps', function() {
       test('handles multiple compilation targets correctly', function(done) {
         var module = 'first';
         var source = 'traceur.tree.multi.json';
-        if (process.env.UPDATE_EXPECTATIONS)
-          writeSourceMaps(module, transpiler, source);
-        var expected = readExpectation(source);
-        compareSourceMaps(module, expected, done, transpiler);
-      });
-    });
-
-    suite('with input source maps', function() {
-      test('handles single compilation targets correctly', function(done) {
-        var module = 'chain/second';
-        var source = 'traceur.chain.single.json';
-        if (process.env.UPDATE_EXPECTATIONS)
-          writeSourceMaps(module, transpiler, source);
-        var expected = readExpectation(source);
-        compareSourceMaps(module, expected, done, transpiler);
-      });
-
-      test('handles multiple compilation targets correctly', function(done) {
-        var module = 'chain/first';
-        var source = 'traceur.chain.multi.json';
         if (process.env.UPDATE_EXPECTATIONS)
           writeSourceMaps(module, transpiler, source);
         var expected = readExpectation(source);
@@ -191,26 +192,6 @@ suite('Source Maps', function() {
       test('handles multiple compilation targets correctly', function(done) {
         var module = 'first';
         var source = 'babel.tree.multi.json';
-        if (process.env.UPDATE_EXPECTATIONS)
-          writeSourceMaps(module, transpiler, source);
-        var expected = readExpectation(source);
-        compareSourceMaps(module, expected, done, transpiler);
-      });
-    });
-
-    suite('with input source maps', function() {
-      test('handles single compilation targets correctly', function(done) {
-        var module = 'chain/second';
-        var source = 'babel.chain.single.json';
-        if (process.env.UPDATE_EXPECTATIONS)
-          writeSourceMaps(module, transpiler, source);
-        var expected = readExpectation(source);
-        compareSourceMaps(module, expected, done, transpiler);
-      });
-
-      test('handles multipl compilation targets correctly', function(done) {
-        var module = 'chain/first';
-        var source = 'babel.chain.multi.json';
         if (process.env.UPDATE_EXPECTATIONS)
           writeSourceMaps(module, transpiler, source);
         var expected = readExpectation(source);
