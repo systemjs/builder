@@ -1,5 +1,5 @@
 var path = require("path");
-var Builder = require('../lib/builder');
+var Builder = require('../index');
 var fs = require('fs');
 var util = require('util');
 var Promise = require('rsvp').Promise;
@@ -41,7 +41,7 @@ module.exports = function(entryPoints, traces, options) {
         includedCommonModules = false;
 
     // see if there are any common modules
-    commonModules = builder.intersectTrees.apply(Builder, (function(traces){
+    commonModules = builder.intersectTrees.apply(builder, (function(traces){
         return Object.keys(traces).map(function(traceKey) {
             return traces[traceKey];
         });
@@ -101,7 +101,7 @@ module.exports = function(entryPoints, traces, options) {
 
             return output;
         });
-}
+};
 
 
 /**
@@ -126,7 +126,7 @@ function optimiseTrees(fullBundleTrees, outputBundles, priorities) {
         key = priorities[i];
         thisBundleTree = {};
         if(outputBundles === bundlesGenerated+1){ // one bundle left to be created
-            thisBundleTree = builder.addTrees.apply(Builder, priorities.slice(i).map(function(bundleName) {
+            thisBundleTree = builder.addTrees.apply(builder, priorities.slice(i).map(function(bundleName) {
                 return fullBundleTrees[bundleName];
             }));
         }
