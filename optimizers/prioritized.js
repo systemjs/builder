@@ -41,15 +41,15 @@ module.exports = function(entryPoints, traces, options) {
         includedCommonModules = false;
 
     // see if there are any common modules
-    commonModules = Builder.intersectTrees.apply(Builder, (function(traces){
+    commonModules = builder.intersectTrees.apply(Builder, (function(traces){
         return Object.keys(traces).map(function(traceKey) {
-            return traces[traceKey].tree;
+            return traces[traceKey];
         });
-    }).bind(null, traces)());
+    })(traces));
 
     if(Object.keys(commonModules).length) {
         // only subtract the common modules from the top priority bundle as they should only appear here.
-        var firstBundleWithoutCommon = Builder.subtractTrees(bundleTreesToWrite[options.entrypointPriorities[0]], commonModules);
+        var firstBundleWithoutCommon = builder.subtractTrees(bundleTreesToWrite[options.entrypointPriorities[0]], commonModules);
 
         if(Object.keys(firstBundleWithoutCommon).length === 0) {
             // if subtracting common modules from the first bundle leaves us with nothing, it's 100% common modules.
@@ -72,7 +72,7 @@ module.exports = function(entryPoints, traces, options) {
         }
         else if(options.outputBundles > 2) { // limited since there's no point in merging all entry point bundles to create a common module bundle!
             bundleTreesToWrite[options.entrypointPriorities[0]] = firstBundleWithoutCommon;
-            bundleTreesToWrite[options.entrypointPriorities[numberOfBundleTreesToWrite-2]] = Builder.addTrees(bundleTreesToWrite[options.entrypointPriorities[numberOfBundleTreesToWrite-2]], bundleTreesToWrite[options.entrypointPriorities[numberOfBundleTreesToWrite-1]]);
+            bundleTreesToWrite[options.entrypointPriorities[numberOfBundleTreesToWrite-2]] = builder.addTrees(bundleTreesToWrite[options.entrypointPriorities[numberOfBundleTreesToWrite-2]], bundleTreesToWrite[options.entrypointPriorities[numberOfBundleTreesToWrite-1]]);
             delete bundleTreesToWrite[options.entrypointPriorities[numberOfBundleTreesToWrite-1]];
             bundleTreesToWrite.common = commonModules;
             includedCommonModules = true;
@@ -119,27 +119,28 @@ function optimiseTrees(fullBundleTrees, outputBundles, priorities) {
     // Tree - tree generated in each loop while processing the fullBundleTrees array
         thisBundleTree,
         bundlesGenerated = 0,
+        builder = new Builder(),
         key;
 
     for(var i=0; i<priorities.length; i++) {
         key = priorities[i];
         thisBundleTree = {};
         if(outputBundles === bundlesGenerated+1){ // one bundle left to be created
-            thisBundleTree = Builder.addTrees.apply(Builder, priorities.slice(i).map(function(bundleName) {
-                return fullBundleTrees[bundleName].tree;
+            thisBundleTree = builder.addTrees.apply(Builder, priorities.slice(i).map(function(bundleName) {
+                return fullBundleTrees[bundleName];
             }));
         }
         else {
-            thisBundleTree = fullBundleTrees[priorities[i]].tree;
+            thisBundleTree = fullBundleTrees[priorities[i]];
         }
 
         // subtract already bundled packages from bundle tree
-        thisBundleTree = Builder.subtractTrees(thisBundleTree, alreadyBundled);
+        thisBundleTree = builder.subtractTrees(thisBundleTree, alreadyBundled);
 
         if(Object.keys(thisBundleTree).length) {
             bundlesToWrite[key] = thisBundleTree;
             bundlesGenerated++;
-            alreadyBundled = Builder.addTrees(alreadyBundled, thisBundleTree);
+            alreadyBundled = builder.addTrees(alreadyBundled, thisBundleTree);
         }
 
         if(outputBundles === bundlesGenerated) { // bundles limit reached
@@ -240,11 +241,11 @@ function analyse(entryPoints, fullBundleTrees, writtenBundles, commonModulesExis
 
     var fullBundleTreesKeys = Object.keys(fullBundleTrees);
     fullBundleTreesKeys.map(function(fullBundleTreeKey, i) {
-        var fullBundleTree = fullBundleTrees[fullBundleTreeKey].tree;
+        var fullBundleTree = fullBundleTrees[fullBundleTreeKey];
         // individual entry points, no common module
         output.sumOfBytesForIndividualEntryPoints += getSourceLengthForTree(fullBundleTree);
 
-        thisEntryPointTreeMinusCommon = Builder.subtractTrees(fullBundleTree, commonTree);
+        thisEntryPointTreeMinusCommon = builder.subtractTrees(fullBundleTree, commonTree);
 
         // individual entry points, common module
         if(commonModulesExist) {
@@ -257,12 +258,12 @@ function analyse(entryPoints, fullBundleTrees, writtenBundles, commonModulesExis
             totalFiles = Object.keys(fullBundleTree).length;
 
         for(var j=i-1; j>=0; j--) {
-            intersection = Builder.intersectTrees(fullBundleTree, fullBundleTrees[fullBundleTreesKeys[j]].tree);
+            intersection = builder.intersectTrees(fullBundleTree, fullBundleTrees[fullBundleTreesKeys[j]]);
             commonFiles = Object.keys(intersection).length;
-            unnecessaryFiles = Object.keys(fullBundleTrees[fullBundleTreesKeys[j]].tree).length - commonFiles;
+            unnecessaryFiles = Object.keys(fullBundleTrees[fullBundleTreesKeys[j]]).length - commonFiles;
             if(commonFiles) {
                 totalUnnecessaryFiles += unnecessaryFiles;
-                totalFiles += Object.keys(fullBundleTrees[fullBundleTreesKeys[j]].tree).length;
+                totalFiles += Object.keys(fullBundleTrees[fullBundleTreesKeys[j]]).length;
             }
         }
 

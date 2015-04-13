@@ -15,16 +15,15 @@ describe('Builder', function() {
   describe('#optimizeBuild', function() {
 
     var entryPoints, entryPointsArray, o11Function, options, instance,
-        modulePath = 'optimization'+path.sep,
-        outputPath = modulePath+'output'+path.sep,
+        outputPath = path.resolve(['optimization','output'].join(path.sep))+path.sep,
         configFilename = 'config.js',
         defaultEntryPoints = {
-          ep1:'optimization/ep1',
-          ep2:'optimization/ep2',
-          ep3:'optimization/ep3',
-          ep4:'optimization/ep4'
+          ep1:'ep1',
+          ep2:'ep2',
+          ep3:'ep3',
+          ep4:'ep4'
         },
-        defaultEntryPointsArray = ['optimization/ep1','optimization/ep2','optimization/ep3','optimization/ep4'],
+        defaultEntryPointsArray = ['ep1','ep2','ep3','ep4'],
         defaultO11Function = function(entryPoints, traces, optimizationOptions) {
           // This test function just does a trace on each entry point and returns that.
           // Highly inefficient but easy to test.
@@ -33,7 +32,7 @@ describe('Builder', function() {
 
           Object.keys(traces).map(function(name) {
             var trace = traces[name],
-                tree = trace.tree,
+                tree = trace,
                 entryPoint = (entryPoints instanceof Array) ? entryPoints[optimizationOptions.bundleNameMap[name]] : entryPoints[name];
 
             configBundles[name] = Object.keys(tree);
@@ -44,7 +43,6 @@ describe('Builder', function() {
               modules: configBundles[name],
               tree: tree
             });
-
 
             Object.keys(tree).map(function(file) {
               depCache[entryPoint] = tree[file].deps.map(function(fileDep) {
@@ -80,7 +78,7 @@ describe('Builder', function() {
       entryPointsArray = defaultEntryPointsArray.map(function(ep) { return ep; });
       o11Function = defaultO11Function;
       options = extend({},defaultOptions);
-      instance = new Builder('./test/cfg.js');
+      instance = new Builder('./test/fixtures/optimization.config.js');
     });
 
     it('should throw if passed bad entryPoints', function() {
@@ -125,10 +123,9 @@ describe('Builder', function() {
         assert.equal(Object.keys(entryPoints).length, Object.keys(traces).length, 'There should be as many traces as there are entry points');
         Object.keys(entryPoints).map(function(entryPoint) {
           assert.isTrue(traces.hasOwnProperty(entryPoint), 'Traces should contain a `'+entryPoint+'` property');
-          assert.equal(traces[entryPoint].moduleName, modulePath+entryPoint, 'traces.'+entryPoint+' should contain a correct `moduleName` property');
           dependencyMap[entryPoint].map(function(dependency) {
-            var treeKeys = Object.keys(traces[entryPoint].tree);
-            assert.include(treeKeys, modulePath+dependency, 'traces.'+entryPoint+'.tree should have a property named "'+modulePath+dependency+'"');
+            var treeKeys = Object.keys(traces[entryPoint]);
+            assert.include(treeKeys, dependency, 'traces.'+entryPoint+' should have a property named "'+dependency+'"');
           });
         });
         // We could analyse the whole traces but this seems like a good place to draw the line
@@ -192,7 +189,7 @@ describe('Builder', function() {
       var outputFile = outputPath+'ep4.js',
           outputConfigFile = outputPath+configFilename;
 
-      instance.optimizeBuild({ep4:'optimization/ep4'}, o11Function, options).
+      instance.optimizeBuild({ep4:'ep4'}, o11Function, options).
       then(function() {
         assert.pathExists(outputFile);
         fs.unlink(outputFile);
@@ -216,7 +213,7 @@ describe('Builder', function() {
       var outputFile = outputPath+'ep4.js',
           outputConfigFile = outputPath+configFilename;
 
-      instance.optimizeBuild({ep4:'optimization/ep4'}, o11Function, options).
+      instance.optimizeBuild({ep4:'ep4'}, o11Function, options).
       then(function() {
         assert.pathExists(outputConfigFile);
         fs.unlink(outputFile);
