@@ -111,7 +111,7 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
 }
 exports.AMDDependenciesTransformer = AMDDependenciesTransformer;
 
-// AMD System.register transpiler
+// AMD System.registerDynamic transpiler
 // This is the second of the two pass transform
 function AMDDefineRegisterTransformer(load, isAnon, depMap) {
   this.load = load;
@@ -148,7 +148,7 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
 
     ->
 
-    System.register(['some', 'deps', 'require'], false, function(__require, __exports, __module) {
+    System.registerDynamic(['some', 'deps', 'require'], false, function(__require, __exports, __module) {
       return (function(some, deps, require) {
 
       })(__require('some'), __require('deps'), __require);
@@ -158,7 +158,7 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
 
     ->
 
-    System.register(['dep'], false, function(__require, __exports, __module) {
+    System.registerDynamic(['dep'], false, function(__require, __exports, __module) {
       return (factory)(__require('dep'));
     });
 
@@ -167,13 +167,13 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
 
     ->
 
-    System.register([], false, factory);
+    System.registerDynamic([], false, factory);
 
     IF it is the only define
 
     otherwise we convert an AMD bundle into a register bundle:
 
-    System.register('jquery', [], false, factory);
+    System.registerDynamic('jquery', [], false, factory);
 
     Note that when __module is imported, we decorate it with 'uri' and an empty 'config' function
   */
@@ -237,14 +237,14 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
 
     if (depCalls)
       return parseExpression([
-        'System.register("' + name + '",',
+        'System.registerDynamic("' + name + '",',
         ', false, function(__require, __exports, __module) {\n  return (',
         ').call(' + (bindToExports ? '__exports' : 'this') + ', ',
         ');\n});'
       ], parseExpression([JSON.stringify(deps)]), factory, parseExpression([depCalls.join(', ')]));
     else
       return parseExpression([
-        'System.register("' + name + '",',
+        'System.registerDynamic("' + name + '",',
         ', false, function(__require, __exports, __module) {\n  return (',
         ').call(' + (bindToExports ? '__exports' : 'this') + ');\n});'
       ], parseExpression([JSON.stringify(deps)]), factory);
@@ -257,13 +257,13 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
 
     ->
 
-    System.register([], false, function() {
+    System.registerDynamic([], false, function() {
       return { };
     });
   */
   if (args[0].type == 'OBJECT_LITERAL_EXPRESSION') {
     return parseExpression([
-      'System.register("' + this.load.name + '", [], false, function() {\n  return ',
+      'System.registerDynamic("' + this.load.name + '", [], false, function() {\n  return ',
       ';\n});'
     ], args[0]);
   }
@@ -275,7 +275,7 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
 
     ->
 
-    System.register(['some-dep'], false, function(require, exports, module) {
+    System.registerDynamic(['some-dep'], false, function(require, exports, module) {
       require('some-dep');
     });
 
@@ -304,14 +304,14 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
 
     if (bindToExports)
       return parseExpression([
-        'System.register("' + this.load.name + '", ' + JSON.stringify(requires) + ', false, function(__require, __exports, __module) {\n'
+        'System.registerDynamic("' + this.load.name + '", ' + JSON.stringify(requires) + ', false, function(__require, __exports, __module) {\n'
       + 'return (',
         ').call(__exports, __require, __exports, __module);\n'
       + '});'
       ], args[0]);
     else
       return parseExpression([
-        'System.register("' + this.load.name + '", ' + JSON.stringify(requires) + ', false, ',
+        'System.registerDynamic("' + this.load.name + '", ' + JSON.stringify(requires) + ', false, ',
         ');'
       ], args[0]);
   }
@@ -321,7 +321,7 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
 
   ->
 
-    System.register([], false, typeof factory == 'function' ? factory : function() { return factory; })
+    System.registerDynamic([], false, typeof factory == 'function' ? factory : function() { return factory; })
 
    */
   if (args[0].type == 'IDENTIFIER_EXPRESSION') {
@@ -330,7 +330,7 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
     });
     var token = args[0].identifierToken.value;
     return parseExpression([
-      'System.register("' + this.load.name + '", ' + JSON.stringify(requires) + ', false, ' +
+      'System.registerDynamic("' + this.load.name + '", ' + JSON.stringify(requires) + ', false, ' +
             'typeof ' + token + ' == "function" ? ' + token + ' : function() { return ' + token + '; });'
     ]);
   }
@@ -424,7 +424,7 @@ exports.compile = function(load, opts, loader) {
 
   var output = compiler.write(tree, load.address);
 
-  // because we've blindly replaced the define statement from AMD with a System.register call
+  // because we've blindly replaced the define statement from AMD with a System.registerDynamic call
   // we have to ensure we still trigger any AMD guard statements in the code by creating a dummy define which isn't called
   return Promise.resolve({
     source: '(function() {\nfunction define(){};  define.amd = {};\n' + output + '})();',

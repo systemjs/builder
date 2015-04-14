@@ -63,7 +63,7 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
   }
 
   scriptItemList = parseStatements([
-    'var global = System.global, __define = global.define;\n'
+    'var global = this, __define = global.define;\n'
     + 'global.define = undefined;'
   ]).concat(scriptItemList).concat(parseStatements([
     'global.define = __define;\n'
@@ -72,7 +72,7 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
 
   // wrap everything in System.register
   return new Script(tree.location, parseStatements([
-    'System.register("' + this.name + '", ' + JSON.stringify(this.deps) + ', true, function(require, exports, module) {\n',
+    'System.registerDynamic("' + this.name + '", ' + JSON.stringify(this.deps) + ', true, function(require, exports, module) {\n',
     '});'], scriptItemList));
 };
 exports.CJSRegisterTransformer = CJSRequireTransformer;

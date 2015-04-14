@@ -7,6 +7,6 @@
     root.wAnalytics = factory();
   }
 }(this, function(require, exports, module) {
-  require('./cjs');
+  require('./cjs.js');
   exports.umd = 'detection';
 }));

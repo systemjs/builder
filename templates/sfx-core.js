@@ -18,30 +18,25 @@
     return newDeps;
   }
 
-  function register(name, deps, declare, execute) {
-    if (typeof name != 'string')
-      throw "System.register provided no module name";
+  function register(name, deps, declare) {
+    doRegister(name, {
+      declarative: true,
+      deps: deps,
+      declare: declare
+    });
+  }
 
-    var entry;
+  function registerDynamic(name, deps, executingRequire, execute) {
+    doRegister(name, {
+      name: name,
+      declarative: false,
+      deps: deps,
+      executingRequire: executingRequire,
+      execute: execute
+    });
+  }
 
-    // dynamic
-    if (typeof declare == 'boolean') {
-      entry = {
-        declarative: false,
-        deps: deps,
-        execute: execute,
-        executingRequire: declare
-      };
-    }
-    else {
-      // ES6 declarative
-      entry = {
-        declarative: true,
-        deps: deps,
-        declare: declare
-      };
-    }
-
+  function doRegister(name, entry) {
     entry.name = name;
 
     // we never overwrite an existing define
@@ -55,6 +50,7 @@
     // entry.normalizedDeps = entry.deps.map(normalize);
     entry.normalizedDeps = entry.deps;
   }
+
 
   function buildGroups(entry, groups) {
     groups[entry.groupIndex] = groups[entry.groupIndex] || [];
@@ -156,9 +152,6 @@
 
     module.setters = declaration.setters;
     module.execute = declaration.execute;
-
-    if (!module.setters || !module.execute)
-      throw new TypeError("Invalid System.register form for " + entry.name);
 
     // now link all the module dependencies
     for (var i = 0, l = entry.normalizedDeps.length; i < l; i++) {
@@ -335,15 +328,15 @@
 
     var System;
     var System = {
-      register: register, 
+      register: register,
+      registerDynamic: registerDynamic,
       get: load, 
       set: function(name, module) {
         modules[name] = module; 
       },
       newModule: function(module) {
         return module;
-      },
-      global: global 
+      }
     };
     System.set('@empty', {});
 
@@ -353,7 +346,7 @@
       load(mains[i]);
   }
 
-})(typeof window != 'undefined' ? window : global)
+})(typeof window != 'undefined' ? window : (typeof WorkerGlobalScope != 'undefined' ? self : global))
 /* (['mainModule'], function(System) {
   System.register(...);
 }); */
