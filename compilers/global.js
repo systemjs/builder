@@ -2,7 +2,9 @@ var traceur = require('traceur');
 var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
 var parseStatements = traceur.get('codegeneration/PlaceholderParser.js').parseStatements;
 var parseStatement = traceur.get('codegeneration/PlaceholderParser.js').parseStatement;
+var parseExpression = traceur.get('codegeneration/PlaceholderParser.js').parseExpression;
 var Script = traceur.get('syntax/trees/ParseTrees.js').Script;
+var FunctionBody = traceur.get('syntax/trees/ParseTrees.js').FunctionBody;
 
 // wraps global scripts
 function GlobalTransformer(name, deps, exportName, init) {
@@ -68,13 +70,16 @@ GlobalTransformer.prototype.transformScript = function(tree) {
     return parseStatement(['this["' + g + '"] = ' + g + ';']);
   }));
 
+  var wrapperFunction = parseExpression(['function() {}'])
+  wrapperFunction.location = null;
+  wrapperFunction.body = new FunctionBody(null, scriptItemList);
+
   return new Script(tree.location, parseStatements([
     'System.register("' + this.name + '", ' + JSON.stringify(this.deps) + ', false, function(__require, __exports, __module) {\n'
   + '  System.get("@@global-helpers").prepareGlobal(__module.id, ' + JSON.stringify(this.deps) + ');\n'
-  + '  (function() {',
-    '  }).call(System.global);'
+  + '  (',').call(System.global);\n'
   + '  return System.get("@@global-helpers").retrieveGlobal(__module.id, ' + (this.exportName ? '"' + this.exportName + '"' : 'false') + (this.init ? ', ' + this.init.toString().replace(/\n/g, '\n      ') : '') + ');\n'
-  + '});'], scriptItemList));
+  + '});'], wrapperFunction));
 }
 exports.GlobalTransformer = GlobalTransformer;
 
