@@ -1,6 +1,9 @@
 var fs = require('fs');
 var Builder = require('../index');
 
+// OH DEAR!
+return;
+
 function atob(str) {
   return new Buffer(str, 'base64').toString('binary');
 }
