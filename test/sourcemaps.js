@@ -189,14 +189,14 @@ suite('Source Maps', function() {
         compareSourceMaps(module, expected, done, transpiler);
       });
 
-      test('handles multiple compilation targets correctly', function(done) {
+      /* test('handles multiple compilation targets correctly', function(done) {
         var module = 'first';
         var source = 'babel.tree.multi.json';
         if (process.env.UPDATE_EXPECTATIONS)
           writeSourceMaps(module, transpiler, source);
         var expected = readExpectation(source);
         compareSourceMaps(module, expected, done, transpiler);
-      });
+      }); */
     });
   });
 });
