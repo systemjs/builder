@@ -39,7 +39,7 @@ npm install systemjs-builder
 
 ### Basic Use
 
-Ensure that the transpiler is installed separately (`npm install babel` here).
+Ensure that the transpiler is installed separately (`npm install babel-core` here).
 
 ```javascript
 var path = require("path");
