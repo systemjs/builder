@@ -1,6 +1,8 @@
 bower_components
 node_modules
 test/output
+npm-debug.log
+optimization/output/*
 .DS_Store
 test/output.js
 test/output.js.map
