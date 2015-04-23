@@ -68,8 +68,7 @@ exports.compile = function(load, opts, loader) {
   // so we need to reconstruct files with load.metadata.execute etc
   // if this comes up, we can tackle it or work around it
   if (!transformer.hasAnonRegister)
-    throw 'Source ' + load.address + ' is contained in a bundle. Ensure that bundle configuration is disabled before bundling.\n'
-    + 'If this really is a valid use case, please post an issue to github.com/systemjs/builder.';
+    throw new TypeError('Source ' + load.address + ' is already bundle file, so can\'t be built as a module.');
 
   var output = compiler.write(tree, load.address);
 
