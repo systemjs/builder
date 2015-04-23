@@ -191,7 +191,27 @@ var builder = new Builder({
 builder.build('app/* - app/corelibs', 'output-file.js', { minify: true, sourceMaps: true });
 ```
 
-#### Example - Trace Builds
+#### Example - Common Bundles
+
+Build a bundle for the dependencies of `app/` excluding anything from `app/` itself.
+
+For this we can use the `[module]` syntax which represents a single module instead of all its dependencies as well:
+
+```javascript
+builder.build('app/**/* - [app/**/*]', 'common.js', { minify: true, sourceMaps: true });
+```
+
+The above means _take the tree of app and all its dependencies, and subtract just the modules in app_.
+
+We can then exclude this common bundle in future builds:
+
+```javascript
+builder.build('app/componentA - common', { minify: true, sourceMaps: true });
+```
+
+#### Example - Direct Trace API
+
+Instead of using the arithmetic syntax, we can construct the trace ourselves.
 
 In this example we build `app/first` and `app/second` into two separate bundles, while creating a separate shared bundle:
 
