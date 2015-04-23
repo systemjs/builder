@@ -50,6 +50,10 @@ exports.compile = function(load, opts, loader) {
       transpiler = transpiler['default'];
 
     if (transpiler.Compiler) {
+      var traceurVersion = transpiler.System && transpiler.System.version && transpiler.System.version.substr(8);
+      if (traceurVersion !== '0.0.88')
+        console.log('Warning - this version of SystemJS builder is only designed to run against Traceur 0.0.88.');
+
       options = loader.traceurOptions || {};
       options.modules = 'instantiate';
       options.script = false;
@@ -87,6 +91,10 @@ exports.compile = function(load, opts, loader) {
       });
     }
     else {
+      var babelVersion = transpiler.version;
+      if (babelVersion.split('.')[0] != 5)
+        console.log('Warning - this version of SystemJS builder is only designed to run against Babel 5.');
+
       options = loader.babelOptions || {};
       options.modules = 'system';
       if (opts.sourceMaps)
