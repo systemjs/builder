@@ -54,15 +54,11 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
   var scriptItemList = tree.scriptItemList;
 
   if (this.usesFilePaths) {
-    var filename = path.relative(this.baseURL, this.address).replace(/\\/g, "/");
+    var filename = '/' + path.relative(this.baseURL, this.address).replace(/\\/g, "/");
     var dirname = path.dirname(filename);
 
     scriptItemList = parseStatements([
-      'var __filename = System.baseURL + "' + filename + '", __dirname = System.baseURL + "' + dirname + '";\n'
-    + 'if (System.baseURL.substr(0, location.origin.length) == location.origin) {\n'
-    + '  __filename = __filename.substr(location.origin.length);\n'
-    + '  __dirname = __dirname.substr(location.origin.length);\n'
-    + '}'
+      'var __filename = "' + filename + '", __dirname = "' + dirname + '";'
     ]).concat(scriptItemList);
   }
 
