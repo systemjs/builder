@@ -112,7 +112,7 @@ exports.compile = function(load, opts, loader) {
       options.moduleIds = true;
       options.externalHelpers = true;
 
-      if (babel.version.match(/^4/))
+      if (transpiler.version.match(/^4/))
         options.returnUsedHelpers = true;
       else
         options.metadataUsedHelpers = true;
