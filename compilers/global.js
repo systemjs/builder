@@ -112,5 +112,5 @@ exports.compile = function(load, opts, loader) {
 
 
 exports.sfx = function(loader) {
-  return require('fs').readFileSync('../lib/templates/global-helpers.js').toString();
+  return require('fs').readFileSync(require('path').resolve(__dirname, '../lib/templates/global-helpers.js')).toString();
 };
