@@ -173,6 +173,8 @@ System.meta['resource/to/ignore'] = {
 
 Both `builder.build` and `builder.buildSFX` support bundle arithmetic expressions. This allows for the easy construction of custom bundles.
 
+**NOTE**: SFX Bundles can only use addition and wildcard arithmetic.
+
 There is also a `builder.trace` and `builder.buildTree` for building direct trace tree objects.
 
 #### Example - Arithmetic Expressions
