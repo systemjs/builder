@@ -18,7 +18,7 @@ CJSRequireTransformer.prototype.transformCallExpression = function(tree) {
 
   // found a require
   var args = tree.args.args;
-  if (args.length && args[0].type == 'LITERAL_EXPRESSION') {
+  if (args.length && args[0].type == 'LITERAL_EXPRESSION' && args.length == 1) {
     if (this.map)
       args[0].literalToken.value = '"' + this.map(args[0].literalToken.processedValue) + '"';
 
