@@ -1,6 +1,11 @@
 (function(__global) {
   var loader = System;
-  var indexOf = Array.prototype.indexOf;
+  var indexOf = Array.prototype.indexOf || function(item) {
+    for (var i = 0, l = this.length; i < l; i++)
+      if (this[i] === item)
+        return i;
+    return -1;
+  }
 
   var commentRegEx = /(\/\*([\s\S]*?)\*\/|([^:]|^)\/\/(.*)$)/mg;
   var cjsRequirePre = "(?:^|[^$_a-zA-Z\\xA0-\\uFFFF.])";

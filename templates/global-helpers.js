@@ -1,6 +1,11 @@
 (function(__global) {
   var hasOwnProperty = __global.hasOwnProperty;
-  var indexOf = Array.prototype.indexOf;
+  var indexOf = Array.prototype.indexOf || function(item) {
+    for (var i = 0, l = this.length; i < l; i++)
+      if (this[i] === item)
+        return i;
+    return -1;
+  }
 
   var curGlobalObj;
   var ignoredGlobalProps = ['_g', 'indexedDB', 'sessionStorage', 'localStorage',
