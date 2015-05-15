@@ -92,8 +92,8 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
     cjsFactory = args[0];
   else if (args[0].type == 'LITERAL_EXPRESSION' && args[1] && args[1].type == 'FUNCTION_EXPRESSION')
     cjsFactory = args[1];
-  else if (args[0].type == 'IDENTIFIER_EXPRESSION')
-    this.globalCJSRequires = true;
+  /* else if (args[0].type == 'IDENTIFIER_EXPRESSION')
+    this.globalCJSRequires = true; */
 
   if (cjsFactory) {
     // now we need to do a scope transformer for the require function at this position
@@ -126,6 +126,7 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
 
   var self = this;
   var args = tree.args.args;
+  var name = this.load.name;
 
   // check for named modules
   if (args[0].type === 'LITERAL_EXPRESSION') {
@@ -137,205 +138,47 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
   if (!args[0])
     return;
 
-  // only when "exports" is present as an argument
-  // or dependency, does it become "this" for AMD
-  // otherwise "this" must reference the global
-  var bindToExports = false;
-  /*
-    define(['some', 'deps', 'require'], function(some, deps, require) {
+  var deps;
+  var factoryTree;
 
-    });
-
-    ->
-
-    System.registerDynamic(['some', 'deps', 'require'], false, function(__require, __exports, __module) {
-      return (function(some, deps, require) {
-
-      })(__require('some'), __require('deps'), __require);
-    });
-
-    define(['dep'], factory)
-
-    ->
-
-    System.registerDynamic(['dep'], false, function(__require, __exports, __module) {
-      return (factory)(__require('dep'));
-    });
-
-
-    define('jquery', [], factory)
-
-    ->
-
-    System.registerDynamic([], false, factory);
-
-    IF it is the only define
-
-    otherwise we convert an AMD bundle into a register bundle:
-
-    System.registerDynamic('jquery', [], false, factory);
-
-    Note that when __module is imported, we decorate it with 'uri' and an empty 'config' function
-  */
   if (args[0].type === 'ARRAY_LITERAL_EXPRESSION') {
-
-    var name = this.load.name;
-    var deps = args[0];
-    var factory = args[1];
-
-    // convert into strings
-    deps = deps.elements.map(function(dep) {
-      var depValue = dep.literalToken.processedValue;
-      return self.depMap[depValue] || depValue;
+    deps = args[0].elements.map(function(dep) {
+      return dep.literalToken.processedValue;
     });
 
-    if (deps.length != 0) {
-      // filter out the special deps "require", "exports", "module"
-      var requireIndex, exportsIndex, moduleIndex;
+    factoryTree = args[1];
+  }
+  else if (args[0].type == 'OBJECT_LITERAL_EXPRESSION' || args[0].type == 'IDENTIFIER_EXPRESSION') {
+    factoryTree = args[0];
+  }
+  else if (args[0].type == 'FUNCTION_EXPRESSION') {
+    // deps already parsed on trace
+    deps = ['require', 'exports', 'module'].splice(0, args[0].parameterList.parameters.length).concat(this.load.deps);
+    factoryTree = args[0];
+  }
+  else {
+    return ScopeTransformer.prototype.transformCallExpression.call(this, tree);
+  }
 
-      var depNames = deps.map(function(dep) {
-        return self.depMap[dep] || dep;
-      });
+  if (deps) {
+    // normalize dep array
+    deps = deps.map(function(dep) {
+      if (['require', 'exports', 'module'].indexOf(dep) != -1)
+        return dep;
+      return self.load.depMap[dep] || dep;
+    });
 
-      var depCalls = depNames.map(function(depName) {
-        return "__require('" + depName + "')";
-      });
-
-      requireIndex = depNames.indexOf('require');
-      exportsIndex = depNames.indexOf('exports');
-      moduleIndex = depNames.indexOf('module');
-
-      var exportsIndexD = exportsIndex, moduleIndexD = moduleIndex;
-
-      if (requireIndex != -1) {
-        if (factory.parameterList) {
-          var fnParameters = factory.parameterList.parameters;
-          var reqName = fnParameters[requireIndex] && fnParameters[requireIndex].parameter.binding.identifierToken.value;
-        }
-        var cjsRequireTransformer = new CJSRequireTransformer(reqName, function(v) { return self.depMap[v] || v });
-        factory.body = cjsRequireTransformer.transformAny(factory.body);
-
-        depCalls.splice(requireIndex, 1, '__require');
-        deps.splice(requireIndex, 1);
-        if (exportsIndex > requireIndex)
-          exportsIndexD--;
-        if (moduleIndex > requireIndex)
-          moduleIndexD--;
-      }
-      if (exportsIndex != -1) {
-        bindToExports = true;
-        depCalls.splice(exportsIndex, 1, '__exports');
-        deps.splice(exportsIndexD, 1);
-        if (moduleIndexD > exportsIndexD)
-          moduleIndexD--;
-      }
-      if (moduleIndex != -1) {
-        depCalls.splice(moduleIndex, 1, '__module');
-        deps.splice(moduleIndexD, 1);
-      }
+    // normalize CommonJS-style requires in body
+    var requireIndex = deps.indexOf('require');
+    if (requireIndex != -1 && factoryTree.type == 'FUNCTION_EXPRESSION') {
+      var fnParameters = factoryTree.parameterList.parameters;
+      var reqName = fnParameters[requireIndex] && fnParameters[requireIndex].parameter.binding.identifierToken.value;
+      var cjsRequireTransformer = new CJSRequireTransformer(reqName, function(v) { return self.depMap[v] || v });
+      factoryTree.body = cjsRequireTransformer.transformAny(factoryTree.body);
     }
-
-    if (depCalls)
-      return parseExpression([
-        'System.registerDynamic("' + name + '",',
-        ', false, function(__require, __exports, __module) {\n  return (',
-        ').call(' + (bindToExports ? '__exports' : 'this') + ', ',
-        ');\n});'
-      ], parseExpression([JSON.stringify(deps)]), factory, parseExpression([depCalls.join(', ')]));
-    else
-      return parseExpression([
-        'System.registerDynamic("' + name + '",',
-        ', false, function(__require, __exports, __module) {\n  return (',
-        ').call(' + (bindToExports ? '__exports' : 'this') + ');\n});'
-      ], parseExpression([JSON.stringify(deps)]), factory);
   }
 
-
-
-  /*
-    define({ })
-
-    ->
-
-    System.registerDynamic([], false, function() {
-      return { };
-    });
-  */
-  if (args[0].type == 'OBJECT_LITERAL_EXPRESSION') {
-    return parseExpression([
-      'System.registerDynamic("' + this.load.name + '", [], false, function() {\n  return ',
-      ';\n});'
-    ], args[0]);
-  }
-
-  /*
-    define(function(require, exports, module) {
-      require('some-dep');
-    });
-
-    ->
-
-    System.registerDynamic(['some-dep'], false, function(require, exports, module) {
-      require('some-dep');
-    });
-
-    Note there is a strange subtlety in RequireJS here.
-
-    If there is one argument,
-  */
-  if (args[0].type == 'FUNCTION_EXPRESSION') {
-    // system loader already extracted the deps for us
-    var requires = this.load.deps.map(function(dep) {
-      return self.depMap[dep] || dep;
-    });
-
-    var params = args[0].parameterList.parameters;
-    if (params.length > 1)
-      bindToExports = true;
-
-    var reqName = params[0] && params[0].parameter.binding.identifierToken.value;
-    // NB it may be useful to use the scoped version of the require transformer here in case of minified code.
-    var cjsRequireTransformer = new CJSRequireTransformer(reqName, function(v) { return self.depMap[v] || v });
-    args[0].body = cjsRequireTransformer.transformAny(args[0].body);
-
-    var params = args[0].parameterList.parameters;
-    if (params.length > 1)
-      bindToExports = true;
-
-    if (bindToExports)
-      return parseExpression([
-        'System.registerDynamic("' + this.load.name + '", ' + JSON.stringify(requires) + ', false, function(__require, __exports, __module) {\n'
-      + 'return (',
-        ').call(__exports, __require, __exports, __module);\n'
-      + '});'
-      ], args[0]);
-    else
-      return parseExpression([
-        'System.registerDynamic("' + this.load.name + '", ' + JSON.stringify(requires) + ', false, ',
-        ');'
-      ], args[0]);
-  }
-
-  /*
-    define(factory);
-
-  ->
-
-    System.registerDynamic([], false, typeof factory == 'function' ? factory : function() { return factory; })
-
-   */
-  if (args[0].type == 'IDENTIFIER_EXPRESSION') {
-    var requires = this.load.deps.map(function(dep) {
-      return self.depMap[dep] || dep;
-    });
-    var token = args[0].identifierToken.value;
-    return parseExpression([
-      'System.registerDynamic("' + this.load.name + '", ' + JSON.stringify(requires) + ', false, ' +
-            'typeof ' + token + ' == "function" ? ' + token + ' : function() { return ' + token + '; });'
-    ]);
-  }
-
-  return ScopeTransformer.prototype.transformCallExpression.call(this, tree);
+  return parseExpression(['define("' + name + '", ' + (deps ? JSON.stringify(deps) + ', ' : ''), ');'], factoryTree);
 };
 exports.AMDDefineRegisterTransformer = AMDDefineRegisterTransformer;
 
@@ -364,13 +207,13 @@ exports.attach = function(loader) {
 
       // we store the results as meta
       load.metadata.isAnon = depTransformer.anonDefine;
-      load.metadata.globalCJSRequires = depTransformer.globalCJSRequires;
+      // load.metadata.globalCJSRequires = depTransformer.globalCJSRequires;
 
-      if (depTransformer.globalCJSRequires) {
+      /* if (depTransformer.globalCJSRequires) {
         var cjsRequires = new CJSRequireTransformer('require');
         cjsRequires.transformAny(load.metadata.parseTree);
         depTransformer.deps = depTransformer.filterAMDDeps(cjsRequires.requires);
-      }
+      } */
 
       return {
         deps: dedupe(depTransformer.deps),
@@ -389,10 +232,10 @@ exports.remap = function(source, map, fileName) {
   var transformer = new AMDDependenciesTransformer(map);
   tree = transformer.transformAny(tree);
 
-  if (transformer.globalCJSRequires) {
+  /* if (transformer.globalCJSRequires) {
     var cjsRequires = new CJSRequireTransformer('require', function(v) { return map[v] || v; });
     tree = cjsRequires.transformAny(tree);
-  }
+  } */
 
   var output = compiler.write(tree);
   return Promise.resolve(output);
@@ -417,17 +260,18 @@ exports.compile = function(load, opts, loader) {
   var transformer = new AMDDefineRegisterTransformer(load, load.metadata.isAnon, normalize ? load.depMap : {});
   tree = transformer.transformAny(tree);
 
-  if (load.metadata.globalCJSRequires) {
+  // normalize cjs requires
+  /* if (load.metadata.globalCJSRequires) {
     var cjsRequires = new CJSRequireTransformer('require', normalize && function(v) { return load.depMap[v] || v; });
     tree = cjsRequires.transformAny(tree);
-  }
+  } */
 
   var output = compiler.write(tree, load.address);
 
   // because we've blindly replaced the define statement from AMD with a System.registerDynamic call
   // we have to ensure we still trigger any AMD guard statements in the code by creating a dummy define which isn't called
   return Promise.resolve({
-    source: '(function() {\nfunction define(){};  define.amd = {};\n' + output + '})();',
+    source: '(function() {\nvar _removeDefine = System.get("@@amd-helpers").createDefine();\n' + output + '\n_removeDefine();\n})();',
     sourceMap: compiler.getSourceMap(),
     sourceMapOffset: 2
   });

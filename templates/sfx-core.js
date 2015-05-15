@@ -326,7 +326,6 @@
 
   return function(mains, declare) {
 
-    var System;
     var System = {
       register: register,
       registerDynamic: registerDynamic,
