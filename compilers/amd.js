@@ -276,3 +276,7 @@ exports.compile = function(load, opts, loader) {
     sourceMapOffset: 2
   });
 };
+
+exports.sfx = function(loader) {
+  return require('fs').readFileSync(require('path').resolve(__dirname, '../templates/amd-helpers.js')).toString();
+};

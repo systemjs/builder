@@ -345,7 +345,7 @@
       load(mains[i]);
   }
 
-})(typeof window != 'undefined' ? window : (typeof WorkerGlobalScope != 'undefined' ? self : global))
+})(typeof self != 'undefined' ? self : global);
 /* (['mainModule'], function(System) {
   System.register(...);
 }); */

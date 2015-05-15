@@ -56,4 +56,4 @@
       return multipleExports ? exports : singleGlobal;
     }
   }));
-})(typeof window != 'undefined' ? window : (typeof WorkerGlobalScope != 'undefined' ? self : global));
+})(typeof self != 'undefined' ? self : global);
