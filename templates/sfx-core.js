@@ -166,10 +166,7 @@
         depExports = depModule.exports;
       }
       else if (depEntry && !depEntry.declarative) {
-        if (depEntry.module.exports && depEntry.module.exports.__esModule)
-          depExports = depEntry.module.exports;
-        else
-          depExports = { 'default': depEntry.module.exports, __useDefault: true };
+        depExports = depEntry.esModule;
       }
       // in the module registry
       else if (!depEntry) {
@@ -254,6 +251,23 @@
 
     if (output)
       module.exports = output;
+
+    // create the esModule object, which allows ES6 named imports of dynamics
+    exports = module.exports;
+ 
+    if (exports && exports.__esModule) {
+      entry.esModule = exports;
+    }
+    else {
+      var hasOwnProperty = exports && exports.hasOwnProperty;
+      entry.esModule = {};
+      for (var p in exports) {
+        if (!hasOwnProperty || exports.hasOwnProperty(p))
+          entry.esModule[p] = exports[p];
+      }
+      entry.esModule['default'] = exports;
+      entry.esModule.__useDefault = true;
+    }
   }
 
   /*
@@ -315,13 +329,8 @@
     // remove from the registry
     defined[name] = undefined;
 
-    var module = entry.module.exports;
-
-    if (!module || !entry.declarative && module.__esModule !== true)
-      module = { 'default': module, __useDefault: true };
-
     // return the defined module object
-    return modules[name] = module;
+    return modules[name] = entry.declarative ? entry.module.exports : entry.esModule;
   };
 
   return function(mains, declare) {
