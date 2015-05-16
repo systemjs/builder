@@ -1,4 +1,5 @@
 var path = require('path');
+var url = require('url');
 var traceur = require('traceur');
 var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
 var Script = traceur.get('syntax/trees/ParseTrees.js').Script;
@@ -54,7 +55,9 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
   var scriptItemList = tree.scriptItemList;
 
   if (this.usesFilePaths) {
-    var filename = '/' + path.relative(this.baseURL, this.address).replace(/\\/g, "/");
+    var filename = path.relative(this.baseURL, this.address).replace(/\\/g, "/");
+    if (filename.substr(0, 1) != '.')
+      filename = './' + filename;
     var dirname = path.dirname(filename);
 
     scriptItemList = parseStatements([

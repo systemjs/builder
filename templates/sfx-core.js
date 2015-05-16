@@ -345,7 +345,7 @@
       load(mains[i]);
   }
 
-})(typeof self != 'undefined' ? self : global);
+})(typeof self != 'undefined' ? self : global)
 /* (['mainModule'], function(System) {
   System.register(...);
 }); */

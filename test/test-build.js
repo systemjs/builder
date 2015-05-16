@@ -12,14 +12,14 @@ var err = function(e) {
 
 var builder = new Builder();
 var cfg = {
-  baseURL: './fixtures/test-tree/',
   transpiler: process.argv[2] == 'babel' ? 'babel' : 'traceur',
   paths: {
+    '*': 'fixtures/test-tree/*',
     'jquery-cdn': 'https://code.jquery.com/jquery-2.1.1.min.js',
-    'babel': '../../../node_modules/babel-core/browser.js',
-    'babel-helpers': '../../../node_modules/babel-core/external-helpers.js',
-    'traceur': '../../../node_modules/traceur/bin/traceur.js',
-    'traceur-runtime': '../../../node_modules/traceur/bin/traceur-runtime.js'
+    'babel': '../node_modules/babel-core/browser.js',
+    'babel-helpers': '../node_modules/babel-core/external-helpers.js',
+    'traceur': '../node_modules/traceur/bin/traceur.js',
+    'traceur-runtime': '../node_modules/traceur/bin/traceur-runtime.js'
   },
   meta: {
     'jquery-cdn': {
