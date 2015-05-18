@@ -1,5 +1,7 @@
 var Builder = require('../index');
-var builder = new Builder('./test/fixtures/test-tree.config.js');
+var builder = new Builder();
+
+builder.loadConfigSync('./test/fixtures/test-tree.config.js');
 
 builder.config({ transpiler: 'babel' });
 
