@@ -1,4 +1,4 @@
-System.register(['./second'], function($__export) {
+System.register(['./second.js'], function($__export) {
   return {
     setters: [function() {}],
     execute: function() {

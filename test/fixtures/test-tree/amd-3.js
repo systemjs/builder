@@ -1,3 +1,3 @@
 define(function(req, exports, module) {
-  module.exports = req('./first');
+  module.exports = req('./first.js');
 });

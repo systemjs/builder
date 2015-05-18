@@ -3,4 +3,4 @@ function factory(second) {
 }
 
 
-define(['./second'], factory)
+define(['./second.js'], factory)

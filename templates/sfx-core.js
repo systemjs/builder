@@ -18,30 +18,25 @@
     return newDeps;
   }
 
-  function register(name, deps, declare, execute) {
-    if (typeof name != 'string')
-      throw "System.register provided no module name";
+  function register(name, deps, declare) {
+    doRegister(name, {
+      declarative: true,
+      deps: deps,
+      declare: declare
+    });
+  }
 
-    var entry;
+  function registerDynamic(name, deps, executingRequire, execute) {
+    doRegister(name, {
+      name: name,
+      declarative: false,
+      deps: deps,
+      executingRequire: executingRequire,
+      execute: execute
+    });
+  }
 
-    // dynamic
-    if (typeof declare == 'boolean') {
-      entry = {
-        declarative: false,
-        deps: deps,
-        execute: execute,
-        executingRequire: declare
-      };
-    }
-    else {
-      // ES6 declarative
-      entry = {
-        declarative: true,
-        deps: deps,
-        declare: declare
-      };
-    }
-
+  function doRegister(name, entry) {
     entry.name = name;
 
     // we never overwrite an existing define
@@ -55,6 +50,7 @@
     // entry.normalizedDeps = entry.deps.map(normalize);
     entry.normalizedDeps = entry.deps;
   }
+
 
   function buildGroups(entry, groups) {
     groups[entry.groupIndex] = groups[entry.groupIndex] || [];
@@ -157,9 +153,6 @@
     module.setters = declaration.setters;
     module.execute = declaration.execute;
 
-    if (!module.setters || !module.execute)
-      throw new TypeError("Invalid System.register form for " + entry.name);
-
     // now link all the module dependencies
     for (var i = 0, l = entry.normalizedDeps.length; i < l; i++) {
       var depName = entry.normalizedDeps[i];
@@ -173,10 +166,7 @@
         depExports = depModule.exports;
       }
       else if (depEntry && !depEntry.declarative) {
-        if (depEntry.module.exports && depEntry.module.exports.__esModule)
-          depExports = depEntry.module.exports;
-        else
-          depExports = { 'default': depEntry.module.exports, __useDefault: true };
+        depExports = depEntry.esModule;
       }
       // in the module registry
       else if (!depEntry) {
@@ -261,6 +251,23 @@
 
     if (output)
       module.exports = output;
+
+    // create the esModule object, which allows ES6 named imports of dynamics
+    exports = module.exports;
+ 
+    if (exports && exports.__esModule) {
+      entry.esModule = exports;
+    }
+    else {
+      var hasOwnProperty = exports && exports.hasOwnProperty;
+      entry.esModule = {};
+      for (var p in exports) {
+        if (!hasOwnProperty || exports.hasOwnProperty(p))
+          entry.esModule[p] = exports[p];
+      }
+      entry.esModule['default'] = exports;
+      entry.esModule.__useDefault = true;
+    }
   }
 
   /*
@@ -322,28 +329,22 @@
     // remove from the registry
     defined[name] = undefined;
 
-    var module = entry.module.exports;
-
-    if (!module || !entry.declarative && module.__esModule !== true)
-      module = { 'default': module, __useDefault: true };
-
     // return the defined module object
-    return modules[name] = module;
+    return modules[name] = entry.declarative ? entry.module.exports : entry.esModule;
   };
 
   return function(mains, declare) {
 
-    var System;
     var System = {
-      register: register, 
+      register: register,
+      registerDynamic: registerDynamic,
       get: load, 
       set: function(name, module) {
         modules[name] = module; 
       },
       newModule: function(module) {
         return module;
-      },
-      global: global 
+      }
     };
     System.set('@empty', {});
 
@@ -353,7 +354,7 @@
       load(mains[i]);
   }
 
-})(typeof window != 'undefined' ? window : global)
+})(typeof self != 'undefined' ? self : global)
 /* (['mainModule'], function(System) {
   System.register(...);
 }); */

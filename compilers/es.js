@@ -29,13 +29,13 @@ function remap(source, map, fileName) {
 }
 exports.remap = remap;
 
-// load the transpiler module with the plugin loader
 exports.attach = function(loader) {
   // NB for better performance, we should just parse and
   // cache the AST and store on the metadata, returning the deps only
-  var loaderTranspile = loader.transpile;
-  loader.transpile = function(load) {
-    return loaderTranspile.call(this.pluginLoader || this, load);
+  var loaderTranslate = loader.translate;
+  loader.translate = function(load) {
+    load.metadata.originalSource = load.source;
+    return loaderTranslate.call(this, load);
   };
 };
 
@@ -45,13 +45,17 @@ exports.compile = function(load, opts, loader) {
   var normalize = opts.normalize;
   var options;
 
-  var source = load.source;
+  var source = load.metadata.originalSource;
 
   return loader.pluginLoader.import(loader.transpiler).then(function(transpiler) {
     if (transpiler.__useDefault)
       transpiler = transpiler['default'];
 
     if (transpiler.Compiler) {
+      // traceur needs __moduleAddress set
+      // bad for source maps, but we can get away with it
+      source = 'var __moduleAddress=System.baseURL+__moduleName;' + source;
+
       options = loader.traceurOptions || {};
       options.modules = 'instantiate';
       options.script = false;
@@ -96,7 +100,6 @@ exports.compile = function(load, opts, loader) {
         versionCheck = false;
       }
         
-
       options = loader.babelOptions || {};
       options.modules = 'system';
       if (opts.sourceMaps)

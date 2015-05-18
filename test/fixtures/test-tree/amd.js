@@ -1,3 +1,3 @@
-define(['./global', './some!./plugin', './text.txt!./text-plugin'], function(a, b, c) {
+define(['./global.js', './some.js!./plugin.js', './text.txt!./text-plugin.js'], function(a, b, c) {
   return { is: 'amd', text: c };
 });

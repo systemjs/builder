@@ -1,4 +1,4 @@
-"deps ./jquery";
+"deps ./jquery.js";
 "exports jquery.test";
 
 this.jquery = this.jquery || {};

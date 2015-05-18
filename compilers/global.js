@@ -75,10 +75,14 @@ GlobalTransformer.prototype.transformScript = function(tree) {
   wrapperFunction.body = new FunctionBody(null, scriptItemList);
 
   return new Script(tree.location, parseStatements([
-    'System.register("' + this.name + '", ' + JSON.stringify(this.deps) + ', false, function(__require, __exports, __module) {\n'
-  + '  System.get("@@global-helpers").prepareGlobal(__module.id, ' + JSON.stringify(this.deps) + ');\n'
-  + '  (',').call(System.global);\n'
-  + '  return System.get("@@global-helpers").retrieveGlobal(__module.id, ' + (this.exportName ? '"' + this.exportName + '"' : 'false') + (this.init ? ', ' + this.init.toString().replace(/\n/g, '\n      ') : '') + ');\n'
+    'System.registerDynamic("' + this.name + '", ' + JSON.stringify(this.deps) + ', false, function(__require, __exports, __module) {\n'
+  + (this.exportName
+    ? ''
+    : '  System.get("@@global-helpers").prepareGlobal(__module.id);\n')
+  + '  (',')();\n'
+  + (this.exportName 
+    ? '  return this["' + this.exportName.split('.').join('"]["') + '"];\n'
+    : '  return System.get("@@global-helpers").retrieveGlobal(__module.id);\n')
   + '});'], wrapperFunction));
 }
 exports.GlobalTransformer = GlobalTransformer;
@@ -112,5 +116,5 @@ exports.compile = function(load, opts, loader) {
 
 
 exports.sfx = function(loader) {
-  return require('fs').readFileSync(require('path').resolve(__dirname, '../lib/templates/global-helpers.js')).toString();
+  return require('fs').readFileSync(require('path').resolve(__dirname, '../templates/global-helpers.js')).toString();
 };

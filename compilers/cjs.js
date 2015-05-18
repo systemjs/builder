@@ -1,4 +1,5 @@
 var path = require('path');
+var url = require('url');
 var traceur = require('traceur');
 var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
 var Script = traceur.get('syntax/trees/ParseTrees.js').Script;
@@ -18,7 +19,7 @@ CJSRequireTransformer.prototype.transformCallExpression = function(tree) {
 
   // found a require
   var args = tree.args.args;
-  if (args.length && args[0].type == 'LITERAL_EXPRESSION') {
+  if (args.length && args[0].type == 'LITERAL_EXPRESSION' && args.length == 1) {
     if (this.map)
       args[0].literalToken.value = '"' + this.map(args[0].literalToken.processedValue) + '"';
 
@@ -54,7 +55,9 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
   var scriptItemList = tree.scriptItemList;
 
   if (this.usesFilePaths) {
-    var filename = '/' + path.relative(this.baseURL, this.address).replace(/\\/g, "/");
+    var filename = path.relative(this.baseURL, this.address).replace(/\\/g, "/");
+    if (filename.substr(0, 1) != '.')
+      filename = './' + filename;
     var dirname = path.dirname(filename);
 
     scriptItemList = parseStatements([
@@ -63,7 +66,7 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
   }
 
   scriptItemList = parseStatements([
-    'var global = System.global, __define = global.define;\n'
+    'var global = this, __define = global.define;\n'
     + 'global.define = undefined;'
   ]).concat(scriptItemList).concat(parseStatements([
     'global.define = __define;\n'
@@ -72,7 +75,7 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
 
   // wrap everything in System.register
   return new Script(tree.location, parseStatements([
-    'System.register("' + this.name + '", ' + JSON.stringify(this.deps) + ', true, function(require, exports, module) {\n',
+    'System.registerDynamic("' + this.name + '", ' + JSON.stringify(this.deps) + ', true, function(require, exports, module) {\n',
     '});'], scriptItemList));
 };
 exports.CJSRegisterTransformer = CJSRequireTransformer;
