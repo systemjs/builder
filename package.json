@@ -14,6 +14,7 @@
   },
   "devDependencies": {
     "babel-core": "^5.0.12",
+    "typescript": "mhegazy/typescript#v1.5-beta2",
     "es6-module-loader": "^0.16.5",
     "mocha": "~2.0.0",
     "chai": "^1.10.0"

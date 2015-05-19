@@ -1,6 +1,7 @@
 var Builder = require('../index');
 var inline = require('../lib/output').inlineSourceMap;
 var fs = require('fs');
+global.ts = require('typescript');
 
 var minify = true;
 
@@ -12,7 +13,7 @@ var err = function(e) {
 
 var builder = new Builder();
 var cfg = {
-  transpiler: process.argv[2] == 'babel' ? 'babel' : 'traceur',
+  transpiler: process.argv[2] == 'babel' || process.argv[2] == 'typescript' ? process.argv[2] : 'traceur',
   paths: {
     '*': 'fixtures/test-tree/*',
     'jquery-cdn': 'https://code.jquery.com/jquery-2.1.1.min.js',
@@ -26,7 +27,7 @@ var cfg = {
       build: false
     }
   }
-}; 
+};
 
 console.log('Running in-memory build...');
 builder.config(cfg);

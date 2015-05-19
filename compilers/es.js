@@ -47,7 +47,8 @@ exports.compile = function(load, opts, loader) {
 
   var source = load.metadata.originalSource;
 
-  return loader.pluginLoader.import(loader.transpiler).then(function(transpiler) {
+  return Promise.resolve(global.transpiler || loader.pluginLoader.import(loader.transpiler))
+  .then(function(transpiler) {
     if (transpiler.__useDefault)
       transpiler = transpiler['default'];
 
@@ -90,6 +91,20 @@ exports.compile = function(load, opts, loader) {
       return Promise.resolve({
         source: outputSource,
         sourceMap: compiler.getSourceMap()
+      });
+    }
+    else if (transpiler.createLanguageService) {
+      var options = loader.typescriptOptions || {};
+      if (options.target === undefined) {
+        options.target = transpiler.ScriptTarget.ES5;
+      }
+      options.module = transpiler.ModuleKind.System;
+      // NB separate source maps
+      options.inlineSourceMap = true;
+      var source = transpiler.transpile(load.source, options, load.address);
+      
+      return Promise.resolve({
+        source: source
       });
     }
     else {
