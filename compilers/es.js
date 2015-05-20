@@ -101,7 +101,7 @@ exports.compile = function(load, opts, loader) {
       options.module = transpiler.ModuleKind.System;
       // NB separate source maps
       options.inlineSourceMap = true;
-      var source = transpiler.transpile(load.source, options, load.address);
+      source = transpiler.transpile(load.source, options, load.address);
       
       return Promise.resolve({
         source: source
