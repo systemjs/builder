@@ -8,14 +8,14 @@
     "mkdirp": "^0.5.0",
     "rsvp": "^3.0.17",
     "source-map": "^0.4.1",
-    "systemjs": "master",
+    "systemjs": "latest",
     "traceur": "0.0.88",
     "uglify-js": "^2.4.17"
   },
   "devDependencies": {
     "babel-core": "^5.0.12",
     "typescript": "mhegazy/typescript#v1.5-beta2",
-    "es6-module-loader": "master",
+    "es6-module-loader": "latest",
     "mocha": "~2.0.0",
     "chai": "^1.10.0"
   },
