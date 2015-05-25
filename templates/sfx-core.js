@@ -19,6 +19,8 @@
   }
 
   function register(name, deps, declare) {
+    if (arguments.length === 4)
+      return registerDynamic.apply(this, arguments);
     doRegister(name, {
       declarative: true,
       deps: deps,
@@ -28,7 +30,6 @@
 
   function registerDynamic(name, deps, executingRequire, execute) {
     doRegister(name, {
-      name: name,
       declarative: false,
       deps: deps,
       executingRequire: executingRequire,
