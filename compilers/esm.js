@@ -95,13 +95,17 @@ exports.compile = function(load, opts, loader) {
     }
     else if (transpiler.createLanguageService) {
       var options = loader.typescriptOptions || {};
-      if (options.target === undefined) {
+      if (options.target === undefined)
         options.target = transpiler.ScriptTarget.ES5;
-      }
       options.module = transpiler.ModuleKind.System;
-      // NB separate source maps
-      options.inlineSourceMap = true;
-      source = transpiler.transpile(load.source, options, load.address);
+
+      // TODO pipe TypeScript sourcemaps
+      // TODO separate TypeScript helper functions
+      /* if (opts.sourceMaps) {
+        options.sourceMap = true;
+        source = transpiler.transpile(source, options);
+      } */
+      source = transpiler.transpile(source, options, load.address);
       
       return Promise.resolve({
         source: source
