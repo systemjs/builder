@@ -113,7 +113,8 @@ exports.AMDDependenciesTransformer = AMDDependenciesTransformer;
 
 // AMD System.registerDynamic transpiler
 // This is the second of the two pass transform
-function AMDDefineRegisterTransformer(load, isAnon, depMap) {
+function AMDDefineRegisterTransformer(moduleName, load, isAnon, depMap) {
+  this.name = moduleName;
   this.load = load;
   this.isAnon = isAnon;
   this.depMap = depMap;
@@ -126,7 +127,7 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
 
   var self = this;
   var args = tree.args.args;
-  var name = this.load.name;
+  var name = this.name;
 
   // check for named modules
   if (args[0].type === 'LITERAL_EXPRESSION') {
@@ -257,7 +258,7 @@ exports.compile = function(load, opts, loader) {
   var compiler = new traceur.Compiler(options);
 
   var tree = load.metadata.parseTree;
-  var transformer = new AMDDefineRegisterTransformer(load, load.metadata.isAnon, normalize ? load.depMap : {});
+  var transformer = new AMDDefineRegisterTransformer(load.name, load, load.metadata.isAnon, normalize ? load.depMap : {});
   tree = transformer.transformAny(tree);
 
   // normalize cjs requires

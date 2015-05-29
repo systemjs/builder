@@ -118,7 +118,7 @@
         for (var i = 0; i < deps.length; i++)
           depValues.push(req(deps[i]));
 
-        module.uri = loader.baseURL + module.id;
+        module.uri = module.id;
 
         module.config = function() {};
 

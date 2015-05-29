@@ -1,9 +1,10 @@
 var Builder = require('../index');
 var inline = require('../lib/output').inlineSourceMap;
 var fs = require('fs');
-global.ts = require('typescript');
+if (process.argv[2] == 'typescript')
+  global.ts = require('typescript');
 
-var minify = true;
+var minify = false;
 
 var err = function(e) {
   setTimeout(function() {
@@ -11,11 +12,10 @@ var err = function(e) {
   });
 };
 
-var builder = new Builder();
+var builder = new Builder('fixtures/test-tree');
 var cfg = {
   transpiler: process.argv[2] == 'babel' || process.argv[2] == 'typescript' ? process.argv[2] : 'traceur',
   paths: {
-    '*': 'fixtures/test-tree/*',
     'jquery-cdn': 'https://code.jquery.com/jquery-2.1.1.min.js',
     'babel': '../node_modules/babel-core/browser.js',
     'babel-helpers': '../node_modules/babel-core/external-helpers.js',
@@ -104,6 +104,7 @@ Promise.all(['first.js', 'amd.js'].map(builder.trace.bind(builder)))
   });
 })
 
+
 .then(function() {
   return builder.trace('amd-6a.js').then(function(tree) {
     return builder.buildTree(builder.subtractTrees(tree, treeFirst), 'output/amd-6a.js');
@@ -137,6 +138,6 @@ Promise.all(['first.js', 'amd.js'].map(builder.trace.bind(builder)))
   });
   return builder.buildSFX('toamd1', 'output/sfx.js', { runtime: true, minify: minify, globalDefs: { DEBUG: false } });
 })
-
 .catch(err);
+
 

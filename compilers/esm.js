@@ -47,16 +47,12 @@ exports.compile = function(load, opts, loader) {
 
   var source = load.metadata.originalSource;
 
-  return Promise.resolve(global.transpiler || loader.pluginLoader.import(loader.transpiler))
+  return Promise.resolve(global[loader.transpiler == 'typescript' ? 'ts' : loader.transpiler] || loader.pluginLoader.import(loader.transpiler))
   .then(function(transpiler) {
     if (transpiler.__useDefault)
       transpiler = transpiler['default'];
 
     if (transpiler.Compiler) {
-      // traceur needs __moduleAddress set
-      // bad for source maps, but we can get away with it
-      source = 'var __moduleAddress=System.baseURL+__moduleName;' + source;
-
       options = loader.traceurOptions || {};
       options.modules = 'instantiate';
       options.script = false;

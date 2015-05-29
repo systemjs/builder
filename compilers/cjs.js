@@ -32,11 +32,10 @@ exports.CJSRequireTransformer = CJSRequireTransformer;
 
 
 // convert CommonJS into System.registerDynamic
-function CJSRegisterTransformer(name, deps, address, baseURL) {
+function CJSRegisterTransformer(name, deps, address) {
   this.name = name;
   this.deps = deps;
   this.address = address;
-  this.baseURL = baseURL;
   this.usesFilePaths = false;
   return ParseTreeTransformer.call(this);
 }
@@ -54,16 +53,10 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
 
   var scriptItemList = tree.scriptItemList;
 
-  if (this.usesFilePaths) {
-    var filename = path.relative(this.baseURL, this.address).replace(/\\/g, "/");
-    if (filename.substr(0, 1) != '.')
-      filename = './' + filename;
-    var dirname = path.dirname(filename);
-
+  if (this.usesFilePaths)
     scriptItemList = parseStatements([
-      'var __filename = "' + filename + '", __dirname = "' + dirname + '";'
+      "var __filename = module.id, __dirname = module.id.split('/').splice(0, module.id.split('/').length - 1).join('/');"
     ]).concat(scriptItemList);
-  }
 
   scriptItemList = parseStatements([
     'var global = this, __define = global.define;\n'
@@ -102,7 +95,7 @@ exports.compile = function(load, opts, loader) {
 
   var deps = opts.normalize ? load.metadata.deps.map(function(dep) { return load.depMap[dep]; }) : load.metadata.deps;
 
-  transformer = new CJSRegisterTransformer(load.name, deps, load.address, loader.baseURL);
+  transformer = new CJSRegisterTransformer(load.name, deps, load.address);
   tree = transformer.transformAny(tree);
 
   var output = compiler.write(tree, load.address);

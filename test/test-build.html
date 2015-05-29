@@ -30,14 +30,19 @@
         });
       }
 
-      System.paths['traceur-runtime'] = System.baseURL + '../node_modules/traceur/bin/traceur-runtime.js';
-      System.paths['babel/external-helpers'] = System.baseURL + '../node_modules/babel-core/external-helpers.js';
-      System.paths['jquery-cdn'] = 'https://github.jspm.io/components/jquery@2.1.3/jquery.js';
-      System.paths['output/*'] = System.baseURL + 'output/*';
-      System.bundles['output/tree-build.js'] = ['third.js', 'cjs.js', 'jquery.js', 'second.js', 'global.js', 'amd.js', 'first.js'];
-      System.bundles['output/umd.js'] = ['umd.js'];
-
-      System.baseURL = './fixtures/test-tree/'
+      System.config({
+        baseURL: './fixtures/test-tree/',
+        paths: {
+          'traceur-runtime': '../node_modules/traceur/bin/traceur-runtime.js',
+          'babel/external-helpers': '../node_modules/babel-core/external-helpers.js',
+          'jquery-cdn': 'https://github.jspm.io/components/jquery@2.1.3/jquery.js',
+          'output/*': './output/*'
+        },
+        bundles: {
+          'output/tree-build.js': ['third.js', 'cjs.js', 'jquery.js', 'second.js', 'global.js', 'amd.js', 'first.js'],
+          'output/umd.js': ['umd.js']
+        }
+      });
 
       asyncTest('Loading AMD from a bundle', function() {
         System['import']('amd.js').then(function(m) {
