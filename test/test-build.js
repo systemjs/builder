@@ -4,7 +4,7 @@ var fs = require('fs');
 if (process.argv[2] == 'typescript')
   global.ts = require('typescript');
 
-var minify = false;
+var minify = true;
 
 var err = function(e) {
   setTimeout(function() {
@@ -18,7 +18,7 @@ var cfg = {
   paths: {
     'jquery-cdn': 'https://code.jquery.com/jquery-2.1.1.min.js',
     'babel': '../node_modules/babel-core/browser.js',
-    'babel-helpers': '../node_modules/babel-core/external-helpers.js',
+    'babel/external-helpers': '../node_modules/babel-core/external-helpers.js',
     'traceur': '../node_modules/traceur/bin/traceur.js',
     'traceur-runtime': '../node_modules/traceur/bin/traceur-runtime.js'
   },
