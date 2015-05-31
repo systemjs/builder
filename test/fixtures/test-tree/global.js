@@ -1,7 +1,6 @@
-"deps ./jquery.js";
-"exports jquery.test";
+"exports myjquery.test";
+"globals.myjquery ./jquery.js";
 
-this.jquery = this.jquery || {};
-this.jquery.test = 'output';
+this.myjquery.test = 'output';
 
 //@ sourceMappingURL=asdf

@@ -7,12 +7,12 @@ var Script = traceur.get('syntax/trees/ParseTrees.js').Script;
 var FunctionBody = traceur.get('syntax/trees/ParseTrees.js').FunctionBody;
 
 // wraps global scripts
-function GlobalTransformer(name, deps, exportName, init) {
+function GlobalTransformer(name, deps, exportName, globals) {
   this.name = name;
   this.deps = deps;
   this.exportName = exportName;
   this.varGlobals = [];
-  this.init = init;
+  this.globals = globals;
   this.inOuterScope = true;
   return ParseTreeTransformer.call(this);
 }
@@ -74,16 +74,26 @@ GlobalTransformer.prototype.transformScript = function(tree) {
   wrapperFunction.location = null;
   wrapperFunction.body = new FunctionBody(null, scriptItemList);
 
+  var globalExpression;
+  if (this.globals) {
+    var nl = '\n    ';
+    globalExpression = '{';
+    var first = true;
+    for (var g in this.globals) {
+      globalExpression += (first ? '' : ',') + nl + '"' + g + '": __require("' + this.globals[g] + '"),';
+      first = false;
+    }
+    globalExpression += nl + '}';
+  }
+
   return new Script(tree.location, parseStatements([
-    'System.registerDynamic("' + this.name + '", ' + JSON.stringify(this.deps) + ', false, function(__require, __exports, __module) {\n'
-  + (this.exportName
-    ? ''
-    : '  System.get("@@global-helpers").prepareGlobal(__module.id);\n')
-  + '  (',')();\n'
-  + (this.exportName 
-    ? '  return this["' + this.exportName.split('.').join('"]["') + '"];\n'
-    : '  return System.get("@@global-helpers").retrieveGlobal(__module.id);\n')
-  + '});'], wrapperFunction));
+      'System.registerDynamic("' + this.name + '", ' + JSON.stringify(this.deps) + ', false, function(__require, __exports, __module) {\n'
+      + 'var _retrieveGlobal = System.get("@@global-helpers").prepareGlobal(__module.id, '
+      + (this.exportName ? '"' + this.exportName + '"' : 'null') + ', ' + (globalExpression ? globalExpression : 'null') + ');\n'
+      + '  (',
+      ')();\n'
+      + '  return _retrieveGlobal();\n'
+      + '});'], wrapperFunction));
 }
 exports.GlobalTransformer = GlobalTransformer;
 
@@ -103,7 +113,15 @@ exports.compile = function(load, opts, loader) {
 
   var deps = opts.normalize ? load.metadata.deps.map(function(dep) { return load.depMap[dep]; }) : load.metadata.deps;
 
-  var transformer = new GlobalTransformer(load.name, deps, load.metadata.exports, load.metadata.init);
+  // send normalized globals into the transformer
+  var normalizedGlobals
+  if (load.metadata.globals) {
+    normalizedGlobals = {};
+    for (var g in load.metadata.globals)
+      normalizedGlobals[g] = opts.normalize ? load.depMap[load.metadata.globals[g]] : load.metadata.globals[g];
+  }
+
+  var transformer = new GlobalTransformer(load.name, deps, load.metadata.exports, normalizedGlobals);
   tree = transformer.transformAny(tree);
 
   var output = compiler.write(tree, load.address);
