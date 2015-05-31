@@ -7,58 +7,103 @@
     return -1;
   }
 
-  var curGlobalObj;
-  var ignoredGlobalProps = ['_g', 'indexedDB', 'sessionStorage', 'localStorage',
-      'clipboardData', 'frames', 'webkitStorageInfo', 'toolbar', 'statusbar',
-      'scrollbars', 'personalbar', 'menubar', 'locationbar', 'webkitIndexedDB',
-      'screenTop', 'screenLeft'];
+  function readMemberExpression(p, value) {
+    var pParts = p.split('.');
+    while (pParts.length)
+      value = value[pParts.shift()];
+    return value;
+  }
+
+  // bare minimum ignores for IE8
+  var ignoredGlobalProps = ['_g', 'sessionStorage', 'localStorage', 'clipboardData', 'frames', 'external'];
+
+  var globalSnapshot;
+
+  function forEachGlobal(callback) {
+    if (Object.keys)
+      Object.keys(__global).forEach(callback);
+    else
+      for (var g in __global) {
+        if (!hasOwnProperty.call(__global, g))
+          continue;
+        callback(g);
+      }
+  }
+
+  function forEachGlobalValue(callback) {
+    forEachGlobal(function(globalName) {
+      if (indexOf.call(ignoredGlobalProps, globalName) != -1)
+        return;
+      try {
+        var value = __global[globalName];
+      }
+      catch (e) {
+        ignoredGlobalProps.push(globalName);
+      }
+      callback(globalName, value);
+    });
+  }
 
   System.set('@@global-helpers', System.newModule({
-    prepareGlobal: function(moduleName) {
+    prepareGlobal: function(moduleName, exportName, globals) {
+      // set globals
+      var oldGlobals;
+      if (globals) {
+        oldGlobals = {};
+        for (var g in globals) {
+          oldGlobals[g] = globals[g];
+          __global[g] = globals[g];
+        }
+      }
+
       // store a complete copy of the global object in order to detect changes
-      curGlobalObj = {};
+      if (!exportName) {
+        globalSnapshot = {};
 
-      for (var g in __global) {
-        if (indexOf.call(ignoredGlobalProps, g) != -1)
-          continue;
-        if (!hasOwnProperty || __global.hasOwnProperty(g)) {
-          try {
-            curGlobalObj[g] = __global[g];
-          }
-          catch (e) {
-            ignoredGlobalProps.push(g);
-          }
-        }
-      }
-    },
-    retrieveGlobal: function(moduleName) {
-      var singleGlobal;
-      var multipleExports;
-      var exports;
-
-      for (var g in __global) {
-        if (indexOf.call(ignoredGlobalProps, g) != -1)
-          continue;
-
-        var value = __global[g];
-
-        // see which globals differ from the previous copy to determine global exports
-        if ((!hasOwnProperty || __global.hasOwnProperty(g)) 
-            && g !== __global && curGlobalObj[g] !== value) {
-          if (!exports) {
-            // first property found
-            exports = {};
-            singleGlobal = value;
-          }
-          
-          exports[g] = value;
-          
-          if (!multipleExports && singleGlobal !== value)
-            multipleExports = true;
-        }
+        forEachGlobalValue(function(name, value) {
+          globalSnapshot[name] = value;
+        });
       }
 
-      return multipleExports ? exports : singleGlobal;
+      // return function to retrieve global
+      return function() {
+        var globalValue;
+
+        if (exportName) {
+          globalValue = readMemberExpression(exportName, __global);
+        }
+        else {
+          var singleGlobal;
+          var multipleExports;
+          var exports = {};
+
+          forEachGlobalValue(function(name, value) {
+            if (globalSnapshot[name] === value)
+              return;
+            if (typeof value == 'undefined')
+              return;
+            exports[name] = value;
+
+            if (typeof singleGlobal != 'undefined') {
+              if (!multipleExports && singleGlobal !== value)
+                multipleExports = true;
+            }
+            else {
+              singleGlobal = value;
+            }
+          });
+          globalValue = multipleExports ? exports : singleGlobal;
+        }
+
+        // revert globals
+        if (oldGlobals) {
+          for (var g in oldGlobals)
+            __global[g] = oldGlobals[g];
+        }
+
+        return globalValue;
+      };
     }
   }));
+
 })(typeof self != 'undefined' ? self : global);
