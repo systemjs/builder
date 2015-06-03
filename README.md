@@ -1,8 +1,6 @@
 SystemJS Build Tool [![Build Status][travis-image]][travis-url]
 ===
 
-_For upgrading to 0.10, [see the release notes here](https://github.com/systemjs/builder/releases/tag/0.10.0)._
-
 Provides a single-file build for SystemJS of mixed-dependency module trees.
 
 Builds ES6 into ES5, CommonJS, AMD and globals into a single file in a way that supports the CSP SystemJS loader
@@ -13,7 +11,7 @@ Example
 
 app.js
 ```javascript
-import $ from "./jquery";
+import $ from "./jquery.js";
 export var hello = 'es6';
 ```
 
@@ -46,7 +44,7 @@ var path = require("path");
 var Builder = require('systemjs-builder');
 
 var builder = new Builder({
-  baseURL: 'file:' + path.resolve('some/folder'),
+  baseURL: 'some/folder',
 
   // any map config
   map: {
@@ -58,7 +56,7 @@ var builder = new Builder({
 
   // etc. any SystemJS config
 })
-.build('myModule', 'outfile.js')
+.build('local/module.js', 'outfile.js')
 .then(function() {
   console.log('Build complete');
 })
@@ -83,9 +81,9 @@ Then we can load this config file through the builder:
 builder.loadConfig('./cfg.js')
 .then(function() {
   // additional config can also be set through `builder.config`
-  builder.config({ baseURL: 'file:' + process.cwd() });
+  builder.config({ baseURL: './app' });
 
-  return builder.build('myModule', 'outfile.js');
+  return builder.build('myModule.js', 'outfile.js');
 });
 
 ```
@@ -99,7 +97,7 @@ To reset the loader state and configuration use `builder.reset()`.
 To make a bundle that is independent of the SystemJS loader entirely, we can make SFX bundles:
 
 ```javascript
-builder.buildSFX('myModule', 'outfile.js', options);
+builder.buildSFX('myModule.js', 'outfile.js', options);
 ```
 
 This bundle file can then be included with a `<script>` tag, and no other dependencies would need to be included in the page. 
@@ -107,7 +105,7 @@ This bundle file can then be included with a `<script>` tag, and no other depend
 By default, Traceur or Babel runtime are automatically included in the SFX bundle if needed. To exclude the Babel or Traceur runtime set the `runtime` build option to false:
 
 ```javascript
-builder.buildSFX('myModule', 'outfile.js', { runtime: false });
+builder.buildSFX('myModule.js', 'outfile.js', { runtime: false });
 ```
 
 #### Adapter Modules
@@ -124,13 +122,13 @@ module.exports = window.jQuery;
 As well as an `options.config` parameter, it is also possible to specify minification and source maps options:
 
 ```javascript
-builder.build('myModule', 'outfile.js', { minify: true, sourceMaps: true, config: cfg });
+builder.build('myModule.js', 'outfile.js', { minify: true, sourceMaps: true, config: cfg });
 ```
 
 Compile time with source maps can also be improved with the `lowResSourceMaps` option:
 
 ```javascript
-builder.build('myModule', 'outfile.js', { sourceMaps: true, lowResSourceMaps: true });
+builder.build('myModule.js', 'outfile.js', { sourceMaps: true, lowResSourceMaps: true });
 ```
 
 #### Minification Options
@@ -139,7 +137,7 @@ builder.build('myModule', 'outfile.js', { sourceMaps: true, lowResSourceMaps: tr
 * `globalDefs`, object allowing for global definition assignments for dead code removal.
 
 ```javascript
-builder.build('myModule', 'outfile.js', { minify: true, mangle: false, globalDefs: { DEBUG: false } });
+builder.build('myModule.js', 'outfile.js', { minify: true, mangle: false, globalDefs: { DEBUG: false } });
 ```
 
 ### In-Memory Builds
@@ -147,7 +145,7 @@ builder.build('myModule', 'outfile.js', { minify: true, mangle: false, globalDef
 Leave out the `outFile` option to run an in-memory build:
 
 ```javascript
-builder.build('myModule', { minify: true }).then(function(output) {
+builder.build('myModule.js', { minify: true }).then(function(output) {
   output.source;    // generated bundle source
   output.sourceMap; // generated bundle source map
   output.modules;   // array of module names defined in the bundle
@@ -164,9 +162,13 @@ If loading resources that shouldn't even be traced as part of the build (say an 
 can be configured with:
 
 ```javascript
-System.meta['resource/to/ignore'] = {
-  build: false
-};
+builder.config({
+  meta: {
+    'resource/to/ignore.js' = {
+      build: false
+    }
+  }
+});
 ```
 
 ### Bundle Arithmetic
@@ -190,7 +192,7 @@ var builder = new Builder({
   } // etc. config
 });
 
-builder.build('app/* - app/corelibs', 'output-file.js', { minify: true, sourceMaps: true });
+builder.build('app/* - app/corelibs.js', 'output-file.js', { minify: true, sourceMaps: true });
 ```
 
 #### Example - Common Bundles
@@ -208,7 +210,7 @@ The above means _take the tree of app and all its dependencies, and subtract jus
 We can then exclude this common bundle in future builds:
 
 ```javascript
-builder.build('app/componentA - common', { minify: true, sourceMaps: true });
+builder.build('app/componentA.js - common.js', { minify: true, sourceMaps: true });
 ```
 
 #### Example - Direct Trace API
@@ -224,7 +226,7 @@ var builder = new Builder({
   // ...
 });
 
-Promise.all([builder.trace('app/first'), builder.trace('app/second')])
+Promise.all([builder.trace('app/first.js'), builder.trace('app/second.js')])
 .then(function(trees) {
   var commonTree = builder.intersectTrees(trees[0], trees[1]);
   return Promise.all([
