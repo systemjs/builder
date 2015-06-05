@@ -335,27 +335,39 @@
   };
 
   return function(mains, declare) {
+    return function(formatDetect) {
+      formatDetect(function() {
+        var System = {
+          register: register,
+          registerDynamic: registerDynamic,
+          get: load, 
+          set: function(name, module) {
+            modules[name] = module; 
+          },
+          newModule: function(module) {
+            return module;
+          }
+        };
+        System.set('@empty', {});
 
-    var System = {
-      register: register,
-      registerDynamic: registerDynamic,
-      get: load, 
-      set: function(name, module) {
-        modules[name] = module; 
-      },
-      newModule: function(module) {
-        return module;
-      }
+        declare(System);
+
+        var firstLoad = load(mains[0]);
+        if (mains.length > 1)
+          for (var i = 1; i < mains.length; i++)
+            load(mains[i]);
+
+        return firstLoad;
+      });
     };
-    System.set('@empty', {});
-
-    declare(System);
-
-    for (var i = 0; i < mains.length; i++)
-      load(mains[i]);
-  }
+  };
 
 })(typeof self != 'undefined' ? self : global)
 /* (['mainModule'], function(System) {
   System.register(...);
-}); */
+})
+(function(factory) {
+  if (typeof define && define.amd)
+    define(factory);
+  // etc UMD / module pattern
+})*/
