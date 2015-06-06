@@ -1,0 +1,33 @@
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/mocha/2.2.5/mocha.min.css">
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/chai/3.0.0/chai.js"></script>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/mocha/2.2.5/mocha.min.js"></script>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.18/require.js"></script>
+</head>
+<body>
+<div id="mocha"></div>
+<script>
+var expect = chai.expect;
+mocha.setup('bdd');
+require.config({
+  baseUrl: 'output'
+});
+describe('amd loading', function () {
+  it('should load multiple exports', function (done) {
+    require(['sfx-amd'], function (result) {
+      expect(result.default).to.eql({ hello: 'world' });
+      expect(result.basic).to.be.a('function');
+      done();
+    });
+  });
+});
+
+if (window.mochaPhantomJS) {
+    mochaPhantomJS.run();
+} else {
+    mocha.run();
+}
+</script>
+</body>
+</html>
