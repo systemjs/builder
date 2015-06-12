@@ -101,7 +101,7 @@ exports.compile = function(load, opts, loader) {
         options.sourceMap = true;
         source = transpiler.transpile(source, options);
       } */
-      source = transpiler.transpile(source, options, load.address);
+      source = transpiler.transpile(source, options, load.address, undefined, load.name);
       
       return Promise.resolve({
         source: source
