@@ -33,12 +33,12 @@ suite('Bundle Expressions', function() {
   });
 
   test('Wildcard bundling', function(done) {
-    builder.trace('*.js - [amd-*]')
+    builder.trace('*.js - [amd-*] - [sfx-format-*]')
     .then(function(tree) {
       assert.deepEqual(Object.keys(tree), [
-          'cjs.js', 'umd.js', 'second.js', 'third.js', 'text-plugin.js', 'plugin.js', 'babel',
+          'cjs.js', 'umd.js', 'second.js', 'third.js', 'text-plugin.js', 'component.jsx!jsx.js', 'plugin.js', 'babel',
           'jsx.js', 'jquery.js', 'global.js', 'global-outer.js', 'global-inner.js', 'some.js!plugin.js', 
-          'text.txt!text-plugin.js', 'component.jsx!jsx.js', 'amd.js', 'first.js']);
+          'text.txt!text-plugin.js', 'amd.js', 'first.js']);
     })
     .then(done, done);
   });
