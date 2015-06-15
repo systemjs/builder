@@ -180,3 +180,18 @@ suite('Test tree builds - Babel', function() {
 
 }); */
 
+
+suite('Bundle Format', function() {
+  test('Test AMD format', function(done) {
+    return Promise.resolve()
+    .then(function() {
+      return builder.buildSFX('sfx-format-01.js', 'test/output/sfx-amd.js', { sfxFormat: 'amd' });
+    })
+    .then(function() {
+      testPhantom('test/test-sfx-amd.html', done);
+    });
+  });
+});
+
+
+

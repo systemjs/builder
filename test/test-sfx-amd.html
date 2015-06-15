@@ -3,20 +3,23 @@
   <meta charset="utf-8">
   <link rel="stylesheet" type="text/css" href="../node_modules/mocha/mocha.css">
   <script src="../node_modules/mocha/mocha.js"></script>
-  <script src="http://cdnjs.cloudflare.com/ajax/libs/chai/3.0.0/chai.js"></script>
+  <script src="../node_modules/chai/chai.js"></script>
   <script src="http://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.18/require.js"></script>
 </head>
 <body>
 <div id="mocha"></div>
 <script>
 var expect = chai.expect;
-mocha.setup('bdd');
+
+mocha.setup('tdd');
+
 require.config({
   baseUrl: 'output'
 });
-describe('amd loading', function () {
-  it('should load multiple exports', function (done) {
-    require(['sfx-amd'], function (result) {
+
+suite('amd loading', function () {
+  test('should load multiple exports', function(done) {
+    require(['sfx-amd'], function(result) {
       expect(result.default).to.eql({ hello: 'world' });
       expect(result.basic).to.be.a('function');
       done();
@@ -24,11 +27,10 @@ describe('amd loading', function () {
   });
 });
 
-if (window.mochaPhantomJS) {
-    mochaPhantomJS.run();
-} else {
-    mocha.run();
-}
+if (window.mochaPhantomJS)
+  mochaPhantomJS.run();
+else
+  mocha.run();
 </script>
 </body>
 </html>
