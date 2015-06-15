@@ -4,6 +4,9 @@ var traceur = require('traceur');
 var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
 var Script = traceur.get('syntax/trees/ParseTrees.js').Script;
 var parseStatements = traceur.get('codegeneration/PlaceholderParser.js').parseStatements;
+var STRING = traceur.get('syntax/TokenType.js').STRING;
+var LiteralExpression = traceur.get('syntax/trees/ParseTrees.js').LiteralExpression;
+var LiteralToken = traceur.get('syntax/LiteralToken.js').LiteralToken;
 
 // remap require() statements
 function CJSRequireTransformer(requireName, map) {
@@ -41,6 +44,15 @@ function CJSRegisterTransformer(name, deps, address) {
 }
 
 CJSRegisterTransformer.prototype = Object.create(ParseTreeTransformer.prototype);
+
+CJSRegisterTransformer.prototype.transformMemberExpression = function(tree) {
+  if (tree.operand.operand && tree.operand.operand.identifierToken && 
+      tree.operand.operand.identifierToken.value == 'process' && 
+      tree.operand.memberName == 'env' && tree.memberName.value == 'NODE_ENV') {
+    return new LiteralExpression(tree.location, new LiteralToken(STRING, '"production"', tree.location));
+  }
+  return tree;
+};
 CJSRegisterTransformer.prototype.transformIdentifierExpression = function(tree) {
   var value = tree.identifierToken.value;
   if (!this.usesFilePaths && value == '__filename' || value == '__dirname')

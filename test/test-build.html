@@ -35,28 +35,33 @@
           ok(m.is == 'amd');
           ok(m.text == 'This is some text');
           done();
-        }, done);
+        })
+        .catch(done);
       });
 
       test('Loading CommonJS from a bundle', function(done) {
         System['import']('cjs.js').then(function(m) {
+          ok(m.env == 'production');
           ok(m.cjs === true);
           done();
-        }, done);
+        })
+        .catch(done);
       });
 
       test('Loading a Global from a bundle', function(done) {
         System['import']('global.js').then(function(m) {
           ok(m === 'output');
           done();
-        }, done);
+        })
+        .catch(done);
       });
 
       test('Loading named System.register', function(done) {
         System['import']('third.js').then(function(m) {
           ok(m.some == 'exports');
           done();
-        }, done);
+        })
+        .catch(done);
       });
 
       test('Loading System.register from ES6', function(done) {
@@ -64,7 +69,8 @@
         System['import']('first.js').then(function(m) {
           ok(m.p == 5);
           done();
-        }, done);
+        })
+        .catch(done);
       });
 
       test('AMD rewriting 1', function(done) {
