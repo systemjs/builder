@@ -1,191 +1,182 @@
 <!doctype html>
-<html>
-  <head>
-    <link rel="stylesheet" type="text/css" href="../bower_components/qunit/qunit/qunit.css"/>
-  </head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" type="text/css" href="../node_modules/mocha/mocha.css">
+  <script src="../node_modules/mocha/mocha.js"></script>
+  <script src="../node_modules/systemjs/dist/system.src.js" type="text/javascript"></script>
   <body>
+    <div id="mocha">
+  <script>
+    DEBUG = false;
 
-    <h1 id="qunit-header">SystemJS Test Suite</h1>
+    mocha.setup('tdd');
 
-    <h2 id="qunit-banner"></h2>
-    <div id="qunit-testrunner-toolbar"></div>
-    <h2 id="qunit-userAgent"></h2>
-    <ol id="qunit-tests"></ol>
-    <div id="qunit-test-area"></div>
+    function ok(assertion, msg) {
+      if (!assertion)
+        throw new Error(msg || 'Assertion failed');
+    }
 
-    <script src="../node_modules/systemjs/dist/system.src.js" type="text/javascript"></script>
-
-    <script src="../bower_components/qunit/qunit/qunit.js"></script>
-
-    <script>
-      DEBUG = false;
-
-      QUnit.config.testTimeout = 2000;
-
-      QUnit.module("SystemJS Built Bundle");
-
-      function err(e) {
-        setTimeout(function() {
-          throw e;
-        });
+    System.config({
+      baseURL: './fixtures/test-tree/',
+      paths: {
+        'traceur-runtime': '../node_modules/traceur/bin/traceur-runtime.js',
+        'babel/external-helpers': '../node_modules/babel-core/external-helpers.js',
+        'jquery-cdn': 'https://github.jspm.io/components/jquery@2.1.3/jquery.js',
+        'output/*': './output/*'
+      },
+      bundles: {
+        'output/tree-build.js': ['third.js', 'cjs.js', 'jquery.js', 'second.js', 'global.js', 'amd.js', 'first.js'],
+        'output/umd.js': ['umd.js']
       }
+    });
 
-      System.config({
-        baseURL: './fixtures/test-tree/',
-        paths: {
-          'traceur-runtime': '../node_modules/traceur/bin/traceur-runtime.js',
-          'babel/external-helpers': '../node_modules/babel-core/external-helpers.js',
-          'jquery-cdn': 'https://github.jspm.io/components/jquery@2.1.3/jquery.js',
-          'output/*': './output/*'
-        },
-        bundles: {
-          'output/tree-build.js': ['third.js', 'cjs.js', 'jquery.js', 'second.js', 'global.js', 'amd.js', 'first.js'],
-          'output/umd.js': ['umd.js']
-        }
-      });
-
-      asyncTest('Loading AMD from a bundle', function() {
+    suite('Test Tree Bundle', function () {
+      test('Loading AMD from a bundle', function(done) {
         System['import']('amd.js').then(function(m) {
           ok(m.is == 'amd');
           ok(m.text == 'This is some text');
-          start();
-        }, err);
+          done();
+        }, done);
       });
 
-      asyncTest('Loading CommonJS from a bundle', function() {
+      test('Loading CommonJS from a bundle', function(done) {
         System['import']('cjs.js').then(function(m) {
           ok(m.cjs === true);
-          start();
-        }, err);
+          done();
+        }, done);
       });
 
-      asyncTest('Loading a Global from a bundle', function() {
+      test('Loading a Global from a bundle', function(done) {
         System['import']('global.js').then(function(m) {
           ok(m === 'output');
-          start();
-        }, err);
+          done();
+        }, done);
       });
 
-      asyncTest('Loading named System.register', function() {
+      test('Loading named System.register', function(done) {
         System['import']('third.js').then(function(m) {
           ok(m.some == 'exports');
-          start();
-        }, err);
+          done();
+        }, done);
       });
 
-      asyncTest('Loading System.register from ES6', function() {
+      test('Loading System.register from ES6', function(done) {
+        this.timeout(10000);
         System['import']('first.js').then(function(m) {
           ok(m.p == 5);
-          start();
-        }, err);
+          done();
+        }, done);
       });
 
-      asyncTest('AMD rewriting 1', function() {
+      test('AMD rewriting 1', function(done) {
         System['import']('output/amd-1.js').then(function(m) {
           return System['import']('amd-1.js');
         })
         .then(function(m) {
           ok(m.first.p == 5);
-          start();
+          done();
         })
-        .catch(err);
+        .catch(done);
       });
 
-      asyncTest('AMD rewriting 2', function() {
+      test('AMD rewriting 2', function(done) {
         System['import']('output/amd-2.js').then(function(m) {
           return System['import']('amd-2.js');
         })
         .then(function(m) {
           ok(m.amd == 2);
-          start();
+          done();
         })
-        .catch(err);
+        .catch(done);
       });
 
-      asyncTest('AMD rewriting 3', function() {
+      test('AMD rewriting 3', function(done) {
         System['import']('output/amd-3.js').then(function(m) {
           return System['import']('amd-3.js');
         })
         .then(function(m) {
           ok(m.p == 5);
-          start();
+          done();
         })
-        .catch(err);
+        .catch(done);
       });
 
-      asyncTest('AMD rewriting 4', function() {
+      test('AMD rewriting 4', function(done) {
         System['import']('output/amd-4.js').then(function(m) {
           return System['import']('amd-4.js');
         })
         .then(function(m) {
           ok(m.q == 4);
-          start();
+          done();
         })
-        .catch(err);
+        .catch(done);
       });
 
-      asyncTest('AMD rewriting 5a', function() {
+      test('AMD rewriting 5a', function(done) {
         System['import']('output/amd-5a.js').then(function(m) {
           return System['import']('amd-5a.js');
         })
         .then(function(m) {
           ok(m.jquery == 1);
-          start();
+          done();
         })
-        .catch(err);
+        .catch(done);
       });
 
-      asyncTest('AMD rewriting 5b', function() {
+      test('AMD rewriting 5b', function(done) {
         System['import']('output/amd-5b.js').then(function(m) {
           return System['import']('amd-5b.js');
         })
         .then(function(m) {
           ok(m.jquery == 1);
-          start();
+          done();
         })
-        .catch(err);
+        .catch(done);
       });
 
-      asyncTest('AMD rewriting 6a', function() {
+      test('AMD rewriting 6a', function(done) {
         System['import']('output/amd-6a.js').then(function(m) {
           return System['import']('amd-6a.js');
         })
         .then(function(m) {
           ok(window.p == 'a');
-          start();
+          done();
         })
-        .catch(err);
+        .catch(done);
       });
 
-      asyncTest('AMD rewriting 6b', function() {
+      test('AMD rewriting 6b', function(done) {
         System['import']('output/amd-6b.js').then(function(m) {
           return System['import']('amd-6b.js');
         })
         .then(function(m) {
           ok(m.p == 'b');
-          start();
+          done();
         })
-        .catch(err);
+        .catch(done);
       });
 
-      asyncTest('Loading UMD', function() {
+      test('Loading UMD', function(done) {
         System['import']('umd.js').then(function(m) {
           ok(m.umd == 'detection');
-          start();
+          done();
         });
       });
 
-      asyncTest('AMD 7', function() {
+      test('AMD 7', function(done) {
         System['import']('output/amd-7.js').then(function() {
           return System['import']('amd-7.js');
         })
         .then(function(m) {
           ok(m.amd == 'object');
-          start();
+          done();
         })
-        .catch(err);
+        .catch(done);
       });
-
-    </script>
-	</body>
-</html>
+    });
+  </script>
+  <script>
+    if (window.mochaPhantomJS)
+      mochaPhantomJS.run();
+    else
+      mocha.run();
+  </script>
