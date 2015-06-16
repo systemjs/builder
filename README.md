@@ -108,6 +108,19 @@ By default, Traceur or Babel runtime are automatically included in the SFX bundl
 builder.buildSFX('myModule.js', 'outfile.js', { runtime: false });
 ```
 
+#### SFX Format
+
+SFX bundles can also be output as a custom module format - `amd`, `cjs` or `es6` for consumption in different environments.
+
+This is handled via the `sfxFormat` option:
+
+```javascript
+builder.buildSFX('myModule.js', 'outfile.js', { sfxFormat: 'cjs' });
+```
+
+The first module used as input (`myModule.js` here) will then have its exports output as the CommonJS exports of the whole SFX bundle itself
+when run in a CommonJS environment.
+
 #### Adapter Modules
 
 To have globals like `jQuery` not included, and included in a separate script tag, set up an adapter module something like:
