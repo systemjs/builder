@@ -338,6 +338,7 @@
     return function(formatDetect) {
       formatDetect(function() {
         var System = {
+          _nodeRequire: typeof require != 'undefined' && require.resolve && typeof process != 'undefined' && require,
           register: register,
           registerDynamic: registerDynamic,
           get: load, 
