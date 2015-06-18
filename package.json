@@ -7,6 +7,7 @@
     "es6-template-strings": "^2.0.0",
     "glob": "^5.0.14",
     "mkdirp": "^0.5.1",
+    "rollup": "^0.8.1",
     "rsvp": "^3.0.20",
     "source-map": "^0.4.4",
     "systemjs": "0.19.5",
