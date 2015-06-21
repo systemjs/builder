@@ -1,6 +1,7 @@
 var Builder = require('../index');
 var inline = require('../lib/output').inlineSourceMap;
 var fs = require('fs');
+var Promise = require('rsvp').Promise;
 var spawn = require('child_process').spawn;
 if (process.argv[2] == 'typescript')
   global.ts = require('typescript');
@@ -30,12 +31,15 @@ var cfg = {
   }
 };
 
-function testPhantom(html, done) {
-  spawn('node_modules/.bin/mocha-phantomjs', [html], { stdio: 'inherit' })
-  .on('close', function(code) {
-    if (code !== 0)
-      throw new Error('Phantom test failed');
-    done();
+function testPhantom(html) {
+  return new Promise(function(resolve, reject) {
+    spawn('node_modules/.bin/mocha-phantomjs', [html], { stdio: 'inherit' })
+    .on('close', function(code) {
+      if (code !== 0)
+        reject(Error('Phantom test failed'));
+      else
+        resolve();
+    });
   });
 }
 
@@ -43,19 +47,17 @@ function doTests(transpiler) {
   builder.reset();
   builder.config(cfg);
   builder.config({ transpiler: transpiler });
-  
-  test('In-memory build', function(done) {
-    builder.build('first.js', null, { sourceMaps: true, minify: minify })
+
+  test('In-memory build', function() {
+    return builder.build('first.js', null, { sourceMaps: true, minify: minify })
     .then(function(output) {
       fs.writeFileSync('test/output/memory-test.js', inline(output));
-      done();
     })
-    .catch(done);
   });
 
-  test('Multi-format tree build', function(done) {
+  test('Multi-format tree build', function() {
 
-    builder.build('first.js', 'test/output/tree-build.js', { sourceMaps: true, minify: minify, globalDefs: { DEBUG: false } })
+    return builder.build('first.js', 'test/output/tree-build.js', { sourceMaps: true, minify: minify, globalDefs: { DEBUG: false } })
     .then(function() {
       var treeFirst;
       Promise.all(['first.js', 'amd.js'].map(builder.trace.bind(builder)))
@@ -136,28 +138,26 @@ function doTests(transpiler) {
       })
     })
     .then(function () {
-      testPhantom('test/test-build.html', done);
+      return testPhantom('test/test-build.html');
     })
-    .catch(done);
   });
 
   // traceur runtime function.bind fails in Phantom
   if (transpiler != 'traceur')
-  test('SFX tree build', function(done) {
+  test('SFX tree build', function() {
     builder.reset();
     builder.config(cfg);
     builder.config({transpiler: transpiler });
-    builder.config({ 
-      map: { 
+    builder.config({
+      map: {
       'jquery-cdn': '@empty',
       'toamd1': 'amd-1.js'
       }
     });
     return builder.buildSFX('toamd1', 'test/output/sfx.js', { runtime: true, minify: minify, globalDefs: { DEBUG: false } })
     .then(function() {
-      testPhantom('test/test-sfx.html', done);
+      return testPhantom('test/test-sfx.html');
     })
-    .catch(done);
   });
 }
 
@@ -175,20 +175,20 @@ suite('Test tree builds - Babel', function() {
 
 
 /* suite('Test tree builds - TypeScript', function() {
-  
+
   doTests('typescript');
 
 }); */
 
 
 suite('Bundle Format', function() {
-  test('Test AMD format', function(done) {
+  test('Test AMD format', function() {
     return Promise.resolve()
     .then(function() {
       return builder.buildSFX('sfx-format-01.js', 'test/output/sfx-amd.js', { sfxFormat: 'amd' });
     })
     .then(function() {
-      testPhantom('test/test-sfx-amd.html', done);
+      return testPhantom('test/test-sfx-amd.html');
     });
   });
 });
