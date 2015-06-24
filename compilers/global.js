@@ -47,6 +47,9 @@ GlobalTransformer.prototype.exitScope = function(revert) {
 }
 
 GlobalTransformer.prototype.transformFunctionDeclaration = function(tree) {
+  // named functions in outer scope are globals
+  if (this.inOuterScope && tree.name)
+    this.varGlobals.push(tree.name.identifierToken.value);
   var revert = this.enterScope();
   tree = ParseTreeTransformer.prototype.transformFunctionDeclaration.call(this, tree);
   this.exitScope(revert);

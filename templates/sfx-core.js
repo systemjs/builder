@@ -349,7 +349,7 @@
             return module;
           },
           'import': function() {
-            throw new TypeError('Dynamic System.import calls are not supported for SFX bundles.');
+            throw new TypeError('Dynamic System.import calls are not supported for SFX bundles. Rather use a named bundle.');
           }
         };
         System.set('@empty', {});
