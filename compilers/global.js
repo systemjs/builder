@@ -12,6 +12,7 @@ function GlobalTransformer(name, deps, exportName, globals) {
   this.deps = deps;
   this.exportName = exportName;
   this.varGlobals = [];
+  this.fnGlobals = [];
   this.globals = globals;
   this.inOuterScope = true;
   return ParseTreeTransformer.call(this);
@@ -49,7 +50,7 @@ GlobalTransformer.prototype.exitScope = function(revert) {
 GlobalTransformer.prototype.transformFunctionDeclaration = function(tree) {
   // named functions in outer scope are globals
   if (this.inOuterScope && tree.name)
-    this.varGlobals.push(tree.name.identifierToken.value);
+    this.fnGlobals.push(tree.name.identifierToken.value);
   var revert = this.enterScope();
   tree = ParseTreeTransformer.prototype.transformFunctionDeclaration.call(this, tree);
   this.exitScope(revert);
@@ -66,10 +67,15 @@ GlobalTransformer.prototype.transformFunctionExpression = function(tree) {
 GlobalTransformer.prototype.transformScript = function(tree) {
   tree = ParseTreeTransformer.prototype.transformScript.call(this, tree);
 
+  // hoist function declaration assignments to the global
+  var scriptItemList = this.fnGlobals.map(function(g) {
+    return parseStatement(['this["' + g + '"] = ' + g + ';']);
+  })
   // for globals defined as "var x = 5;" in outer scope, add "this.x = x;" at end
-  var scriptItemList = this.varGlobals.map(function(g) {
+  .concat(this.varGlobals.map(function(g) {
     return parseStatement(['var ' + g + ' = this["' + g + '"];']);
-  }).concat(tree.scriptItemList).concat(this.varGlobals.map(function(g) {
+  }))
+  .concat(tree.scriptItemList).concat(this.varGlobals.map(function(g) {
     return parseStatement(['this["' + g + '"] = ' + g + ';']);
   }));
 
