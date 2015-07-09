@@ -213,21 +213,29 @@ builder.build('app/* - app/corelibs.js', 'output-file.js', { minify: true, sourc
 
 #### Example - Common Bundles
 
-Build a bundle for the dependencies of `app/` excluding anything from `app/` itself.
-
-For this we can use the `[module]` syntax which represents a single module instead of all its dependencies as well:
+To build the shared dependencies of two modules, use the `&` operator:
 
 ```javascript
-builder.build('app/**/* - [app/**/*]', 'common.js', { minify: true, sourceMaps: true });
+builder.build('app/page1.js & app/page2.js', 'common.js');
 ```
-
-The above means _take the tree of app and all its dependencies, and subtract just the modules in app_.
 
 We can then exclude this common bundle in future builds:
 
 ```javascript
 builder.build('app/componentA.js - common.js', { minify: true, sourceMaps: true });
 ```
+
+#### Example - Third-Party Dependency Bundles
+
+Build a bundle of all dependencies of the `app/` package excluding anything from `app/` itself.
+
+For this we can use the `[module]` syntax which represents a single module instead of all its dependencies as well:
+
+```javascript
+builder.build('app/**/* - [app/**/*]', 'dependencies.js', { minify: true, sourceMaps: true });
+```
+
+The above means _take the tree of app and all its dependencies, and subtract just the modules in app_, thus leaving us with just the tree of dependencies of the app package.
 
 #### Example - Direct Trace API
 
