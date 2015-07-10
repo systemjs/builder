@@ -28,7 +28,7 @@ RegisterTransformer.prototype.transformCallExpression = function(tree) {
 
     if (firstArg.type == 'ARRAY_LITERAL_EXPRESSION') {
       if (this.hasAnonRegister) {
-        throw 'Source ' + load.address + ' has multiple anonymous System.register calls.';
+        throw 'Source ' + this.name + ' has multiple anonymous System.register calls.';
       }
 
       // normalize dependencies in array
