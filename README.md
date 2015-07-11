@@ -84,7 +84,7 @@ Then we can load this config file through the builder:
 builder.loadConfig('./cfg.js')
 .then(function() {
   // additional config can also be set through `builder.config`
-  builder.config({ baseURL: './app' });
+  builder.config({ map: { 'a': 'b.js' } });
 
   return builder.build('myModule.js', 'outfile.js');
 });
