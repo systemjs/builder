@@ -137,7 +137,7 @@ exports.compile = function(load, opts, loader) {
 
       if (normalize)
         options.resolveModuleSource = function(dep) {
-          return load.depMap[dep];
+          return load.depMap[dep] || dep;
         };
 
       var output = transpiler.transform(source, options);
