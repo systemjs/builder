@@ -19,7 +19,7 @@
     "mocha": "^2.2.5",
     "mocha-phantomjs": "^3.5.3",
     "phantomjs": "1.9.7-15",
-    "typescript": "mhegazy/typescript#v1.5-beta2"
+    "typescript": "1.5.3"
   },
   "repository": {
     "type": "git",
