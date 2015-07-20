@@ -18,7 +18,7 @@
     "es6-module-loader": "^0.17.1",
     "mocha": "^2.2.5",
     "mocha-phantomjs": "^3.5.3",
-    "phantomjs": "^1.9.7",
+    "phantomjs": "1.9.7",
     "typescript": "mhegazy/typescript#v1.5-beta2"
   },
   "repository": {
