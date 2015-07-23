@@ -11,9 +11,11 @@ suite('Test compiler cache', function() {
     var cache = {};
     var tree;
 
+    builder.cache.compile = cache;
+
     return builder.trace(loadName).then(function(_tree) {
       tree = _tree;
-      return builder.buildTree(tree, null, {}, cache);
+      return builder.buildTree(tree);
     })
     .then(function(output) {
       var cacheEntry = cache[loadName];
@@ -25,7 +27,7 @@ suite('Test compiler cache', function() {
       // poison cache
       cacheOutput.source = cacheOutput.source.replace('hate', 'love');
 
-      return builder.buildTree(tree, null, {}, cache);
+      return builder.buildTree(tree);
     })
     .then(function(output) {
       // verify buildTree use poisoned cache rather than recompiling
@@ -35,7 +37,7 @@ suite('Test compiler cache', function() {
 
       // invalidate poisoned cache entry and rebuild
       cache[loadName].sourceHash = 'out of date';
-      return builder.buildTree(tree, null, {}, cache);
+      return builder.buildTree(tree);
     })
     .then(function(output) {
       // verify original source is used once more
