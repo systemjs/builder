@@ -34,7 +34,6 @@ exports.attach = function(loader) {
   // cache the AST and store on the metadata, returning the deps only
   var loaderTranslate = loader.translate;
   loader.translate = function(load) {
-    load.metadata.originalSource = load.source;
     return loaderTranslate.call(this, load);
   };
 };
@@ -45,7 +44,7 @@ exports.compile = function(load, opts, loader) {
   var normalize = opts.normalize;
   var options;
 
-  var source = load.metadata.originalSource;
+  var source = load.originalSource;
 
   return Promise.resolve(global[loader.transpiler == 'typescript' ? 'ts' : loader.transpiler] || loader.pluginLoader.import(loader.transpiler))
   .then(function(transpiler) {

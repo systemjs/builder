@@ -150,8 +150,8 @@ function doTests(transpiler) {
     builder.config({transpiler: transpiler });
     builder.config({
       map: {
-      'jquery-cdn': '@empty',
-      'toamd1': 'amd-1.js'
+        'jquery-cdn': '@empty',
+        'toamd1': 'amd-1.js'
       }
     });
     return builder.buildSFX('toamd1', 'test/output/sfx.js', { runtime: true, minify: minify, globalDefs: { DEBUG: false } })

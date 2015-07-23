@@ -8,7 +8,7 @@
     "mkdirp": "^0.5.1",
     "rsvp": "^3.0.18",
     "source-map": "^0.4.2",
-    "systemjs": "^0.18.0",
+    "systemjs": "git://github.com/systemjs/systemjs#master",
     "traceur": "0.0.90",
     "uglify-js": "^2.4.23"
   },

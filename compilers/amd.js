@@ -196,6 +196,7 @@ exports.attach = function(loader) {
   var systemInstantiate = loader.instantiate;
   loader.instantiate = function(load) {
     var result = systemInstantiate.call(this, load);
+    var self = this;
 
     if (load.metadata.format == 'amd') {
       // extract AMD dependencies using tree parsing
@@ -218,7 +219,27 @@ exports.attach = function(loader) {
 
       return {
         deps: dedupe(depTransformer.deps),
-        execute: function() {}
+        execute: function() {
+          var removeDefine = self.get('@@amd-helpers').createDefine(loader);
+
+          __exec.call(loader, load);
+
+          removeDefine(loader);
+
+          var lastModule = self.get('@@amd-helpers').lastModule;
+
+          if (!lastModule.anonDefine && !lastModule.isBundle)
+            throw new TypeError('AMD module ' + load.name + ' did not define');
+
+          if (lastModule.anonDefine)
+            load.metadata.builderExecute = lastModule.anonDefine.execute;
+
+          lastModule.isBundle = false;
+          lastModule.anonDefine = null;
+
+          // in theory this should run the updated load.metadata.builderExecute via a wrapping
+          result.execute();
+        }
       };
     }
 
