@@ -46,7 +46,7 @@ exports.compile = function(load, opts, loader) {
 
   var source = load.originalSource;
 
-  return Promise.resolve(global[loader.transpiler == 'typescript' ? 'ts' : loader.transpiler] || loader.pluginLoader.import(loader.transpiler))
+  return Promise.resolve(global[loader.transpiler == 'typescript' ? 'ts' : loader.transpiler] || loader.import(loader.transpiler))
   .then(function(transpiler) {
     if (transpiler.__useDefault)
       transpiler = transpiler['default'];
