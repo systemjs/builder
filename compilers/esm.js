@@ -1,16 +1,18 @@
 var traceur = require('traceur');
 
 var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
+var ModuleSpecifier = traceur.get('syntax/trees/ParseTrees.js').ModuleSpecifier;
+var createStringLiteralToken = traceur.get('codegeneration/ParseTreeFactory.js').createStringLiteralToken;
+
 function TraceurImportNormalizeTransformer(map) {
   this.map = map;
   return ParseTreeTransformer.apply(this, arguments);
 }
 TraceurImportNormalizeTransformer.prototype = Object.create(ParseTreeTransformer.prototype);
 TraceurImportNormalizeTransformer.prototype.transformModuleSpecifier = function(tree) {
-  // shouldn't really mutate, should create a new specifier
   var depName = this.map(tree.token.processedValue) || tree.token.processedValue;
-  tree.token.value = "'" + depName + "'";
-  return tree;
+
+  return new ModuleSpecifier(tree.location, createStringLiteralToken(depName));
 };
 
 exports.TraceurImportNormalizeTransformer = TraceurImportNormalizeTransformer;

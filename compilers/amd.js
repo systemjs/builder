@@ -96,7 +96,7 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
     // store dependencies for trace
     this.deps = this.filterAMDDeps(deps);
 
-    // NB remove mutation here
+    // this is ONLY a mutation for remap which will be deprecated
     args[depArg] = parseExpression([JSON.stringify(deps)]);
 
     return tree;
