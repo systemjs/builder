@@ -1,7 +1,7 @@
 var System = require('systemjs');
 var traceur = require('traceur');
 
-var ScopeTransformer = traceur.get('codegeneration/ScopeTransformer.js').ScopeTransformer;
+var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
 var parseExpression = traceur.get('codegeneration/PlaceholderParser.js').parseExpression;
 
 var CJSRequireTransformer = require('./cjs').CJSRequireTransformer;
@@ -17,9 +17,10 @@ function AMDDependenciesTransformer(map) {
   this.anonDefine = false;
   this.defineBundle = false;
   this.deps = [];
-  return ScopeTransformer.call(this, 'define');
+  this.defineRedefined = false;
+  return ParseTreeTransformer.call(this);
 }
-AMDDependenciesTransformer.prototype = Object.create(ScopeTransformer.prototype);
+AMDDependenciesTransformer.prototype = Object.create(ParseTreeTransformer.prototype);
 AMDDependenciesTransformer.prototype.filterAMDDeps = function(deps) {
   var newDeps = [];
   deps.forEach(function(dep) {
@@ -28,19 +29,21 @@ AMDDependenciesTransformer.prototype.filterAMDDeps = function(deps) {
     newDeps.push(dep);
   });
   return newDeps;
+};
+AMDDependenciesTransformer.prototype.transformVariableDeclaration = function(tree) {
+  if (tree.lvalue.identifierToken.value == 'define')
+    this.defineRedefined = true;
+  return tree;
 }
 AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
-  if (!tree.operand.identifierToken || tree.operand.identifierToken.value != 'define')
-    return ScopeTransformer.prototype.transformCallExpression.call(this, tree);
+  if (this.defineRedefined || !tree.operand.identifierToken || tree.operand.identifierToken.value != 'define')
+    return ParseTreeTransformer.prototype.transformCallExpression.call(this, tree);
 
   var args = tree.args.args;
   var name = args[0].type === 'LITERAL_EXPRESSION' && args[0].literalToken.processedValue;
 
   // anonymous define
   if (!name) {
-    // already defined anonymously -> throw
-    if (this.anonDefine)
-      throw "Multiple defines for anonymous module";
     this.anonDefine = true;
   }
   // named define
@@ -108,7 +111,7 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
   }
 
   return tree;
-}
+};
 exports.AMDDependenciesTransformer = AMDDependenciesTransformer;
 
 // AMD System.registerDynamic transpiler
@@ -118,12 +121,14 @@ function AMDDefineRegisterTransformer(moduleName, load, isAnon, depMap) {
   this.load = load;
   this.isAnon = isAnon;
   this.depMap = depMap;
-  return ScopeTransformer.call(this, 'define');
+  this.defineRedefined = false;
+  return ParseTreeTransformer.call(this);
 }
-AMDDefineRegisterTransformer.prototype = Object.create(ScopeTransformer.prototype);
+AMDDefineRegisterTransformer.prototype = Object.create(ParseTreeTransformer.prototype);
+AMDDefineRegisterTransformer.prototype.transformVariableDeclaration = AMDDependenciesTransformer.prototype.transformVariableDeclaration;
 AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) {
-  if (!tree.operand.identifierToken || tree.operand.identifierToken.value != 'define')
-    return ScopeTransformer.prototype.transformCallExpression.call(this, tree);
+  if (this.defineRedefined || !tree.operand.identifierToken || tree.operand.identifierToken.value != 'define')
+    return ParseTreeTransformer.prototype.transformCallExpression.call(this, tree);
 
   var self = this;
   var args = tree.args.args;
@@ -158,7 +163,7 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
     factoryTree = args[0];
   }
   else {
-    return ScopeTransformer.prototype.transformCallExpression.call(this, tree);
+    return ParseTreeTransformer.prototype.transformCallExpression.call(this, tree);
   }
 
   if (deps) {
