@@ -72,20 +72,33 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
   if (!this.anonDefine)
     return tree;
 
-  var depTree;
+  var depArg;
 
   if (args[0].type === 'ARRAY_LITERAL_EXPRESSION')
-    depTree = args[0];
+    depArg = 0;
   else if (args[1] && args[1].type == 'ARRAY_LITERAL_EXPRESSION')
-    depTree = args[1];
+    depArg = 1;
 
-  if (depTree) {
-    // apply the map to the tree
-    if (this.map)
-      depTree.elements = depTree.elements.map(this.map);
-    this.deps = this.filterAMDDeps(depTree.elements.map(function(dep) {
+  if (typeof depArg == 'number') {
+    var deps = args[depArg].elements.map(function(dep) {
       return dep.literalToken.processedValue;
-    }));
+    });
+
+    // apply the map
+    var depMap = this.map;
+    if (depMap)
+      deps = deps.map(function(dep) {
+        if (['require', 'exports', 'module'].indexOf(dep) != -1)
+          return dep;
+        return depMap(dep);
+      });
+
+    // store dependencies for trace
+    this.deps = this.filterAMDDeps(deps);
+
+    // NB remove mutation here
+    args[depArg] = parseExpression([JSON.stringify(deps)]);
+
     return tree;
   }
 
@@ -109,6 +122,8 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
     cjsFactory.body = cjsRequires.transformAny(cjsFactory.body);
     this.deps = this.filterAMDDeps(cjsRequires.requires);
   }
+
+  this.defineRedefined = true;
 
   return tree;
 };
@@ -163,26 +178,36 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
     factoryTree = args[0];
   }
   else {
+    // not valid define
     return ParseTreeTransformer.prototype.transformCallExpression.call(this, tree);
   }
 
-  if (deps) {
-    // normalize dep array
-    deps = deps.map(function(dep) {
-      if (['require', 'exports', 'module'].indexOf(dep) != -1)
-        return dep;
-      return self.load.depMap[dep] || dep;
-    });
+  deps = deps || [];
 
-    // normalize CommonJS-style requires in body
-    var requireIndex = deps.indexOf('require');
-    if (requireIndex != -1 && factoryTree.type == 'FUNCTION_EXPRESSION') {
-      var fnParameters = factoryTree.parameterList.parameters;
-      var reqName = fnParameters[requireIndex] && fnParameters[requireIndex].parameter.binding.identifierToken.value;
-      var cjsRequireTransformer = new CJSRequireTransformer(reqName, function(v) { return self.depMap[v] || v });
-      factoryTree.body = cjsRequireTransformer.transformAny(factoryTree.body);
-    }
+  // normalize existing dep array
+  deps = deps.map(function(dep) {
+    if (['require', 'exports', 'module'].indexOf(dep) != -1)
+      return dep;
+    return self.load.depMap[dep] || dep;
+  });
+
+  // normalize CommonJS-style requires in body
+  var requireIndex = deps.indexOf('require');
+  if (requireIndex != -1 && factoryTree.type == 'FUNCTION_EXPRESSION') {
+    var fnParameters = factoryTree.parameterList.parameters;
+    var reqName = fnParameters[requireIndex] && fnParameters[requireIndex].parameter.binding.identifierToken.value;
+    var cjsRequireTransformer = new CJSRequireTransformer(reqName, function(v) { return self.depMap[v] || v });
+    factoryTree.body = cjsRequireTransformer.transformAny(factoryTree.body);
   }
+
+  // ammend deps with extra dependencies from metadata or CJS trace
+  deps = deps.concat(this.load.deps.map(function(dep) {
+    return self.load.depMap[dep] || dep;
+  }).filter(function(dep) {
+    return deps.indexOf(dep) == -1;
+  }));
+
+  this.defineRedefined = true;
 
   return parseExpression(['define("' + name + '", ' + (deps ? JSON.stringify(deps) + ', ' : ''), ');'], factoryTree);
 };
@@ -222,8 +247,10 @@ exports.attach = function(loader) {
         depTransformer.deps = depTransformer.filterAMDDeps(cjsRequires.requires);
       } */
 
+      var deps = dedupe(depTransformer.deps.concat(load.metadata.deps));
+
       return {
-        deps: dedupe(depTransformer.deps),
+        deps: deps,
         execute: function() {
           var removeDefine = self.get('@@amd-helpers').createDefine(loader);
 

@@ -136,6 +136,10 @@ function doTests(transpiler) {
       .then(function() {
         return builder.build('amd-7.js', 'test/output/amd-7.js');
       })
+
+      .then(function() {
+        return builder.build('amd-8.js', 'test/output/amd-8.js');
+      })
     })
     .then(function () {
       return testPhantom('test/test-build.html');

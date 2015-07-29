@@ -178,6 +178,18 @@
         })
         .catch(done);
       });
+
+      test('AMD 8', function(done) {
+        System['import']('output/amd-8.js').then(function() {
+          return System['import']('amd-8.js');
+        })
+        .then(function(m) {
+          console.log(m);
+          ok(m == 'dep');
+          done();
+        })
+        .catch(done);
+      });
     });
   </script>
   <script>
