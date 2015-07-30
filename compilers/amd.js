@@ -324,8 +324,9 @@ exports.compile = function(load, opts, loader) {
 
   // because we've blindly replaced the define statement from AMD with a System.registerDynamic call
   // we have to ensure we still trigger any AMD guard statements in the code by creating a dummy define which isn't called
+  // "register" added to ensure AMD at the top of a bundle allows the bundle to be detected properly
   return Promise.resolve({
-    source: '(function() {\nvar _removeDefine = System.get("@@amd-helpers").createDefine();\n' + output + '\n_removeDefine();\n})();',
+    source: '"format register";(function() {\nvar _removeDefine = System.get("@@amd-helpers").createDefine();\n' + output + '\n_removeDefine();\n})();',
     sourceMap: compiler.getSourceMap(),
     sourceMapOffset: 2
   });
