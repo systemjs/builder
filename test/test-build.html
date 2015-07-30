@@ -184,8 +184,18 @@
           return System['import']('amd-8.js');
         })
         .then(function(m) {
-          console.log(m);
           ok(m == 'dep');
+          done();
+        })
+        .catch(done);
+      });
+
+      test('CJS Globals', function(done) {
+        System['import']('output/cjs-globals.js').then(function() {
+          return System['import']('cjs-globals.js');
+        })
+        .then(function(m) {
+          ok(m == 'Buffer');
           done();
         })
         .catch(done);

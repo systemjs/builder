@@ -12,6 +12,11 @@ System.config({
   meta: {
     'jquery-cdn': {
       build: false
+    },
+    'cjs-globals.js': {
+      globals: {
+        Buffer: 'Buffer.js'
+      }
     }
   }
 });

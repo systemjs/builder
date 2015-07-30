@@ -35,12 +35,13 @@ exports.CJSRequireTransformer = CJSRequireTransformer;
 
 
 // convert CommonJS into System.registerDynamic
-function CJSRegisterTransformer(name, deps, address, optimize) {
+function CJSRegisterTransformer(name, deps, address, optimize, globals) {
   this.name = name;
   this.deps = deps;
   this.address = address;
   this.usesFilePaths = false;
   this.optimize = optimize;
+  this.globals = globals;
   return ParseTreeTransformer.call(this);
 }
 
@@ -65,18 +66,32 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
   tree = ParseTreeTransformer.prototype.transformScript.call(this, tree);
 
   var scriptItemList = tree.scriptItemList;
+  var nl = '\n    ';
 
   if (this.usesFilePaths)
     scriptItemList = parseStatements([
       "var __filename = module.id, __dirname = module.id.split('/').splice(0, module.id.split('/').length - 1).join('/');"
     ]).concat(scriptItemList);
 
+  var globalExpression = '';
+  if (this.globals) {
+    globalExpression = 'var ';
+    var first = true;
+    for (var g in this.globals) {
+      globalExpression += (first ? '' : ', ') + g + '= require("' + this.globals[g] + '")';
+      first = false;
+    }
+    if (first == true)
+      globalExpression = '';
+    globalExpression += ';';
+  }
+
   scriptItemList = parseStatements([
-    'var global = this, __define = global.define;\n'
-    + 'global.define = undefined;'
+    globalExpression + nl
+    + 'var global = this, __define = global.define;' + nl + 'global.define = undefined;'
   ]).concat(scriptItemList).concat(parseStatements([
-    'global.define = __define;\n'
-    +  'return module.exports;'
+    'global.define = __define;' + nl
+    + 'return module.exports;'
   ]));
 
   // wrap everything in System.register
@@ -108,7 +123,11 @@ exports.compile = function(load, opts, loader) {
 
   var deps = opts.normalize ? load.metadata.deps.map(function(dep) { return load.depMap[dep]; }) : load.metadata.deps;
 
-  transformer = new CJSRegisterTransformer(load.name, deps, load.address, opts.minify);
+  var globals = {};
+  for (var g in load.metadata.globals) {
+    globals[g] = load.depMap[load.metadata.globals[g]] || load.metadata.globals[g];
+  }
+  transformer = new CJSRegisterTransformer(load.name, deps, load.address, opts.minify, globals);
   tree = transformer.transformAny(tree);
 
   var output = compiler.write(tree, load.address);

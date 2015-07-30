@@ -27,6 +27,11 @@ var cfg = {
   meta: {
     'jquery-cdn': {
       build: false
+    },
+    'cjs-globals.js': {
+      globals: {
+        Buffer: 'Buffer.js'
+      }
     }
   }
 };
@@ -140,10 +145,18 @@ function doTests(transpiler) {
       .then(function() {
         return builder.build('amd-8.js', 'test/output/amd-8.js');
       })
+
+      .then(function() {
+        return builder.build('cjs-globals.js', 'test/output/cjs-globals.js');
+      })
     })
     .then(function () {
       return testPhantom('test/test-build.html');
     })
+    ['catch'](function(err) {
+      console.log(err);
+      throw err;
+    });
   });
 
   // traceur runtime function.bind fails in Phantom
