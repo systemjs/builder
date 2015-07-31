@@ -4,6 +4,7 @@
   "description": "SystemJS Build Tool",
   "main": "index.js",
   "dependencies": {
+    "es6-template-strings": "^1.0.0",
     "glob": "^5.0.10",
     "mkdirp": "^0.5.1",
     "rsvp": "^3.0.18",

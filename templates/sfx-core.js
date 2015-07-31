@@ -10,13 +10,29 @@
     return -1;
   }
 
-  function dedupe(deps) {
-    var newDeps = [];
-    for (var i = 0, l = deps.length; i < l; i++)
-      if (indexOf.call(newDeps, deps[i]) == -1)
-        newDeps.push(deps[i])
-    return newDeps;
+  var getOwnPropertyDescriptor = true;
+  try {
+    Object.getOwnPropertyDescriptor({ a: 0 }, 'a');
   }
+  catch(e) {
+    getOwnPropertyDescriptor = false;
+  }
+
+  var defineProperty;
+  (function () {
+    try {
+      if (!!Object.defineProperty({}, 'a', {}))
+        defineProperty = Object.defineProperty;
+    }
+    catch (e) {
+      defineProperty = function(obj, prop, opt) {
+        try {
+          obj[prop] = opt.value || opt.get.call(obj);
+        }
+        catch(e) {}
+      }
+    }
+  })();
 
   function register(name, deps, declare) {
     if (arguments.length === 4)
@@ -42,9 +58,7 @@
 
     // we never overwrite an existing define
     if (!(name in defined))
-      defined[name] = entry; 
-
-    entry.deps = dedupe(entry.deps);
+      defined[name] = entry;
 
     // we have to normalize dependencies
     // (assume dependencies are normalized for now)
@@ -142,8 +156,11 @@
       for (var i = 0, l = module.importers.length; i < l; i++) {
         var importerModule = module.importers[i];
         if (!importerModule.locked) {
-          var importerIndex = indexOf.call(importerModule.dependencies, module);
-          importerModule.setters[importerIndex](exports);
+          for (var j = 0; j < importerModule.dependencies.length; ++j) {
+            if (importerModule.dependencies[j] === module) {
+              importerModule.setters[j](exports);
+            }
+          }
         }
       }
 
@@ -260,14 +277,28 @@
       entry.esModule = exports;
     }
     else {
-      var hasOwnProperty = exports && exports.hasOwnProperty;
       entry.esModule = {};
-      for (var p in exports) {
-        if (!hasOwnProperty || exports.hasOwnProperty(p))
-          entry.esModule[p] = exports[p];
-      }
+      
+      // don't trigger getters/setters in environments that support them
+      if (typeof exports == 'object' || typeof exports == 'function') {
+        if (getOwnPropertyDescriptor) {
+          var d;
+          for (var p in exports)
+            if (d = Object.getOwnPropertyDescriptor(exports, p))
+              defineProperty(entry.esModule, p, d);
+        }
+        else {
+          var hasOwnProperty = exports && exports.hasOwnProperty;
+          for (var p in exports) {
+            if (!hasOwnProperty || exports.hasOwnProperty(p))
+              entry.esModule[p] = exports[p];
+          }
+         }
+       }
       entry.esModule['default'] = exports;
-      entry.esModule.__useDefault = true;
+      defineProperty(entry.esModule, '__useDefault', {
+        value: true
+      });
     }
   }
 
@@ -330,13 +361,17 @@
     // remove from the registry
     defined[name] = undefined;
 
+    // exported modules get __esModule defined for interop
+    if (entry.declarative)
+      defineProperty(entry.module.exports, '__esModule', { value: true });
+
     // return the defined module object
     return modules[name] = entry.declarative ? entry.module.exports : entry.esModule;
   };
 
-  return function(mains, declare) {
+  return function(mains, depNames, declare) {
     return function(formatDetect) {
-      formatDetect(function() {
+      formatDetect(function(deps) {
         var System = {
           _nodeRequire: typeof require != 'undefined' && require.resolve && typeof process != 'undefined' && require,
           register: register,
@@ -354,8 +389,29 @@
         };
         System.set('@empty', {});
 
+        // register external dependencies
+        for (var i = 0; i < depNames.length; i++) (function(depName, dep) {
+          if (dep && dep.__esModule)
+            System.register(depName, [], function(_export) {
+              return {
+                setters: [],
+                execute: function() {
+                  for (var p in dep)
+                    if (p != '__esModule')
+                      _export(p, dep[p]);
+                }
+              };
+            });
+          else
+            System.registerDynamic(depName, [], false, function() {
+              return dep;
+            });
+        })(depNames[i], arguments[i]);
+
+        // register modules in this bundle
         declare(System);
 
+        // load mains
         var firstLoad = load(mains[0]);
         if (mains.length > 1)
           for (var i = 1; i < mains.length; i++)
@@ -367,11 +423,11 @@
   };
 
 })(typeof self != 'undefined' ? self : global)
-/* (['mainModule'], function(System) {
+/* (['mainModule'], ['external-dep'], function(System) {
   System.register(...);
 })
 (function(factory) {
   if (typeof define && define.amd)
-    define(factory);
+    define(['external-dep'], factory);
   // etc UMD / module pattern
 })*/

@@ -1,6 +1,6 @@
 (function(factory) {
   if (typeof define == 'function' && define.amd)
-    define(factory);
+    define(${JSON.stringify(deps)}, factory);
   else
     factory();
 });
