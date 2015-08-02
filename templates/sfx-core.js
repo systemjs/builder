@@ -397,7 +397,7 @@
                 setters: [],
                 execute: function() {
                   for (var p in dep)
-                    if (p != '__esModule')
+                    if (p != '__esModule' && !(typeof p == 'object' && p + '' == 'Module'))
                       _export(p, dep[p]);
                 }
               };
