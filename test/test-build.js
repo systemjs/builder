@@ -16,25 +16,9 @@ var err = function(e) {
 
 var builder = new Builder('test/fixtures/test-tree');
 
-var cfg = {
-  paths: {
-    'jquery-cdn': 'https://code.jquery.com/jquery-2.1.1.min.js',
-    'babel': './node_modules/babel-core/browser.js',
-    'babel/external-helpers': './node_modules/babel-core/external-helpers.js',
-    'traceur': './node_modules/traceur/bin/traceur.js',
-    'traceur-runtime': './node_modules/traceur/bin/traceur-runtime.js'
-  },
-  meta: {
-    'jquery-cdn': {
-      build: false
-    },
-    'cjs-globals.js': {
-      globals: {
-        Buffer: 'Buffer.js'
-      }
-    }
-  }
-};
+var cfg;
+eval('(function() { System.config = function(_cfg){ cfg = _cfg }; '
+    + fs.readFileSync('test/fixtures/test-tree.config.js') + ' })();');
 
 function testPhantom(html) {
   return new Promise(function(resolve, reject) {
@@ -54,7 +38,7 @@ function doTests(transpiler) {
   builder.config({ transpiler: transpiler });
 
   test('In-memory build', function() {
-    return builder.build('first.js', null, { sourceMaps: true, minify: minify })
+    return builder.build('first.js', { sourceMaps: true, minify: minify })
     .then(function(output) {
       fs.writeFileSync('test/output/memory-test.js', inline(output));
     })
@@ -178,6 +162,12 @@ function doTests(transpiler) {
   });
 }
 
+/* suite('Test tree builds - TypeScript', function() {
+
+  doTests('typescript');
+
+}); */
+
 suite('Test tree builds - Traceur', function() {
 
   doTests('traceur');
@@ -189,14 +179,6 @@ suite('Test tree builds - Babel', function() {
   doTests('babel');
 
 });
-
-
-/* suite('Test tree builds - TypeScript', function() {
-
-  doTests('typescript');
-
-}); */
-
 
 suite('Bundle Format', function() {
   test('Test AMD format', function() {

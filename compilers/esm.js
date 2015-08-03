@@ -96,16 +96,12 @@ exports.compile = function(load, opts, loader) {
         options.target = transpiler.ScriptTarget.ES5;
       options.module = transpiler.ModuleKind.System;
 
-      // TODO pipe TypeScript sourcemaps
-      // TODO separate TypeScript helper functions
-      /* if (opts.sourceMaps) {
-        options.sourceMap = true;
-        source = transpiler.transpile(source, options);
-      } */
       source = transpiler.transpile(source, options, load.address, undefined, load.name);
       
       return Promise.resolve({
-        source: source
+        source: source,
+        // TODO pipe TypeScript sourcemaps
+        // sourceMap: {...}
       });
     }
     else {
