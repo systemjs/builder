@@ -2,7 +2,7 @@ var traceur = require('traceur');
 var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
 var CallExpression = traceur.get('syntax/trees/ParseTrees.js').CallExpression;
 var ArgumentList = traceur.get('syntax/trees/ParseTrees.js').ArgumentList;
-var ArrayLiteralExpression = traceur.get('syntax/trees/ParseTrees.js').ArrayLiteralExpression;
+var ArrayLiteral = traceur.get('syntax/trees/ParseTrees.js').ArrayLiteral;
 var createStringLiteral = traceur.get('codegeneration/ParseTreeFactory.js').createStringLiteral;
 
 // converts anonymous System.register([] into named System.register('name', [], ...
@@ -26,14 +26,14 @@ RegisterTransformer.prototype.transformCallExpression = function(tree) {
 
     var firstArg = tree.args.args[0];
 
-    if (firstArg.type == 'ARRAY_LITERAL_EXPRESSION') {
+    if (firstArg.type == 'ARRAY_LITERAL') {
       if (this.hasAnonRegister) {
         throw 'Source ' + this.name + ' has multiple anonymous System.register calls.';
       }
 
       // normalize dependencies in array
       var map = this.map;
-      var normalizedDepArray = new ArrayLiteralExpression(firstArg.location, firstArg.elements.map(function(el) {
+      var normalizedDepArray = new ArrayLiteral(firstArg.location, firstArg.elements.map(function(el) {
         var str = el.literalToken.value.toString();
         return createStringLiteral(map(str.substr(1, str.length - 2)));
       }));
@@ -68,7 +68,7 @@ exports.compile = function(load, opts, loader) {
   // so we need to reconstruct files with load.metadata.execute etc
   // if this comes up, we can tackle it or work around it
   if (!transformer.hasAnonRegister)
-    throw new TypeError('Source ' + load.address + ' is already bundle file, so can\'t be built as a module.');
+    throw new TypeError('Source ' + load.address + ' is already a bundle file, so can\'t be built as a module.');
 
   var output = compiler.write(tree, load.address);
 

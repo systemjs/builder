@@ -74,9 +74,9 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
 
   var depArg;
 
-  if (args[0].type === 'ARRAY_LITERAL_EXPRESSION')
+  if (args[0].type === 'ARRAY_LITERAL')
     depArg = 0;
-  else if (args[1] && args[1].type == 'ARRAY_LITERAL_EXPRESSION')
+  else if (args[1] && args[1].type == 'ARRAY_LITERAL')
     depArg = 1;
 
   if (typeof depArg == 'number') {
@@ -162,14 +162,14 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
   var deps;
   var factoryTree;
 
-  if (args[0].type === 'ARRAY_LITERAL_EXPRESSION') {
+  if (args[0].type === 'ARRAY_LITERAL') {
     deps = args[0].elements.map(function(dep) {
       return dep.literalToken.processedValue;
     });
 
     factoryTree = args[1];
   }
-  else if (args[0].type == 'OBJECT_LITERAL_EXPRESSION' || args[0].type == 'IDENTIFIER_EXPRESSION') {
+  else if (args[0].type == 'OBJECT_LITERAL' || args[0].type == 'IDENTIFIER_EXPRESSION') {
     factoryTree = args[0];
   }
   else if (args[0].type == 'FUNCTION_EXPRESSION') {
