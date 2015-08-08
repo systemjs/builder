@@ -1,7 +1,7 @@
 SystemJS Build Tool [![Build Status][travis-image]][travis-url]
 ===
 
-_Note SystemJS Builder 0.11 & 0.12 correspond to the SystemJS 0.17 and 0.18 releases which include the breaking change making module names URLs.
+_Note SystemJS Builder 0.11+ correspond to the SystemJS 0.17+ releases which include the breaking change making module names URLs.
 Read the [SystemJS 0.17 release notes](https://github.com/systemjs/systemjs/releases/tag/0.17.0) for more information on this change._
 
 Provides a single-file build for SystemJS of mixed-dependency module trees.
