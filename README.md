@@ -213,7 +213,7 @@ builder.build('app/* - app/corelibs.js', 'output-file.js', { minify: true, sourc
 
 #### Example - Common Bundles
 
-To build the shared dependencies of two modules, use the `&` operator:
+To build the dependencies in common between two modules, use the `&` operator:
 
 ```javascript
 builder.build('app/page1.js & app/page2.js', 'common.js');
