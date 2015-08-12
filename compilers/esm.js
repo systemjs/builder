@@ -46,7 +46,8 @@ exports.compile = function(load, opts, loader) {
   var normalize = opts.normalize;
   var options;
 
-  var source = load.originalSource;
+  // load.metadata.originalSource set by esm layer to allow plugin -> esm
+  var source = load.metadata.originalSource || load.originalSource;
 
   return Promise.resolve(global[loader.transpiler == 'typescript' ? 'ts' : loader.transpiler] || loader.import(loader.transpiler))
   .then(function(transpiler) {
