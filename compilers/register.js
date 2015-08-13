@@ -39,7 +39,11 @@ RegisterTransformer.prototype.transformCallExpression = function(tree) {
       }));
 
       this.hasAnonRegister = true;
-      return new CallExpression(tree.location, tree.operand, new ArgumentList(tree.args.location, [createStringLiteral(this.name), normalizedDepArray].concat(tree.args.args.splice(1))));
+
+      var newArgs = this.name ? [createStringLiteral(this.name), normalizedDepArray] : [normalizedDepArray];
+
+      return new CallExpression(tree.location, tree.operand, 
+          new ArgumentList(tree.args.location, newArgs.concat(tree.args.args.splice(1))));
     }
   }
 
@@ -60,7 +64,7 @@ exports.compile = function(load, opts, loader) {
   var compiler = new traceur.Compiler(options);
   var tree = compiler.parse(load.source, load.address);
 
-  var transformer = new RegisterTransformer(load.name, function(dep) { return opts.normalize ? load.depMap[dep] : dep; });
+  var transformer = new RegisterTransformer(!opts.anonymous && load.name, function(dep) { return opts.normalize ? load.depMap[dep] : dep; });
   tree = transformer.transformAny(tree);
 
   // if the transformer didn't find an anonymous System.register

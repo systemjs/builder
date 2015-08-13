@@ -96,7 +96,7 @@ GlobalTransformer.prototype.transformScript = function(tree) {
   }
 
   return new Script(tree.location, parseStatements([
-      'System.registerDynamic("' + this.name + '", ' + JSON.stringify(this.deps) + ', false, function(__require, __exports, __module) {\n'
+      'System.registerDynamic(' + (this.name ? '"' + this.name + '", ' : '') + JSON.stringify(this.deps) + ', false, function(__require, __exports, __module) {\n'
       + 'var _retrieveGlobal = System.get("@@global-helpers").prepareGlobal(__module.id, '
       + (this.exportName ? '"' + this.exportName + '"' : 'null') + ', ' + (globalExpression ? globalExpression : 'null') + ');\n'
       + '  (',
@@ -130,7 +130,7 @@ exports.compile = function(load, opts, loader) {
       normalizedGlobals[g] = opts.normalize ? load.depMap[load.metadata.globals[g]] : load.metadata.globals[g];
   }
 
-  var transformer = new GlobalTransformer(load.name, deps, load.metadata.exports, normalizedGlobals);
+  var transformer = new GlobalTransformer(!opts.anonymous && load.name, deps, load.metadata.exports, normalizedGlobals);
   tree = transformer.transformAny(tree);
 
   var output = compiler.write(tree, load.address);

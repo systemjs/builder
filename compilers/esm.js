@@ -59,7 +59,7 @@ exports.compile = function(load, opts, loader) {
       options.modules = 'instantiate';
       options.script = false;
       options.sourceRoot = true;
-      options.moduleName = true;
+      options.moduleName = !opts.anonymous;
 
       if (opts.sourceMaps)
         options.sourceMaps = 'memory';
@@ -97,7 +97,7 @@ exports.compile = function(load, opts, loader) {
         options.target = transpiler.ScriptTarget.ES5;
       options.module = transpiler.ModuleKind.System;
 
-      source = transpiler.transpile(source, options, load.address, undefined, load.name);
+      source = transpiler.transpile(source, options, load.address, undefined, !opts.anonymous && load.name);
       
       return Promise.resolve({
         source: source,
@@ -125,7 +125,7 @@ exports.compile = function(load, opts, loader) {
       options.keepModuleIdExtensions = true;
       options.code = true;
       options.ast = false;
-      options.moduleIds = true;
+      options.moduleIds = !opts.anonymous;
       options.externalHelpers = true;
 
       if (transpiler.version.match(/^4/))

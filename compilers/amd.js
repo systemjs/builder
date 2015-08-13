@@ -209,7 +209,7 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
 
   this.defineRedefined = true;
 
-  return parseExpression(['define("' + name + '", ' + (deps ? JSON.stringify(deps) + ', ' : ''), ');'], factoryTree);
+  return parseExpression(['define(' + (name ? '"' + name + '", ' : '') + (deps ? JSON.stringify(deps) + ', ' : ''), ');'], factoryTree);
 };
 exports.AMDDefineRegisterTransformer = AMDDefineRegisterTransformer;
 
@@ -311,7 +311,7 @@ exports.compile = function(load, opts, loader) {
   var compiler = new traceur.Compiler(options);
 
   var tree = load.metadata.parseTree;
-  var transformer = new AMDDefineRegisterTransformer(load.name, load, load.metadata.isAnon, normalize ? load.depMap : {});
+  var transformer = new AMDDefineRegisterTransformer(!opts.anonymous && load.name, load, load.metadata.isAnon, normalize ? load.depMap : {});
   tree = transformer.transformAny(tree);
 
   // normalize cjs requires
