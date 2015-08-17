@@ -200,6 +200,22 @@
         })
         .catch(done);
       });
+
+      test('Runtime', function(done) {
+        System['import']('output/runtime.js').then(function() {
+          return System['import']('runtime.js');
+        })
+        .then(function(m) {
+          ok(m.test);
+          done();
+        })
+        .catch(function(e) {
+          // traceur runtime doesn't load in PhantomJS
+          if (e.toString().match(/Attempted to assign to readonly/))
+            return done();
+          done(e);
+        });
+      });
     });
   </script>
   <script>

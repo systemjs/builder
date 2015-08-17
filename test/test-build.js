@@ -25,7 +25,7 @@ function testPhantom(html) {
     spawn('node_modules/.bin/mocha-phantomjs', [html], { stdio: 'inherit' })
     .on('close', function(code) {
       if (code !== 0)
-        reject(Error('Phantom test failed'));
+        reject(Error('Phantom test failed ' + html + ' failed.'));
       else
         resolve();
     });
@@ -33,18 +33,21 @@ function testPhantom(html) {
 }
 
 function doTests(transpiler) {
-  builder.reset();
-  builder.config(cfg);
-  builder.config({ transpiler: transpiler });
 
   test('In-memory build', function() {
+    builder.reset();
+    builder.config(cfg);
+    builder.config({ transpiler: transpiler });
     return builder.build('first.js', { sourceMaps: true, minify: minify })
     .then(function(output) {
       fs.writeFileSync('test/output/memory-test.js', inline(output));
-    })
+    });
   });
 
   test('Multi-format tree build', function() {
+    builder.reset();
+    builder.config(cfg);
+    builder.config({ transpiler: transpiler });
 
     return builder.build('first.js', 'test/output/tree-build.js', { sourceMaps: true, minify: minify, globalDefs: { DEBUG: false } })
     .then(function() {
@@ -133,12 +136,15 @@ function doTests(transpiler) {
       .then(function() {
         return builder.build('cjs-globals.js', 'test/output/cjs-globals.js');
       })
+
+      .then(function() {
+        return builder.build('runtime.js', 'test/output/runtime.js');
+      })
     })
     .then(function () {
       return testPhantom('test/test-build.html');
     })
     ['catch'](function(err) {
-      console.log(err);
       throw err;
     });
   });
@@ -158,15 +164,9 @@ function doTests(transpiler) {
     return builder.buildSFX('toamd1', 'test/output/sfx.js', { runtime: true, minify: minify, globalDefs: { DEBUG: false } })
     .then(function() {
       return testPhantom('test/test-sfx.html');
-    })
+    });
   });
 }
-
-/* suite('Test tree builds - TypeScript', function() {
-
-  doTests('typescript');
-
-}); */
 
 suite('Test tree builds - Traceur', function() {
 
@@ -179,6 +179,12 @@ suite('Test tree builds - Babel', function() {
   doTests('babel');
 
 });
+
+/* suite('Test tree builds - TypeScript', function() {
+
+  doTests('typescript');
+ 
+}); */
 
 suite('Bundle Format', function() {
   test('Test AMD format', function() {
