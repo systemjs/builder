@@ -423,7 +423,7 @@
   };
 
 })(typeof self != 'undefined' ? self : global)
-/* (['mainModule'], ['external-dep'], function(System) {
+/* (['mainModule'], ['external-dep'], function($__System) {
   System.register(...);
 })
 (function(factory) {

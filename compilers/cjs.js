@@ -35,13 +35,14 @@ exports.CJSRequireTransformer = CJSRequireTransformer;
 
 
 // convert CommonJS into System.registerDynamic
-function CJSRegisterTransformer(name, deps, address, optimize, globals) {
+function CJSRegisterTransformer(name, deps, address, optimize, globals, sfx) {
   this.name = name;
   this.deps = deps;
   this.address = address;
   this.usesFilePaths = false;
   this.optimize = optimize;
   this.globals = globals;
+  this.sfx = sfx;
   return ParseTreeTransformer.call(this);
 }
 
@@ -96,7 +97,7 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
 
   // wrap everything in System.register
   return new Script(tree.location, parseStatements([
-    'System.registerDynamic(' + (this.name ? '"' + this.name + '", ' : '') + JSON.stringify(this.deps) + ', true, function(require, exports, module) {\n',
+    (this.sfx ? '$__' : '') + 'System.registerDynamic(' + (this.name ? '"' + this.name + '", ' : '') + JSON.stringify(this.deps) + ', true, function(require, exports, module) {\n',
     '});'], scriptItemList));
 };
 exports.CJSRegisterTransformer = CJSRequireTransformer;
@@ -127,7 +128,7 @@ exports.compile = function(load, opts, loader) {
   for (var g in load.metadata.globals) {
     globals[g] = load.depMap[load.metadata.globals[g]] || load.metadata.globals[g];
   }
-  transformer = new CJSRegisterTransformer(!opts.anonymous && load.name, deps, load.address, opts.minify, globals);
+  transformer = new CJSRegisterTransformer(!opts.anonymous && load.name, deps, load.address, opts.minify, globals, opts.sfx);
   tree = transformer.transformAny(tree);
 
   var output = compiler.write(tree, load.address);

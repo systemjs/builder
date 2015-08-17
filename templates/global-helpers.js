@@ -1,4 +1,5 @@
 (function(__global) {
+  var loader = $__System;
   var hasOwnProperty = __global.hasOwnProperty;
   var indexOf = Array.prototype.indexOf || function(item) {
     for (var i = 0, l = this.length; i < l; i++)
@@ -44,7 +45,7 @@
     });
   }
 
-  System.set('@@global-helpers', System.newModule({
+  loader.set('@@global-helpers', loader.newModule({
     prepareGlobal: function(moduleName, exportName, globals) {
       // set globals
       var oldGlobals;

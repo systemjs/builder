@@ -163,5 +163,10 @@ exports.compile = function(load, opts, loader) {
         sourceMap: output.map
       });
     }
+  })
+  .then(function(output) {
+    if (opts.sfx)
+      output.source = output.source.replace(/System\.register\(/, '$__System.register(');
+    return output;
   });
 };

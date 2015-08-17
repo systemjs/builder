@@ -76,6 +76,9 @@ exports.compile = function(load, opts, loader) {
 
   var output = compiler.write(tree, load.address);
 
+  if (opts.sfx)
+    output = output.replace(/System\.register\(/, '$__System.register(');
+
   return Promise.resolve({
     source: output,
     sourceMap: compiler.getSourceMap()

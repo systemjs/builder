@@ -325,7 +325,7 @@ exports.compile = function(load, opts, loader) {
   // because we've blindly replaced the define statement from AMD with a System.registerDynamic call
   // we have to ensure we still trigger any AMD guard statements in the code by creating a dummy define which isn't called
   return Promise.resolve({
-    source: '(function() {\nvar _removeDefine = System.get("@@amd-helpers").createDefine();\n' + output + '\n_removeDefine();\n})();',
+    source: '(function() {\nvar _removeDefine = ' + (opts.sfx ? '$__' : '') + 'System.get("@@amd-helpers").createDefine();\n' + output + '\n_removeDefine();\n})();',
     sourceMap: compiler.getSourceMap(),
     sourceMapOffset: 2
   });

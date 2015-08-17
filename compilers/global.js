@@ -7,7 +7,7 @@ var Script = traceur.get('syntax/trees/ParseTrees.js').Script;
 var FunctionBody = traceur.get('syntax/trees/ParseTrees.js').FunctionBody;
 
 // wraps global scripts
-function GlobalTransformer(name, deps, exportName, globals) {
+function GlobalTransformer(name, deps, exportName, globals, sfx) {
   this.name = name;
   this.deps = deps;
   this.exportName = exportName;
@@ -15,6 +15,7 @@ function GlobalTransformer(name, deps, exportName, globals) {
   this.fnGlobals = [];
   this.globals = globals;
   this.inOuterScope = true;
+  this.sfx = sfx;
   return ParseTreeTransformer.call(this);
 }
 
@@ -96,8 +97,8 @@ GlobalTransformer.prototype.transformScript = function(tree) {
   }
 
   return new Script(tree.location, parseStatements([
-      'System.registerDynamic(' + (this.name ? '"' + this.name + '", ' : '') + JSON.stringify(this.deps) + ', false, function(__require, __exports, __module) {\n'
-      + 'var _retrieveGlobal = System.get("@@global-helpers").prepareGlobal(__module.id, '
+      (this.sfx ? '$__' : '') + 'System.registerDynamic(' + (this.name ? '"' + this.name + '", ' : '') + JSON.stringify(this.deps) + ', false, function(__require, __exports, __module) {\n'
+      + 'var _retrieveGlobal = ' + (this.sfx ? '$__' : '') + 'System.get("@@global-helpers").prepareGlobal(__module.id, '
       + (this.exportName ? '"' + this.exportName + '"' : 'null') + ', ' + (globalExpression ? globalExpression : 'null') + ');\n'
       + '  (',
       ')();\n'
@@ -130,7 +131,7 @@ exports.compile = function(load, opts, loader) {
       normalizedGlobals[g] = opts.normalize ? load.depMap[load.metadata.globals[g]] : load.metadata.globals[g];
   }
 
-  var transformer = new GlobalTransformer(!opts.anonymous && load.name, deps, load.metadata.exports, normalizedGlobals);
+  var transformer = new GlobalTransformer(!opts.anonymous && load.name, deps, load.metadata.exports, normalizedGlobals, opts.sfx);
   tree = transformer.transformAny(tree);
 
   var output = compiler.write(tree, load.address);

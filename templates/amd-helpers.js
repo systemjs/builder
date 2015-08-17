@@ -1,5 +1,5 @@
 (function(__global) {
-  var loader = System;
+  var loader = $__System;
   var indexOf = Array.prototype.indexOf || function(item) {
     for (var i = 0, l = this.length; i < l; i++)
       if (this[i] === item)
