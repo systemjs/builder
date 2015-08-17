@@ -68,7 +68,7 @@
 
     else
       throw new TypeError('Invalid require');
-  };
+  }
 
   function define(name, deps, factory) {
     if (typeof name != 'string') {
@@ -118,7 +118,7 @@
         for (var i = 0; i < deps.length; i++)
           depValues.push(req(deps[i]));
 
-        module.uri = loader.baseURL + (module.id[0] == '/' ? module.id : '/' + module.id);
+        module.uri = module.id;
 
         module.config = function() {};
 
@@ -161,13 +161,13 @@
     }
     // named define
     else {
-      // if it has no dependencies and we don't have any other
-      // defines, then let this be an anonymous define
+      // if we don't have any other defines,
+      // then let this be an anonymous define
       // this is just to support single modules of the form:
       // define('jquery')
       // still loading anonymously
       // because it is done widely enough to be useful
-      if (deps.length == 0 && !lastModule.anonDefine && !lastModule.isBundle) {
+      if (!lastModule.anonDefine && !lastModule.isBundle) {
         lastModule.anonDefine = define;
       }
       // otherwise its a bundle only

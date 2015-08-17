@@ -16,7 +16,7 @@
   }
 
   // bare minimum ignores for IE8
-  var ignoredGlobalProps = ['_g', 'sessionStorage', 'localStorage', 'clipboardData', 'frames', 'external'];
+  var ignoredGlobalProps = ['_g', 'sessionStorage', 'localStorage', 'clipboardData', 'frames', 'external', 'mozAnimationStartTime', 'webkitStorageInfo', 'webkitIndexedDB'];
 
   var globalSnapshot;
 
@@ -47,6 +47,14 @@
 
   loader.set('@@global-helpers', loader.newModule({
     prepareGlobal: function(moduleName, exportName, globals) {
+      // disable module detection
+      var curDefine = __global.define;
+       
+      __global.define = undefined;
+      __global.exports = undefined;
+      if (__global.module && __global.module.exports)
+        __global.module = undefined;
+
       // set globals
       var oldGlobals;
       if (globals) {
@@ -101,6 +109,7 @@
           for (var g in oldGlobals)
             __global[g] = oldGlobals[g];
         }
+        __global.define = curDefine;
 
         return globalValue;
       };
