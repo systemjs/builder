@@ -133,6 +133,9 @@ exports.compile = function(load, opts, loader) {
 
   var output = compiler.write(tree, load.address);
 
+  if (this.sfx)
+    output = output.replace(/\s+System\._nodeRequire/g, ' $__System._nodeRequire');
+
   return Promise.resolve({
     source: output,
     sourceMap: compiler.getSourceMap()
