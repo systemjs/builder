@@ -9,14 +9,14 @@
     "mkdirp": "^0.5.1",
     "rsvp": "^3.0.20",
     "source-map": "^0.4.4",
-    "systemjs": "^0.18.8",
+    "systemjs": "^0.18.11",
     "traceur": "0.0.91",
     "uglify-js": "^2.4.23"
   },
   "devDependencies": {
-    "babel-core": "^5.8.20",
+    "babel-core": "^5.8.22",
     "chai": "^3.0.0",
-    "es6-module-loader": "^0.17.4",
+    "es6-module-loader": "^0.17.6",
     "mocha": "^2.2.5",
     "mocha-phantomjs": "^3.5.3",
     "phantomjs": "1.9.7-15",
