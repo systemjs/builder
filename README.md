@@ -180,7 +180,7 @@ can be configured with:
 ```javascript
 builder.config({
   meta: {
-    'resource/to/ignore.js' = {
+    'resource/to/ignore.js': {
       build: false
     }
   }
