@@ -180,11 +180,11 @@ suite('Test tree builds - Babel', function() {
 
 });
 
-/* suite('Test tree builds - TypeScript', function() {
+suite('Test tree builds - TypeScript', function() {
 
   doTests('typescript');
  
-}); */
+});
 
 suite('Bundle Format', function() {
   test('Test AMD format', function() {
