@@ -90,7 +90,7 @@ GlobalTransformer.prototype.transformScript = function(tree) {
     globalExpression = '{';
     var first = true;
     for (var g in this.globals) {
-      globalExpression += (first ? '' : ',') + nl + '"' + g + '": __require("' + this.globals[g] + '"),';
+      globalExpression += (first ? '' : ',') + nl + '"' + g + '": __require("' + this.globals[g] + '")';
       first = false;
     }
     globalExpression += nl + '}';
