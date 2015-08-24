@@ -1,5 +1,6 @@
 var System = require('systemjs');
 var traceur = require('traceur');
+var vm = require('vm');
 
 var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
 var parseExpression = traceur.get('codegeneration/PlaceholderParser.js').parseExpression;
@@ -221,61 +222,89 @@ function dedupe(deps) {
   return newDeps;
 }
 
+function group(deps) {
+  var names = [];
+  var indices = [];
+  for (var i = 0, l = deps.length; i < l; i++) {
+    var index = names.indexOf(deps[i]);
+    if (index === -1) {
+      names.push(deps[i]);
+      indices.push([i]);
+    }
+    else {
+      indices[index].push(i);
+    }
+  }
+  return { names: names, indices: indices };
+}
+
 // override System instantiate to handle AMD dependencies
 exports.attach = function(loader) {
   var systemInstantiate = loader.instantiate;
   loader.instantiate = function(load) {
-    var result = systemInstantiate.call(this, load);
-    var self = this;
+    var loader = this;
 
-    if (load.metadata.format == 'amd') {
-      // extract AMD dependencies using tree parsing
-      // NB can remove after Traceur 0.0.77
-      if (!load.source) load.source = ' ';
-      var compiler = new traceur.Compiler({ script: true, sourceRoot: true });
-      load.metadata.parseTree = compiler.parse(load.source, load.address);
-      var depTransformer = new AMDDependenciesTransformer();
-      depTransformer.transformAny(load.metadata.parseTree);
+    return systemInstantiate.call(this, load).then(function(result) {
+      if (load.metadata.format == 'amd') {
+        // extract AMD dependencies using tree parsing
+        // NB can remove after Traceur 0.0.77
+        if (!load.source) load.source = ' ';
+        var compiler = new traceur.Compiler({ script: true, sourceRoot: true });
+        load.metadata.parseTree = compiler.parse(load.source, load.address);
+        var depTransformer = new AMDDependenciesTransformer();
+        depTransformer.transformAny(load.metadata.parseTree);
 
-      // we store the results as meta
-      load.metadata.isAnon = depTransformer.anonDefine;
-      // load.metadata.globalCJSRequires = depTransformer.globalCJSRequires;
+        // we store the results as meta
+        load.metadata.isAnon = depTransformer.anonDefine;
+        // load.metadata.globalCJSRequires = depTransformer.globalCJSRequires;
 
-      /* if (depTransformer.globalCJSRequires) {
-        var cjsRequires = new CJSRequireTransformer('require');
-        cjsRequires.transformAny(load.metadata.parseTree);
-        depTransformer.deps = depTransformer.filterAMDDeps(cjsRequires.requires);
-      } */
+        /* if (depTransformer.globalCJSRequires) {
+          var cjsRequires = new CJSRequireTransformer('require');
+          cjsRequires.transformAny(load.metadata.parseTree);
+          depTransformer.deps = depTransformer.filterAMDDeps(cjsRequires.requires);
+        } */
 
-      var deps = dedupe(depTransformer.deps.concat(load.metadata.deps));
+        var entry = loader.defined[load.name];
+        entry.deps = dedupe(depTransformer.deps.concat(load.metadata.deps));
 
-      return {
-        deps: deps,
-        execute: function() {
-          var removeDefine = self.get('@@amd-helpers').createDefine(loader);
+        load.metadata.builderExecute = function(require, exports, module) {
+          var removeDefine = loader.get('@@amd-helpers').createDefine(loader);
 
-          __exec.call(loader, load);
+          // NB source maps, System overwriting skipped here
+          vm.runInThisContext(load.source);
 
           removeDefine(loader);
 
-          var lastModule = self.get('@@amd-helpers').lastModule;
+          var lastModule = loader.get('@@amd-helpers').lastModule;
 
           if (!lastModule.anonDefine && !lastModule.isBundle)
             throw new TypeError('AMD module ' + load.name + ' did not define');
 
           if (lastModule.anonDefine)
-            load.metadata.builderExecute = lastModule.anonDefine.execute;
+            return lastModule.anonDefine.execute.apply(this, arguments);
 
           lastModule.isBundle = false;
           lastModule.anonDefine = null;
+        };
 
-          // in theory this should run the updated load.metadata.builderExecute via a wrapping
-          result.execute();
-        }
-      };
-    }
+        // first, normalize all dependencies
+        var normalizePromises = [];
+        for (var i = 0, l = entry.deps.length; i < l; i++)
+          normalizePromises.push(Promise.resolve(loader.normalize(entry.deps[i], load.name)));
 
-    return result;
+        return Promise.all(normalizePromises).then(function(normalizedDeps) {
+          entry.normalizedDeps = normalizedDeps;
+          entry.originalIndices = group(entry.deps);
+
+          return {
+            deps: entry.deps,
+            execute: result.execute
+          };
+        });
+      }
+
+      return result;
+    });
   };
 };
 

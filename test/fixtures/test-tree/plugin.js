@@ -1,5 +1,9 @@
 //exports.build = false;
 
-exports.fetch = function() {
-  return '';
-}
+define(function() {
+  return {
+    fetch: function() {
+      return '';
+    }
+  };
+});
