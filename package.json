@@ -18,8 +18,8 @@
     "chai": "^3.0.0",
     "es6-module-loader": "^0.17.6",
     "mocha": "^2.2.5",
-    "mocha-phantomjs": "^3.5.3",
-    "phantomjs": "1.9.7-15",
+    "mocha-phantomjs": "^3.5.6",
+    "phantomjs": "1.9.18",
     "typescript": "next"
   },
   "repository": {
