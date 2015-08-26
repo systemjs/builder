@@ -414,7 +414,10 @@
           for (var i = 1; i < mains.length; i++)
             load(mains[i]);
 
-        return firstLoad;
+        if (firstLoad.__useDefault)
+          return firstLoad['default'];
+        else
+          return firstLoad;
       });
     };
   };
