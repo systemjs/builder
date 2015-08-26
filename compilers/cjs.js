@@ -133,8 +133,11 @@ exports.compile = function(load, opts, loader) {
 
   var output = compiler.write(tree, load.address);
 
+  // replace System._nodeRequire with $__System, ensuring we don't replace an existing $__System
   if (opts.sfx)
-    output = output.replace(/System\._nodeRequire/g, '$__System._nodeRequire');
+    output = output.replace(/(^|[^_])System\._nodeRequire/g, function(match, startArg) {
+      return startArg + '$__System._nodeRequire';
+    });
 
   return Promise.resolve({
     source: output,
