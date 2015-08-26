@@ -134,7 +134,7 @@ exports.compile = function(load, opts, loader) {
   var output = compiler.write(tree, load.address);
 
   if (opts.sfx)
-    output = output.replace(/\s+System\._nodeRequire/g, ' $__System._nodeRequire');
+    output = output.replace(/System\._nodeRequire/g, '$__System._nodeRequire');
 
   return Promise.resolve({
     source: output,
