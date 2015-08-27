@@ -1,6 +1,6 @@
 (function(__global) {
   var loader = $__System;
-  var hasOwnProperty = __global.hasOwnProperty;
+  var hasOwnProperty = Object.prototype.hasOwnProperty;
   var indexOf = Array.prototype.indexOf || function(item) {
     for (var i = 0, l = this.length; i < l; i++)
       if (this[i] === item)
