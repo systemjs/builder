@@ -339,7 +339,7 @@ exports.compile = function(load, opts, loader) {
 
   var compiler = new traceur.Compiler(options);
 
-  var tree = load.metadata.parseTree;
+  var tree = load.metadata.parseTree || compiler.parse(load.source, load.address);
   var transformer = new AMDDefineRegisterTransformer(!opts.anonymous && load.name, load, load.metadata.isAnon, normalize ? load.depMap : {});
   tree = transformer.transformAny(tree);
 

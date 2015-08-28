@@ -1,31 +1,34 @@
 var Builder = require('../index');
 var expect = require('chai').expect;
+var toFileURL = require('../lib/utils.js').toFileURL;
 
 suite('Test compiler cache', function() {
   var builder = new Builder('test/fixtures/test-cache-tree');
   builder.config({ transpiler: 'babel' });
 
-  test('Use cache entry when available', function() {
+  test('Use compile cache entry when available', function() {
     var loadName = 'simple.js';
     var outputPath = 'test/output/cached.js';
-    var cache = {};
+    var cacheObj;
     var tree;
-
-    builder.cache.compile = cache;
 
     return builder.trace(loadName).then(function(_tree) {
       tree = _tree;
       return builder.buildTree(tree);
     })
-    .then(function(output) {
-      var cacheEntry = cache[loadName];
+    .then(function() {
+      var cacheEntry = builder.getCache();
+
       expect(cacheEntry).to.be.an('object');
-      expect(cacheEntry.sourceHash).to.be.a('string');
-      var cacheOutput = cacheEntry.output;
-      expect(cacheOutput).to.be.an('object');
+
+      cacheObj = cacheEntry.compile['simple.js'];
+      
+      expect(cacheObj).to.be.an('object');
+      expect(cacheObj.sourceHash).to.be.a('string');
+      expect(cacheObj.output).to.be.an('object');
 
       // poison cache
-      cacheOutput.source = cacheOutput.source.replace('hate', 'love');
+      cacheObj.output.source = cacheObj.output.source.replace('hate', 'love');
 
       return builder.buildTree(tree);
     })
@@ -36,7 +39,7 @@ suite('Test compiler cache', function() {
       expect(outputSource).to.contain('love caches');
 
       // invalidate poisoned cache entry and rebuild
-      cache[loadName].sourceHash = 'out of date';
+      cacheObj.sourceHash = 'out of date';
       return builder.buildTree(tree);
     })
     .then(function(output) {
@@ -45,5 +48,36 @@ suite('Test compiler cache', function() {
       expect(outputSource).to.contain('hate caches');
       expect(outputSource).not.to.contain('love caches');
     });
+  });
+
+  test('Use trace cache when available', function() {
+    // construct the load record for the cache
+    var fileName = toFileURL(__dirname + '/fixtures/test-cache-tree/simple.js');
+    var cacheObj = {
+      trace: {
+        'simple.js': { 
+          name: 'simple.js',
+          normalized: fileName,
+          address: fileName,
+          metadata: {
+            deps: [],
+            format: 'amd',
+            isAnon: true
+          },
+          deps: [],
+          depMap: {},
+          source: 'define([], function(module) {\n  console.log(\'fake cache\');\n});\n',
+          originalSource: 'define([], function(module) {\n  console.log(\'fake cache\');\n});\n'
+        }
+      }
+    };
+
+    builder.reset();
+    builder.setCache(cacheObj);
+
+    return builder.build('simple.js').then(function(output) {
+      expect(output.source).to.contain('fake cache');
+    });
+
   });
 });
