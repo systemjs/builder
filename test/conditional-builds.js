@@ -8,7 +8,7 @@ suite('Conditional Builds', function() {
   test('Package environment traces all conditional variations', function() {
     return builder.trace('pkg/env-condition')
     .then(function(trace) {
-      assert.deepEqual(Object.keys(trace).sort(), ['pkg#:env-condition', '@system-env', 'pkg/env-condition-browser.js', 'pkg/env-condition.js'].sort());
+      assert.deepEqual(Object.keys(trace).sort(), ['pkg#:env-condition', 'pkg/env-condition-browser.js', 'pkg/env-condition.js'].sort());
     });
   });
 
