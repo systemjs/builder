@@ -21,7 +21,8 @@
     "mocha": "^2.2.5",
     "mocha-phantomjs": "3.5.6",
     "phantomjs": "1.9.18",
-    "typescript": "next"
+    "typescript": "next",
+    "unexpected": "^9.11.0"
   },
   "repository": {
     "type": "git",
