@@ -12,8 +12,6 @@ suite('Conditional Builds', function() {
     });
   });
 
-  // return builder.trace('pkg/env-condition!plugin')
-
   test('Conditional interpolation traces all conditional variations', function() {
     return builder.trace('interpolated-#{conditions.js|test}.js')
     .then(function(trace) {
