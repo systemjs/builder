@@ -26,7 +26,7 @@ suite('Canonical Names', function() {
 
   test('Wildcard extensions with a plugin', function() {
     builder.loader.defaultJSExtensions = true;
-    assert.equal(builder.getCanonicalName('cjs'), 'cjs');
+    assert.equal(builder.getCanonicalName('cjs'), 'cjs.js');
     assert.equal(builder.getCanonicalName(baseURL + 'test/dummy/file.jade!' + baseURL + 'test/fixtures/test-tree/jade.js'), 'file.jade!jade');
   });
 });
