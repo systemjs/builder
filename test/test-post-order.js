@@ -1,5 +1,5 @@
 var expect = require('unexpected');
-var getTreeModulesPostOrder = require('../lib/utils').getTreeModulesPostOrder;
+var getTreeModulesPostOrder = require('../lib/trace').getTreeModulesPostOrder;
 
 suite('Test post order traversal', function() {
   test('should return single module that has no incoming relation', function() {
