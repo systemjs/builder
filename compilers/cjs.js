@@ -35,14 +35,14 @@ exports.CJSRequireTransformer = CJSRequireTransformer;
 
 
 // convert CommonJS into System.registerDynamic
-function CJSRegisterTransformer(name, deps, address, optimize, globals, sfx) {
+function CJSRegisterTransformer(name, deps, address, optimize, globals, systemGlobal) {
   this.name = name;
   this.deps = deps;
   this.address = address;
   this.usesFilePaths = false;
   this.optimize = optimize;
   this.globals = globals;
-  this.sfx = sfx;
+  this.systemGlobal = systemGlobal;
   return ParseTreeTransformer.call(this);
 }
 
@@ -97,7 +97,7 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
 
   // wrap everything in System.register
   return new Script(tree.location, parseStatements([
-    (this.sfx ? '$__' : '') + 'System.registerDynamic(' + (this.name ? '"' + this.name + '", ' : '') + JSON.stringify(this.deps) + ', true, function(require, exports, module) {\n',
+    this.systemGlobal + '.registerDynamic(' + (this.name ? '"' + this.name + '", ' : '') + JSON.stringify(this.deps) + ', true, function(require, exports, module) {\n',
     '});'], scriptItemList));
 };
 exports.CJSRegisterTransformer = CJSRequireTransformer;
@@ -113,7 +113,7 @@ exports.compile = function(load, opts, loader) {
     options.inputSourceMap = load.metadata.sourceMap;
 
   var compiler = new traceur.Compiler(options);
-  var tree = compiler.parse(load.source, load.address);
+  var tree = compiler.parse(load.source, load.path);
 
   var transformer;
 
@@ -128,16 +128,10 @@ exports.compile = function(load, opts, loader) {
   for (var g in load.metadata.globals) {
     globals[g] = load.depMap[load.metadata.globals[g]] || load.metadata.globals[g];
   }
-  transformer = new CJSRegisterTransformer(!opts.anonymous && load.name, deps, load.address, opts.minify, globals, opts.sfx);
+  transformer = new CJSRegisterTransformer(!opts.anonymous && load.name, deps, load.path, opts.minify, globals, opts.systemGlobal);
   tree = transformer.transformAny(tree);
 
-  var output = compiler.write(tree, load.address);
-
-  // replace System._nodeRequire with $__System, ensuring we don't replace an existing $__System
-  if (opts.sfx)
-    output = output.replace(/(^|[^_])System\._nodeRequire/g, function(match, startArg) {
-      return startArg + '$__System._nodeRequire';
-    });
+  var output = compiler.write(tree, load.path);
 
   return Promise.resolve({
     source: output,

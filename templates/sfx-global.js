@@ -1,3 +1,3 @@
 (function(factory) {
-  ${sfxGlobalName ? sfxGlobalName + ' = ' : ''}factory(${sfxGlobals.join(', ')});
+  ${globalName ? globalName + ' = ' : ''}factory(${globalDeps.join(', ')});
 });

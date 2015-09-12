@@ -14,11 +14,7 @@ var err = function(e) {
   });
 };
 
-var builder = new Builder('test/fixtures/test-tree');
-
-var cfg;
-eval('(function() { System.config = function(_cfg){ cfg = _cfg }; '
-    + fs.readFileSync('test/fixtures/test-tree.config.js') + ' })();');
+var builder = new Builder('test/fixtures/test-tree', 'test/fixtures/test-tree.config.js');
 
 function testPhantom(html) {
   return new Promise(function(resolve, reject) {
@@ -36,9 +32,8 @@ function doTests(transpiler) {
 
   test('In-memory build', function() {
     builder.reset();
-    builder.config(cfg);
     builder.config({ transpiler: transpiler });
-    return builder.build('first.js', { sourceMaps: true, minify: minify })
+    return builder.bundle('first.js', { sourceMaps: true, minify: minify })
     .then(function(output) {
       fs.writeFileSync('test/output/memory-test.js', inline(output));
     });
@@ -46,99 +41,98 @@ function doTests(transpiler) {
 
   test('Multi-format tree build', function() {
     builder.reset();
-    builder.config(cfg);
     builder.config({ transpiler: transpiler });
 
-    return builder.build('first.js', 'test/output/tree-build.js', { sourceMaps: true, minify: minify, globalDefs: { DEBUG: false } })
+    return builder.bundle('first.js', 'test/output/tree-build.js', { sourceMaps: true, minify: minify, globalDefs: { DEBUG: false } })
     .then(function() {
       var treeFirst;
       Promise.all(['first.js', 'amd.js'].map(builder.trace.bind(builder)))
       .then(function(trees) {
         treeFirst = trees[0];
-        return builder.buildTree(builder.subtractTrees(trees[0], trees[1]), 'test/output/excluded.js');
+        return builder.bundle(builder.subtractTrees(trees[0], trees[1]), 'test/output/excluded.js');
       })
 
       .then(function() {
         return builder.trace('global-inner.js').then(function(tree) {
-          return builder.buildTree(tree, 'test/output/global-inner.js');
+          return builder.bundle(tree, 'test/output/global-inner.js');
         });
       })
 
       .then(function() {
         return builder.trace('global-outer.js').then(function(tree) {
-          return builder.buildTree(tree, 'test/output/global-outer.js');
+          return builder.bundle(tree, 'test/output/global-outer.js');
         });
       })
 
       .then(function() {
         return builder.trace('amd-1.js').then(function(tree) {
-          return builder.buildTree(builder.subtractTrees(tree, treeFirst), 'test/output/amd-1.js');
+          return builder.bundle(builder.subtractTrees(tree, treeFirst), 'test/output/amd-1.js');
         });
       })
 
       .then(function() {
         return builder.trace('amd-2.js').then(function(tree) {
-          return builder.buildTree(builder.subtractTrees(tree, treeFirst), 'test/output/amd-2.js');
+          return builder.bundle(builder.subtractTrees(tree, treeFirst), 'test/output/amd-2.js');
         });
       })
 
       .then(function() {
         return builder.trace('amd-3.js').then(function(tree) {
-          return builder.buildTree(builder.subtractTrees(tree, treeFirst), 'test/output/amd-3.js');
+          return builder.bundle(builder.subtractTrees(tree, treeFirst), 'test/output/amd-3.js');
         });
       })
 
       .then(function() {
         return builder.trace('amd-4.js').then(function(tree) {
-          return builder.buildTree(builder.subtractTrees(tree, treeFirst), 'test/output/amd-4.js');
+          return builder.bundle(builder.subtractTrees(tree, treeFirst), 'test/output/amd-4.js');
         });
       })
 
       .then(function() {
         return builder.trace('amd-5a.js').then(function(tree) {
-          return builder.buildTree(builder.subtractTrees(tree, treeFirst), 'test/output/amd-5a.js');
+          return builder.bundle(builder.subtractTrees(tree, treeFirst), 'test/output/amd-5a.js');
         });
       })
 
       .then(function() {
         return builder.trace('amd-5b.js').then(function(tree) {
-          return builder.buildTree(builder.subtractTrees(tree, treeFirst), 'test/output/amd-5b.js');
+          return builder.bundle(builder.subtractTrees(tree, treeFirst), 'test/output/amd-5b.js');
         });
       })
 
 
       .then(function() {
         return builder.trace('amd-6a.js').then(function(tree) {
-          return builder.buildTree(builder.subtractTrees(tree, treeFirst), 'test/output/amd-6a.js');
+          return builder.bundle(builder.subtractTrees(tree, treeFirst), 'test/output/amd-6a.js');
         });
       })
 
       .then(function() {
         return builder.trace('amd-6b.js').then(function(tree) {
-          return builder.buildTree(builder.subtractTrees(tree, treeFirst), 'test/output/amd-6b.js');
+          return builder.bundle(builder.subtractTrees(tree, treeFirst), 'test/output/amd-6b.js');
         });
       })
 
       .then(function() {
         return builder.trace('umd.js').then(function(tree) {
-          return builder.buildTree(builder.subtractTrees(tree, treeFirst), 'test/output/umd.js');
+          return builder.bundle(builder.subtractTrees(tree, treeFirst), 'test/output/umd.js');
         });
       })
 
       .then(function() {
-        return builder.build('amd-7.js', 'test/output/amd-7.js');
+        return builder.bundle('amd-7.js', 'test/output/amd-7.js');
       })
 
       .then(function() {
-        return builder.build('amd-8.js', 'test/output/amd-8.js');
+        return builder.bundle('amd-8.js', 'test/output/amd-8.js');
       })
 
       .then(function() {
-        return builder.build('cjs-globals.js', 'test/output/cjs-globals.js');
+        return builder.bundle('cjs-globals.js', 'test/output/cjs-globals.js');
       })
 
       .then(function() {
-        return builder.build('runtime.js', 'test/output/runtime.js');
+        return builder.bundle('runtime.js', 'test/output/runtime.js');
       })
     })
     .then(function () {
@@ -153,7 +147,6 @@ function doTests(transpiler) {
   if (transpiler != 'traceur')
   test('SFX tree build', function() {
     builder.reset();
-    builder.config(cfg);
     builder.config({transpiler: transpiler });
     builder.config({
       map: {
@@ -161,7 +154,7 @@ function doTests(transpiler) {
         'toamd1': 'amd-1.js'
       }
     });
-    return builder.buildSFX('toamd1', 'test/output/sfx.js', { runtime: true, minify: minify, globalDefs: { DEBUG: false } })
+    return builder.build('toamd1', 'test/output/sfx.js', { runtime: true, minify: minify, globalDefs: { DEBUG: false } })
     .then(function() {
       return testPhantom('test/test-sfx.html');
     });
@@ -190,7 +183,7 @@ suite('Bundle Format', function() {
   test('Test AMD format', function() {
     return Promise.resolve()
     .then(function() {
-      return builder.buildSFX('sfx-format-01.js', 'test/output/sfx-amd.js', { sfxFormat: 'amd' });
+      return builder.build('sfx-format-01.js', 'test/output/sfx-amd.js', { format: 'amd' });
     })
     .then(function() {
       return testPhantom('test/test-sfx-amd.html');
