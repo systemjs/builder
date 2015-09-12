@@ -62,7 +62,7 @@ exports.compile = function(load, opts, loader) {
     options.inputSourceMap = load.metadata.sourceMap;
 
   var compiler = new traceur.Compiler(options);
-  var tree = compiler.parse(load.source, load.address);
+  var tree = compiler.parse(load.source, load.path);
 
   var transformer = new RegisterTransformer(!opts.anonymous && load.name, function(dep) { return opts.normalize ? load.depMap[dep] : dep; });
   tree = transformer.transformAny(tree);
@@ -72,12 +72,12 @@ exports.compile = function(load, opts, loader) {
   // so we need to reconstruct files with load.metadata.execute etc
   // if this comes up, we can tackle it or work around it
   if (!transformer.hasAnonRegister)
-    throw new TypeError('Source ' + load.address + ' is already a bundle file, so can\'t be built as a module.');
+    throw new TypeError('Source ' + load.path + ' is already a bundle file, so can\'t be built as a module.');
 
-  var output = compiler.write(tree, load.address);
+  var output = compiler.write(tree, load.path);
 
-  if (opts.sfx)
-    output = output.replace(/System\.register\(/, '$__System.register(');
+  if (opts.systemGlobal != 'System')
+    output = output.replace(/System\.register\(/, opts.systemGlobal + '.register(');
 
   return Promise.resolve({
     source: output,
