@@ -19,6 +19,13 @@ suite('Conditional Builds', function() {
     });
   });
 
+  test('Boolean conditional', function() {
+    return builder.trace('interpolated-1.js#?|browser')
+    .then(function(tree) {
+      assert.deepEqual(Object.keys(tree).sort(), ['interpolated-1.js#?@system-env|browser', 'interpolated-1.js'].sort());
+    });
+  })
+
   test('traceAllConditionals false', function() {
     return builder.trace('pkg/env-condition + interpolated-#{conditions.js|test}.js', { traceAllConditionals: false })
     .then(function(tree) {
