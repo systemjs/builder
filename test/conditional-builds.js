@@ -24,6 +24,13 @@ suite('Conditional Builds', function() {
     .then(function(tree) {
       assert.deepEqual(Object.keys(tree).sort(), ['interpolated-1.js#?@system-env|browser', 'interpolated-1.js'].sort());
     });
+  });
+
+  test('Boolean conditional exclusion', function() {
+    return builder.trace('interpolated-1.js#?|browser', { browser: false })
+    .then(function(tree) {
+      assert.deepEqual(Object.keys(tree), ['interpolated-1.js#?@system-env|browser']);
+    })
   })
 
   test('traceAllConditionals false', function() {
