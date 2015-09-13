@@ -10,7 +10,7 @@ suite('Test post order traversal', function() {
       }
     };
 
-    return expect(getTreeModulesPostOrder(tree), 'to satisfy', ['a']);
+    return expect(getTreeModulesPostOrder(tree).modules, 'to satisfy', ['a']);
   });
 
   test('should return modules that has no incoming relations', function() {
@@ -25,7 +25,7 @@ suite('Test post order traversal', function() {
       }
     };
 
-    return expect(getTreeModulesPostOrder(tree), 'to satisfy', ['a', 'b']);
+    return expect(getTreeModulesPostOrder(tree).modules, 'to satisfy', ['a', 'b']);
   });
 
   test('should resolve module names based on depMap', function() {
@@ -42,7 +42,7 @@ suite('Test post order traversal', function() {
       }
     };
 
-    return expect(getTreeModulesPostOrder(tree), 'to satisfy', ['b', 'a']);
+    return expect(getTreeModulesPostOrder(tree).modules, 'to satisfy', ['b', 'a']);
   });
 
   test('should order modules with dependencies first', function() {
@@ -70,7 +70,7 @@ suite('Test post order traversal', function() {
       }
     };
 
-    return expect(getTreeModulesPostOrder(tree), 'to satisfy', ['c', 'b', 'd', 'a']);
+    return expect(getTreeModulesPostOrder(tree).modules, 'to satisfy', ['c', 'b', 'd', 'a']);
   });
 
   test('should order graph entries alphabetically', function() {
@@ -97,7 +97,7 @@ suite('Test post order traversal', function() {
       }
     };
 
-    return expect(getTreeModulesPostOrder(tree), 'to satisfy', ['c', 'b', 'a', 'd']);
+    return expect(getTreeModulesPostOrder(tree).modules, 'to satisfy', ['c', 'b', 'a', 'd']);
   });
 
   test('should override alphabetical graph entry order with entryPoints array', function() {
@@ -124,7 +124,7 @@ suite('Test post order traversal', function() {
       }
     };
 
-    return expect(getTreeModulesPostOrder(tree, ['d', 'a']), 'to satisfy', ['d', 'c', 'b', 'a']);
+    return expect(getTreeModulesPostOrder(tree, ['d', 'a']).modules, 'to satisfy', ['d', 'c', 'b', 'a']);
   });
 
   test('should include entry points not present in given entryPoints order, in alphabetical order', function() {
@@ -155,6 +155,6 @@ suite('Test post order traversal', function() {
       }
     };
 
-    return expect(getTreeModulesPostOrder(tree, ['d']), 'to satisfy', ['d', 'c', 'b', 'a', 'e']);
+    return expect(getTreeModulesPostOrder(tree, ['d']).modules, 'to satisfy', ['d', 'c', 'b', 'a', 'e']);
   });
 });
