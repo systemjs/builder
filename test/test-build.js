@@ -35,7 +35,7 @@ function doTests(transpiler) {
     builder.config({ transpiler: transpiler });
     return builder.bundle('first.js', { sourceMaps: true, minify: minify })
     .then(function(output) {
-      fs.writeFileSync('test/output/memory-test.js', inline(output));
+      fs.writeFileSync('test/output/memory-test.js', inline(output.source, output.sourceMap));
     });
   });
 
