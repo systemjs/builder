@@ -131,6 +131,10 @@ exports.compile = function(load, opts, loader) {
   transformer = new CJSRegisterTransformer(!opts.anonymous && load.name, deps, load.path, opts.minify, globals, opts.systemGlobal);
   tree = transformer.transformAny(tree);
 
+  if (opts['cjs-to-es5']) {
+    tree = compiler.transform(tree, load.address);
+  }
+
   var output = compiler.write(tree, load.path);
 
   return Promise.resolve({
