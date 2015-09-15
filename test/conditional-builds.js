@@ -36,7 +36,7 @@ suite('Conditional Builds', function() {
   test('traceAllConditionals false', function() {
     return builder.trace('pkg/env-condition + interpolated-#{conditions.js|test}.js', { traceAllConditionals: false })
     .then(function(tree) {
-      assert.deepEqual(Object.keys(tree).sort(), ['interpolated-#{conditions.js|test}.js', 'pkg#:env-condition', 'conditions.js', 'pkg/env-condition.js'].sort());
+      assert.deepEqual(Object.keys(tree).sort(), ['interpolated-#{conditions.js|test}.js', 'pkg#:env-condition', 'conditions.js'].sort());
     });
   });
 
@@ -48,7 +48,7 @@ suite('Conditional Builds', function() {
   });
 
   test('Custom conditions trace', function() {
-    return builder.trace('interpolated-#{conditions.js|test}.js', { conditions: { 'conditions.js': { 'test': '1' } } })
+    return builder.trace('interpolated-#{conditions.js|test}.js', { conditions: { 'conditions.js|test': '1' } })
     .then(function(tree) {
       assert.deepEqual(Object.keys(tree).sort(), ['interpolated-#{conditions.js|test}.js', 'conditions.js', 'interpolated-1.js', 'interpolate-1-dep.js'].sort());
     });
