@@ -18,7 +18,7 @@ suite('Conditional Canonical Names', function() {
     assert.equal(builder.getCanonicalName(baseURL + 'pkg/test-#{' + baseURL + 'conditions.js|test}.js!plugin-#{conditions.js|another}.js'), 'pkg/test-#{conditions.js|test}.js!plugin-#{conditions.js|another}.js');
   });
   test('Boolean conditional', function() {
-    assert.equal(builder.getCanonicalName(baseURL + 'pkg/test#?~' + baseURL + 'bool|exp'), 'pkg/test#?~bool|exp');
+    assert.equal(builder.getCanonicalName(baseURL + 'pkg/lib/test#?~' + baseURL + 'bool|exp'), 'pkg/test#?~bool|exp');
   });
   test('Boolean conditional with plugin', function() {
     builder.config({
