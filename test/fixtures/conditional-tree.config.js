@@ -4,6 +4,7 @@ System.config({
   },
   packages: {
     'pkg': {
+      basePath: 'lib',
       map: {
         './env-condition': {
           'browser': './env-condition-browser'
