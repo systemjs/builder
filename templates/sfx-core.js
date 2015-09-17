@@ -352,6 +352,10 @@
     if (modules[name])
       return modules[name];
 
+    // node core modules
+    if (name.substr(0, 6) == '@node/')
+      return require(name.substr(6));
+
     var entry = defined[name];
 
     // first we check if this module has already been defined in the registry

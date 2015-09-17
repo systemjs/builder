@@ -250,7 +250,7 @@ exports.attach = function(loader) {
         // NB can remove after Traceur 0.0.77
         if (!load.source) load.source = ' ';
         var compiler = new traceur.Compiler({ script: true, sourceRoot: true });
-        load.metadata.parseTree = compiler.parse(load.source, load.address);
+        load.metadata.parseTree = compiler.parse(load.source, load.path);
         var depTransformer = new AMDDependenciesTransformer();
         depTransformer.transformAny(load.metadata.parseTree);
 
@@ -339,7 +339,7 @@ exports.compile = function(load, opts, loader) {
 
   var compiler = new traceur.Compiler(options);
 
-  var tree = load.metadata.parseTree || compiler.parse(load.source, load.address);
+  var tree = load.metadata.parseTree || compiler.parse(load.source, load.path);
   var transformer = new AMDDefineRegisterTransformer(!opts.anonymous && load.name, load, load.metadata.isAnon, normalize ? load.depMap : {});
   tree = transformer.transformAny(tree);
 
@@ -349,12 +349,12 @@ exports.compile = function(load, opts, loader) {
     tree = cjsRequires.transformAny(tree);
   } */
 
-  var output = compiler.write(tree, load.address);
+  var output = compiler.write(tree, load.path);
 
   // because we've blindly replaced the define statement from AMD with a System.registerDynamic call
   // we have to ensure we still trigger any AMD guard statements in the code by creating a dummy define which isn't called
   return Promise.resolve({
-    source: '(function() {\nvar _removeDefine = ' + (opts.sfx ? '$__' : '') + 'System.get("@@amd-helpers").createDefine();\n' + output + '\n_removeDefine();\n})();',
+    source: '(function() {\nvar _removeDefine = ' + opts.systemGlobal + '.get("@@amd-helpers").createDefine();\n' + output + '\n_removeDefine();\n})();',
     sourceMap: compiler.getSourceMap(),
     sourceMapOffset: 2
   });

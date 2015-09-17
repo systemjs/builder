@@ -71,7 +71,7 @@ exports.compile = function(load, opts, loader) {
 
       var compiler = new transpiler.Compiler(options);
 
-      var tree = compiler.parse(source, load.address);
+      var tree = compiler.parse(source, load.path);
 
       var transformer = new TraceurImportNormalizeTransformer(function(dep) {
         return normalize ? load.depMap[dep] : dep;
@@ -81,7 +81,7 @@ exports.compile = function(load, opts, loader) {
 
       tree = compiler.transform(tree, load.name);
 
-      var outputSource = compiler.write(tree, load.address);
+      var outputSource = compiler.write(tree, load.path);
 
       if (outputSource.match(/\$traceurRuntime/))
         load.metadata.usesTraceurRuntimeGlobal = true;
@@ -100,7 +100,7 @@ exports.compile = function(load, opts, loader) {
       var transpileOptions = { 
         compilerOptions: options, 
         renamedDependencies: load.depMap, 
-        fileName: load.address, 
+        fileName: load.path, 
         moduleName: !opts.anonymous && load.name 
       };
       
@@ -125,9 +125,9 @@ exports.compile = function(load, opts, loader) {
         options.sourceMap = true;
       if (load.metadata.sourceMap)
         options.inputSourceMap = load.metadata.sourceMap;
-      options.filename = load.address;
+      options.filename = load.path;
       options.filenameRelative = load.name;
-      options.sourceFileName = load.address;
+      options.sourceFileName = load.path;
       options.keepModuleIdExtensions = true;
       options.code = true;
       options.ast = false;
@@ -165,8 +165,8 @@ exports.compile = function(load, opts, loader) {
     }
   })
   .then(function(output) {
-    if (opts.sfx)
-      output.source = output.source.replace(/System\.register\(/, '$__System.register(');
+    if (opts.systemGlobal != 'System')
+      output.source = output.source.replace(/System\.register\(/, opts.systemGlobal + '.register(');
     return output;
   });
 };

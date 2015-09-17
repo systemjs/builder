@@ -1,7 +1,4 @@
 System.config({
-  map: {
-    'jquery-cdn': '@empty'
-  },
   paths: {
     '*': './test/fixtures/test-tree/*',
     '*.jade': './test/dummy/*.jade',

@@ -14,23 +14,23 @@ suite('Test compiler cache', function() {
 
     return builder.trace(loadName).then(function(_tree) {
       tree = _tree;
-      return builder.buildTree(tree);
+      return builder.bundle(tree);
     })
     .then(function() {
       var cacheEntry = builder.getCache();
 
       expect(cacheEntry).to.be.an('object');
 
-      cacheObj = cacheEntry.compile['simple.js'];
+      cacheObj = cacheEntry.compile.loads['simple.js'];
       
       expect(cacheObj).to.be.an('object');
-      expect(cacheObj.sourceHash).to.be.a('string');
+      expect(cacheObj.hash).to.be.a('string');
       expect(cacheObj.output).to.be.an('object');
 
       // poison cache
       cacheObj.output.source = cacheObj.output.source.replace('hate', 'love');
 
-      return builder.buildTree(tree);
+      return builder.bundle(tree);
     })
     .then(function(output) {
       // verify buildTree use poisoned cache rather than recompiling
@@ -39,8 +39,8 @@ suite('Test compiler cache', function() {
       expect(outputSource).to.contain('love caches');
 
       // invalidate poisoned cache entry and rebuild
-      cacheObj.sourceHash = 'out of date';
-      return builder.buildTree(tree);
+      cacheObj.hash = 'out of date';
+      return builder.bundle(tree);
     })
     .then(function(output) {
       // verify original source is used once more
@@ -52,13 +52,11 @@ suite('Test compiler cache', function() {
 
   test('Use trace cache when available', function() {
     // construct the load record for the cache
-    var fileName = toFileURL(__dirname + '/fixtures/test-cache-tree/simple.js');
     var cacheObj = {
       trace: {
         'simple.js': { 
           name: 'simple.js',
-          normalized: fileName,
-          address: fileName,
+          path: 'fixtures/test-cache-tree/simple.js',
           metadata: {
             deps: [],
             format: 'amd',
@@ -75,7 +73,7 @@ suite('Test compiler cache', function() {
     builder.reset();
     builder.setCache(cacheObj);
 
-    return builder.build('simple.js').then(function(output) {
+    return builder.bundle('simple.js').then(function(output) {
       expect(output.source).to.contain('fake cache');
     });
 

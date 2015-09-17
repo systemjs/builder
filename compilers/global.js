@@ -7,7 +7,7 @@ var Script = traceur.get('syntax/trees/ParseTrees.js').Script;
 var FunctionBody = traceur.get('syntax/trees/ParseTrees.js').FunctionBody;
 
 // wraps global scripts
-function GlobalTransformer(name, deps, exportName, globals, sfx) {
+function GlobalTransformer(name, deps, exportName, globals, systemGlobal) {
   this.name = name;
   this.deps = deps;
   this.exportName = exportName;
@@ -15,7 +15,7 @@ function GlobalTransformer(name, deps, exportName, globals, sfx) {
   this.fnGlobals = [];
   this.globals = globals;
   this.inOuterScope = true;
-  this.sfx = sfx;
+  this.systemGlobal = systemGlobal;
   return ParseTreeTransformer.call(this);
 }
 
@@ -97,8 +97,8 @@ GlobalTransformer.prototype.transformScript = function(tree) {
   }
 
   return new Script(tree.location, parseStatements([
-      (this.sfx ? '$__' : '') + 'System.registerDynamic(' + (this.name ? '"' + this.name + '", ' : '') + JSON.stringify(this.deps) + ', false, function(__require, __exports, __module) {\n'
-      + 'var _retrieveGlobal = ' + (this.sfx ? '$__' : '') + 'System.get("@@global-helpers").prepareGlobal(__module.id, '
+      this.systemGlobal + '.registerDynamic(' + (this.name ? '"' + this.name + '", ' : '') + JSON.stringify(this.deps) + ', false, function(__require, __exports, __module) {\n'
+      + 'var _retrieveGlobal = ' + this.systemGlobal + '.get("@@global-helpers").prepareGlobal(__module.id, '
       + (this.exportName ? '"' + this.exportName + '"' : 'null') + ', ' + (globalExpression ? globalExpression : 'null') + ');\n'
       + '  (',
       ')();\n'
@@ -119,7 +119,7 @@ exports.compile = function(load, opts, loader) {
     options.inputSourceMap = load.metadata.sourceMap;
 
   var compiler = new traceur.Compiler(options);
-  var tree = compiler.parse(load.source, load.address);
+  var tree = compiler.parse(load.source, load.path);
 
   var deps = opts.normalize ? load.metadata.deps.map(function(dep) { return load.depMap[dep]; }) : load.metadata.deps;
 
@@ -131,10 +131,10 @@ exports.compile = function(load, opts, loader) {
       normalizedGlobals[g] = opts.normalize ? load.depMap[load.metadata.globals[g]] : load.metadata.globals[g];
   }
 
-  var transformer = new GlobalTransformer(!opts.anonymous && load.name, deps, load.metadata.exports, normalizedGlobals, opts.sfx);
+  var transformer = new GlobalTransformer(!opts.anonymous && load.name, deps, load.metadata.exports, normalizedGlobals, opts.systemGlobal);
   tree = transformer.transformAny(tree);
 
-  var output = compiler.write(tree, load.address);
+  var output = compiler.write(tree, load.path);
 
   return Promise.resolve({
     source: output,
