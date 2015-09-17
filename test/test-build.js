@@ -128,7 +128,8 @@ function doTests(transpiler) {
       })
 
       .then(function() {
-        return builder.bundle('cjs-globals.js', 'test/output/cjs-globals.js');
+        builder.loader.config({ paths: { 'output/*': './test/output/*' } });
+        return builder.bundle('cjs-globals.js - output/amd-8.js', 'test/output/cjs-globals.js');
       })
 
       .then(function() {
