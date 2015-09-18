@@ -155,7 +155,7 @@ function doTests(transpiler) {
         'toamd1': 'amd-1.js'
       }
     });
-    return builder.build('toamd1', 'test/output/sfx.js', { runtime: true, minify: minify, globalDefs: { DEBUG: false } })
+    return builder.buildStatic('toamd1', 'test/output/sfx.js', { runtime: true, minify: minify, globalDefs: { DEBUG: false } })
     .then(function() {
       return testPhantom('test/test-sfx.html');
     });
@@ -184,7 +184,7 @@ suite('Bundle Format', function() {
   test('Test AMD format', function() {
     return Promise.resolve()
     .then(function() {
-      return builder.build('sfx-format-01.js', 'test/output/sfx-amd.js', { format: 'amd' });
+      return builder.buildStatic('sfx-format-01.js', 'test/output/sfx-amd.js', { format: 'amd' });
     })
     .then(function() {
       return testPhantom('test/test-sfx-amd.html');
