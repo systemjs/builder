@@ -133,6 +133,11 @@ exports.compile = function(load, opts, loader) {
 
   var output = compiler.write(tree, load.path);
 
+  if (opts.systemGlobal != 'System')
+    output = output.replace(/(^|[^_])System\._nodeRequire/g, function(match, startArg) {
+      return startArg + opts.systemGlobal + '._nodeRequire';
+    });
+
   return Promise.resolve({
     source: output,
     sourceMap: compiler.getSourceMap()
