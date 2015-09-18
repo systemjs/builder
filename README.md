@@ -1,7 +1,10 @@
 SystemJS Build Tool [![Build Status][travis-image]][travis-url]
 ===
 
-_Note SystemJS Builder 0.11+ correspond to the SystemJS 0.17+ releases which include the breaking change making module names URLs.
+_As of SystemJS Builder 0.14, `builder.build` and `builder.buildTree` are both `builder.bundle`, while `builder.buildSFX` is now `builder.buildStatic`.
+The previous APIs will continue to work, but display deprecation warnings._
+
+_Note SystemJS Builder 0.11-0.14 correspond to the SystemJS 0.17+ releases which include the breaking change making module names URLs.
 Read the [SystemJS 0.17 release notes](https://github.com/systemjs/systemjs/releases/tag/0.17.0) for more information on this change._
 
 Provides a single-file build for SystemJS of mixed-dependency module trees.
@@ -59,7 +62,7 @@ var builder = new Builder({
 
   // etc. any SystemJS config
 })
-.build('local/module.js', 'outfile.js')
+.bundle('local/module.js', 'outfile.js')
 .then(function() {
   console.log('Build complete');
 })
@@ -86,7 +89,7 @@ builder.loadConfig('./cfg.js')
   // additional config can also be set through `builder.config`
   builder.config({ map: { 'a': 'b.js' } });
 
-  return builder.build('myModule.js', 'outfile.js');
+  return builder.bundle('myModule.js', 'outfile.js');
 });
 
 ```
@@ -100,7 +103,7 @@ To reset the loader state and configuration use `builder.reset()`.
 To make a bundle that is independent of the SystemJS loader entirely, we can make SFX bundles:
 
 ```javascript
-builder.buildSFX('myModule.js', 'outfile.js', options);
+builder.buildStatic('myModule.js', 'outfile.js', options);
 ```
 
 This bundle file can then be included with a `<script>` tag, and no other dependencies would need to be included in the page. 
@@ -108,7 +111,7 @@ This bundle file can then be included with a `<script>` tag, and no other depend
 By default, Traceur or Babel runtime are automatically included in the SFX bundle if needed. To exclude the Babel or Traceur runtime set the `runtime` build option to false:
 
 ```javascript
-builder.buildSFX('myModule.js', 'outfile.js', { runtime: false });
+builder.buildStatic('myModule.js', 'outfile.js', { runtime: false });
 ```
 
 #### SFX Format
@@ -118,7 +121,7 @@ SFX bundles can also be output as a custom module format - `amd`, `cjs` or `es6`
 This is handled via the `sfxFormat` option:
 
 ```javascript
-builder.buildSFX('myModule.js', 'outfile.js', { sfxFormat: 'cjs' });
+builder.buildStatic('myModule.js', 'outfile.js', { sfxFormat: 'cjs' });
 ```
 
 The first module used as input (`myModule.js` here) will then have its exports output as the CommonJS exports of the whole SFX bundle itself
@@ -138,13 +141,13 @@ module.exports = window.jQuery;
 As well as an `options.config` parameter, it is also possible to specify minification and source maps options:
 
 ```javascript
-builder.build('myModule.js', 'outfile.js', { minify: true, sourceMaps: true, config: cfg });
+builder.bundle('myModule.js', 'outfile.js', { minify: true, sourceMaps: true, config: cfg });
 ```
 
 Compile time with source maps can also be improved with the `lowResSourceMaps` option:
 
 ```javascript
-builder.build('myModule.js', 'outfile.js', { sourceMaps: true, lowResSourceMaps: true });
+builder.bundle('myModule.js', 'outfile.js', { sourceMaps: true, lowResSourceMaps: true });
 ```
 
 #### Minification Options
@@ -153,7 +156,7 @@ builder.build('myModule.js', 'outfile.js', { sourceMaps: true, lowResSourceMaps:
 * `globalDefs`, object allowing for global definition assignments for dead code removal.
 
 ```javascript
-builder.build('myModule.js', 'outfile.js', { minify: true, mangle: false, globalDefs: { DEBUG: false } });
+builder.bundle('myModule.js', 'outfile.js', { minify: true, mangle: false, globalDefs: { DEBUG: false } });
 ```
 
 ### In-Memory Builds
@@ -161,7 +164,7 @@ builder.build('myModule.js', 'outfile.js', { minify: true, mangle: false, global
 Leave out the `outFile` option to run an in-memory build:
 
 ```javascript
-builder.build('myModule.js', { minify: true }).then(function(output) {
+builder.bundle('myModule.js', { minify: true }).then(function(output) {
   output.source;    // generated bundle source
   output.sourceMap; // generated bundle source map
   output.modules;   // array of module names defined in the bundle
@@ -189,11 +192,11 @@ builder.config({
 
 ### Bundle Arithmetic
 
-Both `builder.build` and `builder.buildSFX` support bundle arithmetic expressions. This allows for the easy construction of custom bundles.
+Both `builder.build` and `builder.buildStatic` support bundle arithmetic expressions. This allows for the easy construction of custom bundles.
 
 **NOTE**: SFX Bundles can only use addition and wildcard arithmetic.
 
-There is also a `builder.trace` and `builder.buildTree` for building direct trace tree objects.
+There is also a `builder.trace` for building direct trace tree objects, which can be directly passed into `builder.bundle` or `builder.buildStatic`.
 
 #### Example - Arithmetic Expressions
 
@@ -208,7 +211,7 @@ var builder = new Builder({
   } // etc. config
 });
 
-builder.build('app/* - app/corelibs.js', 'output-file.js', { minify: true, sourceMaps: true });
+builder.bundle('app/* - app/corelibs.js', 'output-file.js', { minify: true, sourceMaps: true });
 ```
 
 #### Example - Common Bundles
@@ -216,13 +219,13 @@ builder.build('app/* - app/corelibs.js', 'output-file.js', { minify: true, sourc
 To build the dependencies in common between two modules, use the `&` operator:
 
 ```javascript
-builder.build('app/page1.js & app/page2.js', 'common.js');
+builder.bundle('app/page1.js & app/page2.js', 'common.js');
 ```
 
 We can then exclude this common bundle in future builds:
 
 ```javascript
-builder.build('app/componentA.js - common.js', { minify: true, sourceMaps: true });
+builder.bundle('app/componentA.js - common.js', { minify: true, sourceMaps: true });
 ```
 
 #### Example - Third-Party Dependency Bundles
@@ -232,7 +235,7 @@ Build a bundle of all dependencies of the `app/` package excluding anything from
 For this we can use the `[module]` syntax which represents a single module instead of all its dependencies as well:
 
 ```javascript
-builder.build('app/**/* - [app/**/*]', 'dependencies.js', { minify: true, sourceMaps: true });
+builder.bundle('app/**/* - [app/**/*]', 'dependencies.js', { minify: true, sourceMaps: true });
 ```
 
 The above means _take the tree of app and all its dependencies, and subtract just the modules in app_, thus leaving us with just the tree of dependencies of the app package.
@@ -254,9 +257,9 @@ Promise.all([builder.trace('app/first.js'), builder.trace('app/second.js')])
 .then(function(trees) {
   var commonTree = builder.intersectTrees(trees[0], trees[1]);
   return Promise.all([
-    builder.buildTree(commonTree, 'shared-bundle.js')
-    builder.buildTree(builder.subtractTrees(trees[0], commonTree), 'first-bundle.js'),
-    builder.buildTree(builder.subtractTrees(trees[1], commonTree), 'second-bundle.js')
+    builder.bundle(commonTree, 'shared-bundle.js')
+    builder.bundle(builder.subtractTrees(trees[0], commonTree), 'first-bundle.js'),
+    builder.bundle(builder.subtractTrees(trees[1], commonTree), 'second-bundle.js')
   ]);
 });
 ```

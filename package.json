@@ -1,6 +1,6 @@
 {
   "name": "systemjs-builder",
-  "version": "0.13.6",
+  "version": "0.14.0",
   "description": "SystemJS Build Tool",
   "main": "index.js",
   "dependencies": {
@@ -10,7 +10,7 @@
     "mkdirp": "^0.5.1",
     "rsvp": "^3.0.20",
     "source-map": "^0.4.4",
-    "systemjs": "git://github.com/systemjs/systemjs#master",
+    "systemjs": "^0.19.0",
     "traceur": "0.0.91",
     "uglify-js": "^2.4.23"
   },
@@ -21,7 +21,7 @@
     "mocha": "^2.2.5",
     "mocha-phantomjs": "3.5.6",
     "phantomjs": "1.9.18",
-    "typescript": "next",
+    "typescript": "1.6.2",
     "unexpected": "^9.11.0"
   },
   "repository": {
