@@ -49,19 +49,11 @@ Ensure that the transpiler is installed separately (`npm install babel-core` her
 var path = require("path");
 var Builder = require('systemjs-builder');
 
-var builder = new Builder({
-  baseURL: 'some/folder',
+// optional constructor options
+// sets the baseURL and loads the configuration file
+var builder = new Builder('path/to/baseURL', 'path/to/system/config-file.js');
 
-  // any map config
-  map: {
-    jquery: 'jquery-1.2.3/jquery'
-  },
-  
-  // opt in to Babel for transpiling over Traceur
-  transpiler: 'babel'
-
-  // etc. any SystemJS config
-})
+builder
 .bundle('local/module.js', 'outfile.js')
 .then(function() {
   console.log('Build complete');
@@ -74,29 +66,34 @@ var builder = new Builder({
 
 ### Setting Configuration
 
-To load a SystemJS configuration file, containing configure calls like:
+Configuration can be injected via `builder.config`:
 
 ```javascript
-System.config({ ... });
+builder.config({
+  map: {
+    'a': 'b.js'
+  }
+});
+builder.build('a');
 ```
 
-Then we can load this config file through the builder:
+To load custom configuration files use `builder.loadConfig`:
 
 ```javascript
-// `builder.loadConfig` will load config from a file
+// `builder.loadConfig` will load config from a file containing `System.config({...})`
 builder.loadConfig('./cfg.js')
 .then(function() {
-  // additional config can also be set through `builder.config`
-  builder.config({ map: { 'a': 'b.js' } });
-
-  return builder.bundle('myModule.js', 'outfile.js');
+  // ready to build
 });
-
 ```
 
 Multiple config calls can be run, which will combine into the loader configuration.
 
+#### Resetting Configuration
+
 To reset the loader state and configuration use `builder.reset()`.
+
+When config was passed into the `new Builder(baseURL, configFile)` constructor, the config will be reset to this exact `configFile` state.
 
 ### Self-Executing (SFX) Bundles
 
