@@ -122,7 +122,7 @@ exports.compile = function(load, opts, loader) {
     tree = transformer.transformAny(tree);
   }
 
-  var deps = opts.normalize ? load.metadata.deps.map(function(dep) { return load.depMap[dep]; }) : load.metadata.deps;
+  var deps = opts.normalize ? load.deps.map(function(dep) { return load.depMap[dep]; }) : load.deps;
 
   var globals = {};
   for (var g in load.metadata.globals) {

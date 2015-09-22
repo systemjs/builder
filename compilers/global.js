@@ -121,7 +121,7 @@ exports.compile = function(load, opts, loader) {
   var compiler = new traceur.Compiler(options);
   var tree = compiler.parse(load.source, load.path);
 
-  var deps = opts.normalize ? load.metadata.deps.map(function(dep) { return load.depMap[dep]; }) : load.metadata.deps;
+  var deps = opts.normalize ? load.deps.map(function(dep) { return load.depMap[dep]; }) : load.deps;
 
   // send normalized globals into the transformer
   var normalizedGlobals
