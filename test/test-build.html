@@ -201,7 +201,7 @@
         .catch(done);
       });
 
-      test('Runtime', function(done) {
+      (/PhantomJS/.test(window.navigator.userAgent) ? test.skip : test)('Runtime', function(done) {
         System['import']('output/runtime.js').then(function() {
           return System['import']('runtime.js');
         })

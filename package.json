@@ -29,9 +29,6 @@
     "url": "http://github.com/systemjs/builder.git"
   },
   "scripts": {
-    "test:accept-source-maps": "UPDATE_EXPECTATIONS=true mocha test/sourcemaps.js",
-    "test:traceur": "cd test && node run-build.js && open test-build.html && open test-sfx.html",
-    "test:babel": "cd test && node run-build.js babel && open test-build.html && open test-sfx.html",
     "test": "mkdir -p test/output && ./node_modules/.bin/mocha"
   },
   "author": "",
