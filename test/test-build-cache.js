@@ -76,6 +76,20 @@ suite('Test compiler cache', function() {
     return builder.bundle('simple.js').then(function(output) {
       expect(output.source).to.contain('fake cache');
     });
+  });
 
+  test('Cache invalidation', function() {
+    var cacheObj = {
+      trace: {
+        'simple.js': {},
+        'another/path.js': {}
+      }
+    };
+
+    builder.reset();
+    builder.setCache(cacheObj);
+
+    var invalidated = builder.invalidate('*');
+    assert.deepEqual(invalidated, [System.normalizeSync('simple.js'), System.normalizeSync('another/path.js')]);
   });
 });
