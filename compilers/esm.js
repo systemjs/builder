@@ -158,6 +158,9 @@ exports.compile = function(load, opts, loader) {
             output.code = output.code.replace(dep, load.depMap[dep]);
         });
 
+      // clear options for reuse
+      options.filenameRelative = options.sourceFileName = null;
+
       return Promise.resolve({
         source: output.code,
         sourceMap: output.map
