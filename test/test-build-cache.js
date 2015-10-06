@@ -76,6 +76,36 @@ suite('Test compiler cache', function() {
     return builder.bundle('simple.js').then(function(output) {
       expect(output.source).to.contain('fake cache');
     });
+  });
 
+  test('Cache invalidation', function() {
+    var cacheObj = {
+      trace: {
+        'simple.js': {},
+        'another/path.js': {}
+      }
+    };
+
+    builder.reset();
+    builder.setCache(cacheObj);
+
+    var invalidated = builder.invalidate('*');
+    assert.deepEqual(invalidated, [System.normalizeSync('simple.js'), System.normalizeSync('another/path.js')]);
+
+    cacheObj = {
+      trace: {
+        'simple.js': {},
+        'new/path.js': {},
+        'deep/wildcard/test.js': {}
+      }
+    };
+
+    builder.setCache(cacheObj);
+
+    invalidated = builder.invalidate('new/path.js');
+    assert.deepEqual(invalidated, [System.normalizeSync('new/path.js')]);
+
+    invalidated = builder.invalidate('deep/*.js');
+    assert.deepEqual(invalidated, [System.normalizeSync('deep/wildcard/test.js')]);
   });
 });
