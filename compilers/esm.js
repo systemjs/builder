@@ -159,7 +159,8 @@ exports.compile = function(load, opts, loader) {
         });
 
       // clear options for reuse
-      options.filenameRelative = options.sourceFileName = null;
+      delete options.filenameRelative;
+      delete options.sourceFileName;
 
       return Promise.resolve({
         source: output.code,
