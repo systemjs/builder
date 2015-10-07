@@ -31,11 +31,19 @@ AMDDependenciesTransformer.prototype.filterAMDDeps = function(deps) {
   });
   return newDeps;
 };
+// NB we should really extend this to any scope change
+AMDDependenciesTransformer.prototype.transformFunctionDeclaration = function(tree) {
+  var defineRedefined = this.defineRedefined;
+  tree = ParseTreeTransformer.prototype.transformFunctionDeclaration.call(this, tree);
+  if (defineRedefined === false)
+    this.defineRedefined = false;
+  return tree;
+};
 AMDDependenciesTransformer.prototype.transformVariableDeclaration = function(tree) {
   if (tree.lvalue.identifierToken.value == 'define')
     this.defineRedefined = true;
   return tree;
-}
+};
 AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
   if (this.defineRedefined || !tree.operand.identifierToken || tree.operand.identifierToken.value != 'define')
     return ParseTreeTransformer.prototype.transformCallExpression.call(this, tree);
@@ -142,6 +150,7 @@ function AMDDefineRegisterTransformer(moduleName, load, isAnon, depMap) {
 }
 AMDDefineRegisterTransformer.prototype = Object.create(ParseTreeTransformer.prototype);
 AMDDefineRegisterTransformer.prototype.transformVariableDeclaration = AMDDependenciesTransformer.prototype.transformVariableDeclaration;
+AMDDefineRegisterTransformer.prototype.transformFunctionDeclaration = AMDDependenciesTransformer.prototype.transformFunctionDeclaration;
 AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) {
   if (this.defineRedefined || !tree.operand.identifierToken || tree.operand.identifierToken.value != 'define')
     return ParseTreeTransformer.prototype.transformCallExpression.call(this, tree);

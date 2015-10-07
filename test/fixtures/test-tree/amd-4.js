@@ -1,4 +1,5 @@
 function factory(second) {
+  var define = 'asdf';
   return second;
 }
 
