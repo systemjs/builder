@@ -4,29 +4,32 @@ var traceur = require('traceur');
 var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
 var Script = traceur.get('syntax/trees/ParseTrees.js').Script;
 var parseStatements = traceur.get('codegeneration/PlaceholderParser.js').parseStatements;
+var parseExpression = traceur.get('codegeneration/PlaceholderParser.js').parseExpression;
 var STRING = traceur.get('syntax/TokenType.js').STRING;
 var LiteralExpression = traceur.get('syntax/trees/ParseTrees.js').LiteralExpression;
 var LiteralToken = traceur.get('syntax/LiteralToken.js').LiteralToken;
 
 // remap require() statements
-function CJSRequireTransformer(requireName, map) {
+function CJSRequireTransformer(requireName, map, mappedRequireName) {
   this.requireName = requireName;
+  this.mappedRequireName = mappedRequireName || requireName;
   this.map = map;
   this.requires = [];
   return ParseTreeTransformer.call(this);
 }
 CJSRequireTransformer.prototype = Object.create(ParseTreeTransformer.prototype);
 CJSRequireTransformer.prototype.transformCallExpression = function(tree) {
-  if (!tree.operand.identifierToken || tree.operand.identifierToken.value != this.requireName)
-    return ParseTreeTransformer.prototype.transformCallExpression.call(this, tree);
-
   // found a require
-  var args = tree.args.args;
-  if (args.length && args[0].type == 'LITERAL_EXPRESSION' && args.length == 1) {
-    if (this.map)
-      args[0].literalToken.value = '"' + this.map(args[0].literalToken.processedValue) + '"';
+  if (tree.operand.identifierToken && tree.operand.identifierToken.value == this.requireName
+      && tree.args.args.length && tree.args.args[0].type == 'LITERAL_EXPRESSION' && tree.args.args.length == 1) {  
+    var requireModule = tree.args.args[0].literalToken.processedValue;
+    var requireModuleMapped = this.map && this.map(requireModule) || requireModule;
 
-    this.requires.push(args[0].literalToken.processedValue);
+    this.requires.push(requireModule);
+
+    var mappedCallExpression = parseExpression([this.mappedRequireName + "('" + requireModuleMapped + "')"], []);
+
+    return ParseTreeTransformer.prototype.transformCallExpression.call(this, mappedCallExpression);
   }
 
   return ParseTreeTransformer.prototype.transformCallExpression.call(this, tree);
@@ -79,7 +82,7 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
     globalExpression = 'var ';
     var first = true;
     for (var g in this.globals) {
-      globalExpression += (first ? '' : ', ') + g + '= require("' + this.globals[g] + '")';
+      globalExpression += (first ? '' : ', ') + g + '= req("' + this.globals[g] + '")';
       first = false;
     }
     if (first == true)
@@ -97,7 +100,7 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
 
   // wrap everything in System.register
   return new Script(tree.location, parseStatements([
-    this.systemGlobal + '.registerDynamic(' + (this.name ? '"' + this.name + '", ' : '') + JSON.stringify(this.deps) + ', true, function(require, exports, module) {\n',
+    this.systemGlobal + '.registerDynamic(' + (this.name ? '"' + this.name + '", ' : '') + JSON.stringify(this.deps) + ', true, function(req, exports, module) {\n',
     '});'], scriptItemList));
 };
 exports.CJSRegisterTransformer = CJSRequireTransformer;
@@ -118,7 +121,7 @@ exports.compile = function(load, opts, loader) {
   var transformer;
 
   if (opts.normalize) {
-    transformer = new CJSRequireTransformer('require', function(dep) { return load.depMap[dep]; });
+    transformer = new CJSRequireTransformer('require', function(dep) { return load.depMap[dep]; }, 'req');
     tree = transformer.transformAny(tree);
   }
 
