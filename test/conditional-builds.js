@@ -61,6 +61,18 @@ suite('Conditional Builds', function() {
     });
   });
 
+  test('Custom condition build', function() {
+    builder.config({
+      map: {
+        'ENV': 'ENV.js'
+      }
+    });
+    return builder.trace('custom-conditions.js', { conditions: { 'ENV|mock': true, 'ENV|environment': 'production', 'ENV|optimize': true } })
+    .then(function(tree) {
+      assert.deepEqual(Object.keys(tree).sort(), ['ENV.js', 'config.#{ENV.js|environment}.js', 'config.dev.js', 'custom-conditions.js', 'mock.js', 'mock.js#?ENV.js|mock']);
+    });
+  });
+
   test('Build including all conditional variations', function() {
     return builder.bundle('pkg/env-condition + interpolated-#{conditions.js|test}.js', 'test/output/conditional-build.js', { sourceMaps: true })
     .then(function(output) {
