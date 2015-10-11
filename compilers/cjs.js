@@ -8,6 +8,8 @@ var parseExpression = traceur.get('codegeneration/PlaceholderParser.js').parseEx
 var STRING = traceur.get('syntax/TokenType.js').STRING;
 var LiteralExpression = traceur.get('syntax/trees/ParseTrees.js').LiteralExpression;
 var LiteralToken = traceur.get('syntax/LiteralToken.js').LiteralToken;
+var IdentifierExpression = traceur.get('syntax/trees/ParseTrees.js').IdentifierExpression;
+var IdentifierToken = traceur.get('syntax/IdentifierToken.js').IdentifierToken;
 
 // remap require() statements
 function CJSRequireTransformer(requireName, map, mappedRequireName) {
@@ -33,7 +35,12 @@ CJSRequireTransformer.prototype.transformCallExpression = function(tree) {
   }
 
   return ParseTreeTransformer.prototype.transformCallExpression.call(this, tree);
-}
+};
+CJSRequireTransformer.prototype.transformIdentifierExpression = function(tree) {
+  if (tree.identifierToken.value == this.requireName)
+    tree = new IdentifierExpression(tree.location, new IdentifierToken(tree.identifierToken.location, this.mappedRequireName));
+  return ParseTreeTransformer.prototype.transformIdentifierExpression.call(this, tree);
+};
 exports.CJSRequireTransformer = CJSRequireTransformer;
 
 

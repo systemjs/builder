@@ -1,3 +1,4 @@
 console.log(__filename);
-exports.cjs = true;
+if (typeof require != 'undefined')
+  exports.cjs = true;
 exports.env = process.env.NODE_ENV;
