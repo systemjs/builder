@@ -67,9 +67,9 @@ suite('Conditional Builds', function() {
         'ENV': 'ENV.js'
       }
     });
-    return builder.trace('custom-conditions.js', { conditions: { 'ENV|mock': true, 'ENV|environment': 'production', 'ENV|optimize': true } })
+    return builder.trace('custom-conditions.js', { conditions: { 'ENV|mock': false, 'ENV|environment': ['dev'], 'ENV|optimize': true } })
     .then(function(tree) {
-      assert.deepEqual(Object.keys(tree).sort(), ['ENV.js', 'config.#{ENV.js|environment}.js', 'config.dev.js', 'custom-conditions.js', 'mock.js', 'mock.js#?ENV.js|mock']);
+      assert.deepEqual(Object.keys(tree).sort(), ['ENV.js', 'config.#{ENV.js|environment}.js', 'config.dev.js', 'custom-conditions.js', 'mock.js#?ENV.js|mock']);
     });
   });
 
