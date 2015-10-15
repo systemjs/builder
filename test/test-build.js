@@ -44,7 +44,8 @@ function doTests(transpiler) {
     builder.config({ transpiler: transpiler });
 
     return builder.bundle('first.js', 'test/output/tree-build.js', { sourceMaps: true, minify: minify, globalDefs: { DEBUG: false } })
-    .then(function() {
+    .then(function(output) {
+      assert(output.assetList[0].url);
       var treeFirst;
       Promise.all(['first.js', 'amd.js'].map(builder.trace.bind(builder)))
       .then(function(trees) {
