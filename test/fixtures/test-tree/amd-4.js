@@ -3,5 +3,7 @@ function factory(second) {
   return second;
 }
 
+System.import('x');
+
 
 define(['./second.js'], factory)
