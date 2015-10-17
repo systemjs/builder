@@ -85,7 +85,11 @@ function doTests(transpiler) {
 
       .then(function() {
         return builder.trace('amd-4.js').then(function(tree) {
-          return builder.bundle(builder.subtractTrees(tree, treeFirst), 'test/output/amd-4.js');
+          return builder.getDeferredImports(tree)
+          .then(function(deferredImports) {
+            assert(deferredImports[0].name == 'x');
+            return builder.bundle(builder.subtractTrees(tree, treeFirst), 'test/output/amd-4.js');
+          });
         });
       })
 
