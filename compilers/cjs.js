@@ -23,7 +23,7 @@ CJSRequireTransformer.prototype = Object.create(ParseTreeTransformer.prototype);
 CJSRequireTransformer.prototype.transformCallExpression = function(tree) {
   // found a require
   if (tree.operand.identifierToken && tree.operand.identifierToken.value == this.requireName
-      && tree.args.args.length && tree.args.args[0].type == 'LITERAL_EXPRESSION' && tree.args.args.length == 1) {  
+      && tree.args.args.length && tree.args.args[0].type == 'LITERAL_EXPRESSION' && tree.args.args.length == 1) {
     var requireModule = tree.args.args[0].literalToken.processedValue;
     var requireModuleMapped = this.map && this.map(requireModule) || requireModule;
 
@@ -59,8 +59,8 @@ function CJSRegisterTransformer(name, deps, address, optimize, globals, systemGl
 CJSRegisterTransformer.prototype = Object.create(ParseTreeTransformer.prototype);
 
 CJSRegisterTransformer.prototype.transformMemberExpression = function(tree) {
-  if (this.optimize && tree.operand.operand && tree.operand.operand.identifierToken && 
-      tree.operand.operand.identifierToken.value == 'process' && 
+  if (this.optimize && tree.operand.operand && tree.operand.operand.identifierToken &&
+      tree.operand.operand.identifierToken.value == 'process' &&
       tree.operand.memberName == 'env' && tree.memberName.value == 'NODE_ENV') {
     return new LiteralExpression(tree.location, new LiteralToken(STRING, '"production"', tree.location));
   }
@@ -97,17 +97,9 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
     globalExpression += ';';
   }
 
-  scriptItemList = parseStatements([
-    globalExpression + nl
-    + 'var global = this, __define = global.define;' + nl + 'global.define = undefined;'
-  ]).concat(scriptItemList).concat(parseStatements([
-    'global.define = __define;' + nl
-    + 'return module.exports;'
-  ]));
-
   // wrap everything in System.register
   return new Script(tree.location, parseStatements([
-    this.systemGlobal + '.registerDynamic(' + (this.name ? '"' + this.name + '", ' : '') + JSON.stringify(this.deps) + ', true, function(req, exports, module) {\n',
+    'define(' + (this.name ? '"' + this.name + '", ' : '') + 'function(req, exports, module) {\n',
     '});'], scriptItemList));
 };
 exports.CJSRegisterTransformer = CJSRequireTransformer;

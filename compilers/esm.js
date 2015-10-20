@@ -96,16 +96,16 @@ exports.compile = function(load, opts, loader) {
       if (options.target === undefined)
         options.target = transpiler.ScriptTarget.ES5;
       options.module = transpiler.ModuleKind.System;
-      
-      var transpileOptions = { 
-        compilerOptions: options, 
-        renamedDependencies: load.depMap, 
-        fileName: load.path, 
-        moduleName: !opts.anonymous && load.name 
+
+      var transpileOptions = {
+        compilerOptions: options,
+        renamedDependencies: load.depMap,
+        fileName: load.path,
+        moduleName: !opts.anonymous && load.name
       };
-      
+
       var transpiled = transpiler.transpileModule(source, transpileOptions);
-      
+
       return Promise.resolve({
         source: transpiled.outputText,
         sourceMap: transpiled.sourceMapText
@@ -118,9 +118,9 @@ exports.compile = function(load, opts, loader) {
           console.log('Warning - using Babel ' + babelVersion + '. This version of SystemJS builder is designed to run against Babel 5.');
         versionCheck = false;
       }
-        
+
       options = loader.babelOptions || {};
-      options.modules = 'system';
+      options.modules = 'amd';
       if (opts.sourceMaps)
         options.sourceMap = true;
       if (load.metadata.sourceMap)
