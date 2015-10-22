@@ -99,7 +99,7 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
 
   // wrap everything in System.register
   return new Script(tree.location, parseStatements([
-    'define(' + (this.name ? '"' + this.name + '", ' : '') + 'function(req, exports, module) {\n',
+    'define(' + (this.name ? '"' + this.name + '", ' : '') + JSON.stringify(["require", "exports", "module"].concat(this.deps)) + ', function(req, exports, module) {\n',
     '});'], scriptItemList));
 };
 exports.CJSRegisterTransformer = CJSRequireTransformer;
