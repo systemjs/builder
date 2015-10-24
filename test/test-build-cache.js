@@ -1,6 +1,7 @@
 var Builder = require('../index');
 var expect = require('chai').expect;
 var toFileURL = require('../lib/utils.js').toFileURL;
+var fs = require('fs');
 
 suite('Test compiler cache', function() {
   var builder = new Builder('test/fixtures/test-cache-tree');
@@ -108,4 +109,23 @@ suite('Test compiler cache', function() {
     invalidated = builder.invalidate('deep/*.js');
     assert.deepEqual(invalidated, [System.normalizeSync('deep/wildcard/test.js')]);
   });
+
+  test('Bundle example', function() {
+    var builder = new Builder('test/output');
+    fs.writeFileSync('./test/output/dynamic-module.js', 'export var p = 5;');
+    
+    return builder.bundle('dynamic-module.js')
+    .then(function(output) {
+      assert(output.source.match(/p = 5/));
+
+      builder.invalidate('dynamic-module.js');
+
+      fs.writeFileSync('./test/output/dynamic-module.js', 'export var p = 6;');
+
+      return builder.bundle('dynamic-module.js')
+    })
+    .then(function(output) {
+      assert(output.source.match(/p = 6/));
+    });
+  })
 });
