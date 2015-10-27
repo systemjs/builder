@@ -2,7 +2,8 @@ define(['./first.js', './second.js', 'require', 'module'], function(first, secon
 
   module.exports = {
     first: first,
-    second: require('./second.js')
+    second: require('./second.js'),
+    utfChar: '\u221e'
   };
 
   if (DEBUG) {

@@ -18,6 +18,8 @@
     suite('SFX', function () {
       test('should have globals defined', function (done) {
         assert(window.myjquery);
+        assert(window.amd1);
+        assert(window.amd1.utfChar == '\u221e');
         done();
       });
     });

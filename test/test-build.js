@@ -160,7 +160,7 @@ function doTests(transpiler) {
         'toamd1': 'amd-1.js'
       }
     });
-    return builder.buildStatic('toamd1', 'test/output/sfx.js', { runtime: true, minify: minify, globalDefs: { DEBUG: false } })
+    return builder.buildStatic('toamd1', 'test/output/sfx.js', { runtime: true, minify: minify, globalDefs: { DEBUG: false }, globalName: 'amd1' })
     .then(function() {
       return testPhantom('test/test-sfx.html');
     });
