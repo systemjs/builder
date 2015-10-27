@@ -59,6 +59,7 @@
       test('Loading named System.register', function(done) {
         System['import']('third.js').then(function(m) {
           ok(m.some == 'exports');
+          ok(m.pi == 'π');
           done();
         })
         .catch(done);

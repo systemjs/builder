@@ -3,6 +3,7 @@ System.register(['./second.js'], function($__export) {
     setters: [function() {}],
     execute: function() {
       $__export('some', 'exports');
+      $__export('pi', 'π');
     }
   };
 });
