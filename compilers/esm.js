@@ -136,7 +136,7 @@ exports.compile = function(load, opts, loader) {
 
       if (transpiler.version.match(/^4/))
         options.returnUsedHelpers = true;
-      else if (transpiler.version.match(/^5\.\d+\./))
+      else if (transpiler.version.match(/^5\.[01234]\./))
         options.metadataUsedHelpers = true;
 
       if (normalize)
