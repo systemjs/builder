@@ -187,6 +187,28 @@ builder.config({
 });
 ```
 
+### Overriding Fetch
+
+The framework fetch function can be overridden in order to provide the source for a file manually. This is useful if you want to pre-process the source of a file before using the builder.
+
+```javascript
+var mySource = 'import * from foo; var foo = "bar";'; // get source as a string
+builder.bundle('foo.js', {
+  fetch: function (load, fetch) {
+    if (load.name.indexOf('foo.js') !== -1) {
+      return mySource;
+    } else {
+      // fall back to the normal fetch method
+      return fetch(load);
+    }
+  }
+});
+```
+
+The `load` variable describes the file that is trying to be loaded. This is called once for every file that is trying to be fetched, including dependencies.
+
+The `fetch` function should return a string.
+
 ### Bundle Arithmetic
 
 Both `builder.build` and `builder.buildStatic` support bundle arithmetic expressions. This allows for the easy construction of custom bundles.

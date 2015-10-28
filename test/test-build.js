@@ -43,11 +43,11 @@ function doTests(transpiler) {
     builder.reset();
     builder.config({ transpiler: transpiler });
     return builder.bundle('foo.js', {
-      fetch: function (load, pass) {
+      fetch: function (load, fetch) {
         if (load.name.indexOf('foo.js') !== -1) {
           return fs.readFileSync('test/fixtures/test-tree/amd-1.js', 'utf8');
         } else {
-          return pass();
+          return fetch(load);
         }
       }
     });
