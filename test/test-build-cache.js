@@ -127,5 +127,18 @@ suite('Test compiler cache', function() {
     .then(function(output) {
       assert(output.source.match(/p = 6/));
     });
-  })
+  });
+
+  test('Static string build', function () {
+    var builder = new Builder('test/fixtures/test-tree');
+    return builder.bundle('foo.js', {
+      fetch: function (load, fetch) {
+        if (load.name.indexOf('foo.js') !== -1) {
+          return fs.readFileSync('test/fixtures/test-tree/cjs.js', 'utf8');
+        } else {
+          return fetch(load);
+        }
+      }
+    });
+  });
 });
