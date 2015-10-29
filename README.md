@@ -103,7 +103,7 @@ To make a bundle that is independent of the SystemJS loader entirely, we can mak
 builder.buildStatic('myModule.js', 'outfile.js', options);
 ```
 
-This bundle file can then be included with a `<script>` tag, and no other dependencies would need to be included in the page. 
+This bundle file can then be included with a `<script>` tag, and no other dependencies would need to be included in the page.
 
 By default, Traceur or Babel runtime are automatically included in the SFX bundle if needed. To exclude the Babel or Traceur runtime set the `runtime` build option to false:
 
@@ -281,6 +281,43 @@ Promise.all([builder.trace('app/first.js'), builder.trace('app/second.js')])
     builder.bundle(builder.subtractTrees(trees[1], commonTree), 'second-bundle.js')
   ]);
 });
+```
+
+#### Example - Automatic Re-bundle Using a Watcher
+
+To watch for changes on the entire list of dependency files for a given entry point, and then
+automatically re-bundle when the files change, we can use the `trace()` method. This example uses
+`gulp` to watch, but you can use this pattern for any other watcher you like.
+
+```javascript
+var gulp = require('gulp');
+var path = require('path');
+
+var BASE_PATH = __dirname; // Replace with your SystemJS loader base path.
+var watcher;
+
+function watch(changed) {
+  if (changed) {
+    // The '*' is for matching SystemJS plugin syntax.
+    builder.invalidate(path.relative(BASE_PATH, changed.path) + '*');
+  }
+
+  if (watcher) {
+    watcher.end();
+  }
+
+  // List of dependencies may have changed, re-generate them with trace().
+  builder.trace('path/to/entryPoint.js').then(function (tree) {
+    var filesToWatch = Object.keys(tree).map(function (filePath) {
+      // Remove the SystemJS plugin syntax from the file path.
+      return path.join(BASE_PATH, filePath.split('!')[0]);
+    });
+
+    builder.bundle(tree);
+    watcher = gulp.watch(filesToWatch, watch);
+  });
+}
+watch();
 ```
 
 License
