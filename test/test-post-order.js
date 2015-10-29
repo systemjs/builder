@@ -5,6 +5,7 @@ suite('Test post order traversal', function() {
   test('should return single module that has no incoming relation', function() {
     var tree = {
       'a': {
+        name: 'a',
         deps: [],
         depMap: {}
       }
@@ -16,10 +17,12 @@ suite('Test post order traversal', function() {
   test('should return modules that has no incoming relations', function() {
     var tree = {
       'a': {
+        name: 'a',
         deps: [],
         depMap: {}
       },
       'b': {
+        name: 'b',
         deps: [],
         depMap: {}
       }
@@ -31,12 +34,14 @@ suite('Test post order traversal', function() {
   test('should resolve module names based on depMap', function() {
     var tree = {
       'a': {
+        name: 'a',
         deps: ['foo'],
         depMap: {
           'foo': 'b'
         }
       },
       'b': {
+        name: 'b',
         deps: [],
         depMap: {}
       }
@@ -48,6 +53,7 @@ suite('Test post order traversal', function() {
   test('should order modules with dependencies first', function() {
     var tree = {
       'a': {
+        name: 'a',
         deps: ['b', 'd'],
         depMap: {
           'b': 'b',
@@ -55,16 +61,19 @@ suite('Test post order traversal', function() {
         }
       },
       'b': {
+        name: 'b',
         deps: ['c'],
         depMap: {
           'c': 'c'
         }
       },
       'c': {
+        name: 'c',
         deps: [],
         depMap: {}
       },
       'd': {
+        name: 'd',
         deps: [],
         depMap: {}
       }
@@ -76,22 +85,26 @@ suite('Test post order traversal', function() {
   test('should order graph entries alphabetically', function() {
     var tree = {
       'a': {
+        name: 'a',
         deps: ['b'],
         depMap: {
           'b': 'b'
         }
       },
       'b': {
+        name: 'b',
         deps: ['c'],
         depMap: {
           'c': 'c'
         }
       },
       'c': {
+        name: 'c',
         deps: [],
         depMap: {}
       },
       'd': {
+        name: 'd',
         deps: [],
         depMap: {}
       }
@@ -103,22 +116,26 @@ suite('Test post order traversal', function() {
   test('should override alphabetical graph entry order with entryPoints array', function() {
     var tree = {
       'a': {
+        name: 'a',
         deps: ['b'],
         depMap: {
           'b': 'b'
         }
       },
       'b': {
+        name: 'b',
         deps: ['c'],
         depMap: {
           'c': 'c'
         }
       },
       'c': {
+        name: 'c',
         deps: [],
         depMap: {}
       },
       'd': {
+        name: 'd',
         deps: [],
         depMap: {}
       }
@@ -130,26 +147,31 @@ suite('Test post order traversal', function() {
   test('should include entry points not present in given entryPoints order, in alphabetical order', function() {
     var tree = {
       'a': {
+        name: 'a',
         deps: ['b'],
         depMap: {
           'b': 'b'
         }
       },
       'b': {
+        name: 'b',
         deps: ['c'],
         depMap: {
           'c': 'c'
         }
       },
       'c': {
+        name: 'c',
         deps: [],
         depMap: {}
       },
       'd': {
+        name: 'd',
         deps: [],
         depMap: {}
       },
       'e': {
+        name: 'e',
         deps: [],
         depMap: {}
       }
