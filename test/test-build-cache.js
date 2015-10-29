@@ -23,7 +23,7 @@ suite('Test compiler cache', function() {
       expect(cacheEntry).to.be.an('object');
 
       cacheObj = cacheEntry.compile.loads['simple.js'];
-      
+
       expect(cacheObj).to.be.an('object');
       expect(cacheObj.hash).to.be.a('string');
       expect(cacheObj.output).to.be.an('object');
@@ -55,7 +55,7 @@ suite('Test compiler cache', function() {
     // construct the load record for the cache
     var cacheObj = {
       trace: {
-        'simple.js': { 
+        'simple.js': {
           name: 'simple.js',
           path: 'fixtures/test-cache-tree/simple.js',
           metadata: {
@@ -113,19 +113,69 @@ suite('Test compiler cache', function() {
   test('Bundle example', function() {
     var builder = new Builder('test/output');
     fs.writeFileSync('./test/output/dynamic-module.js', 'export var p = 5;');
-    
+
     return builder.bundle('dynamic-module.js')
     .then(function(output) {
       assert(output.source.match(/p = 5/));
 
+      fs.writeFileSync('./test/output/dynamic-module.js', 'export var p = 6;');
       builder.invalidate('dynamic-module.js');
 
-      fs.writeFileSync('./test/output/dynamic-module.js', 'export var p = 6;');
-
-      return builder.bundle('dynamic-module.js')
+      return builder.bundle('dynamic-module.js');
     })
     .then(function(output) {
       assert(output.source.match(/p = 6/));
+    });
+  });
+
+  test('Bundle example with imported file', function() {
+    var builder = new Builder('test/output');
+
+    fs.writeFileSync('./test/output/dynamic-import.js', [
+      'const d = 9;',
+      'export default d;'
+    ].join('\n'));
+
+    fs.writeFileSync('./test/output/dynamic-main.js', [
+      'import d from "./dynamic-import.js";',
+      'console.log(d);'
+    ].join('\n'));
+
+    return builder.bundle('dynamic-main.js')
+    .then(function(output) {
+      assert(output.source.match(/d = 9/));
+      assert(output.source.match(/console/));
+
+      fs.writeFileSync('./test/output/dynamic-import.js', [
+        'import "./dynamic-import2.js";', // Add another transitive dependency.
+        'const d = 7;',
+        'export default d;'
+      ].join('\n'));
+      builder.invalidate('dynamic-import.js');
+
+      fs.writeFileSync('./test/output/dynamic-import2.js', [
+        'const u = "transitive";',
+        'export default u;'
+      ].join('\n'));
+
+      return builder.bundle('dynamic-main.js');
+    })
+    .then(function(output) {
+      assert(output.source.match(/transitive/));
+      assert(output.source.match(/d = 7/));
+      assert(output.source.match(/console/));
+
+      // Remove the transitive dependency from the build.
+      fs.writeFileSync('./test/output/dynamic-import.js', [
+        'const d = 7;',
+        'export default d;'
+      ].join('\n'));
+      builder.invalidate('dynamic-import.js');
+
+      return builder.bundle('dynamic-main.js');
+    })
+    .then(function(output) {
+      assert(!output.source.match(/transitive/));
     });
   });
 
