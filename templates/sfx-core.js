@@ -287,7 +287,7 @@
       entry.esModule = {};
       
       // don't trigger getters/setters in environments that support them
-      if (typeof exports == 'object' || typeof exports == 'function') {
+      if ((typeof exports == 'object' || typeof exports == 'function') && exports !== global) {
         if (getOwnPropertyDescriptor) {
           var d;
           for (var p in exports)
