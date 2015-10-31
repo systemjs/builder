@@ -5,7 +5,7 @@ suite('Errors', function() {
   test('Non-existing file', function() {
     return builder.bundle('asdf')
     .catch(function(e) {
-      assert(e.toString().indexOf('no such file or directory') != -1);
+      assert(e.toString().indexOf('ENOENT') != -1);
     });
   });
 
