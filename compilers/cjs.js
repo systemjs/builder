@@ -97,7 +97,7 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
     globalExpression = 'var ';
     var first = true;
     for (var g in this.globals) {
-      globalExpression += (first ? '' : ', ') + g + '= req("' + this.globals[g] + '")';
+      globalExpression += (first ? '' : ', ') + g + '= $__require("' + this.globals[g] + '")';
       first = false;
     }
     if (first == true)
@@ -115,7 +115,7 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
 
   // wrap everything in System.register
   return new Script(tree.location, parseStatements([
-    this.systemGlobal + '.registerDynamic(' + (this.name ? '"' + this.name + '", ' : '') + JSON.stringify(this.deps) + ', true, function(req, exports, module) {\n',
+    this.systemGlobal + '.registerDynamic(' + (this.name ? '"' + this.name + '", ' : '') + JSON.stringify(this.deps) + ', true, function($__require, exports, module) {\n',
     '});'], scriptItemList));
 };
 exports.CJSRegisterTransformer = CJSRequireTransformer;
@@ -136,7 +136,7 @@ exports.compile = function(load, opts, loader) {
   var transformer;
 
   if (opts.normalize) {
-    transformer = new CJSRequireTransformer('require', function(dep) { return load.depMap[dep]; }, 'req');
+    transformer = new CJSRequireTransformer('require', function(dep) { return load.depMap[dep]; }, '$__require');
     tree = transformer.transformAny(tree);
   }
 
