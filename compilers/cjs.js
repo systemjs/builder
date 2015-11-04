@@ -87,6 +87,18 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
   var scriptItemList = tree.scriptItemList;
   var nl = '\n    ';
 
+  var useStrict = '';
+  for (var i = 0; i < scriptItemList.length; i++) {
+    // Check to see if the first code source location contains "use strict"
+    if (scriptItemList[i].
+        location.
+        start.
+        source.
+        contents.match(/^['"]use strict['"]/gi)) {
+      useStrict = '"use strict";\n';
+    }
+  }
+
   if (this.usesFilePaths)
     scriptItemList = parseStatements([
       "var __filename = module.id, __dirname = module.id.split('/').splice(0, module.id.split('/').length - 1).join('/');"
@@ -106,7 +118,7 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
   }
 
   scriptItemList = parseStatements([
-    globalExpression + nl
+    useStrict + globalExpression + nl
     + 'var global = this, __define = global.define;' + nl + 'global.define = undefined;'
   ]).concat(scriptItemList).concat(parseStatements([
     'global.define = __define;' + nl
