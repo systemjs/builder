@@ -179,7 +179,7 @@ suite('Test compiler cache', function() {
     });
   });
 
-  test('Static build example with imported file', function() {
+  test('Static build example statting check', function() {
     var builder = new Builder('test/output');
 
     fs.writeFileSync('./test/output/static-main.js', "import { testThing } from './static-test-module.js'; testThing();");
@@ -194,7 +194,7 @@ suite('Test compiler cache', function() {
     });
   });
 
-  test('Static build example with imported file', function() {
+  test('Static build example dependency reload check', function() {
     var builder = new Builder('test/output');
 
     fs.writeFileSync('./test/output/static-main.js', "import { testThing } from './static-test-module.js'; testThing();");
@@ -202,8 +202,8 @@ suite('Test compiler cache', function() {
 
     return builder.buildStatic('static-main.js')
     .then(function() {
-      builder.invalidate('static-main.js');
-      fs.unlinkSync('./test/output/static-test-module.js');
+      fs.writeFileSync('./test/output/static-test-module.js', "export function testThing() { console.log('new test'); }")
+      builder.invalidate('static-test-module.js');
       return builder.buildStatic('static-main.js');
     });
   });
