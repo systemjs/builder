@@ -188,6 +188,21 @@ suite('Test compiler cache', function() {
     return builder.buildStatic('static-main.js')
     .then(function() {
       builder.invalidate('static-main.js');
+      // despite removing the file, it remains cached
+      fs.unlinkSync('./test/output/static-test-module.js');
+      return builder.buildStatic('static-main.js');
+    });
+  });
+
+  test('Static build example with imported file', function() {
+    var builder = new Builder('test/output');
+
+    fs.writeFileSync('./test/output/static-main.js', "import { testThing } from './static-test-module.js'; testThing();");
+    fs.writeFileSync('./test/output/static-test-module.js', "export function testThing() { console.log('test'); }");
+
+    return builder.buildStatic('static-main.js')
+    .then(function() {
+      builder.invalidate('static-main.js');
       fs.unlinkSync('./test/output/static-test-module.js');
       return builder.buildStatic('static-main.js');
     });
