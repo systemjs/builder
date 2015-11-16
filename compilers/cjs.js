@@ -11,6 +11,19 @@ var LiteralToken = traceur.get('syntax/LiteralToken.js').LiteralToken;
 var IdentifierExpression = traceur.get('syntax/trees/ParseTrees.js').IdentifierExpression;
 var IdentifierToken = traceur.get('syntax/IdentifierToken.js').IdentifierToken;
 var BindingIdentifier = traceur.get('syntax/trees/ParseTrees.js').BindingIdentifier;
+var createUseStrictDirective = traceur.get('codegeneration/ParseTreeFactory.js').createUseStrictDirective;
+
+function hasRemoveUseStrict(list) {
+  for (var i = 0; i < list.length; i++) {
+    if (!list[i].isDirectivePrologue())
+      return false;
+    if (list[i].isUseStrictDirective()) {
+      list.splice(i, 1);
+      return true;
+    }
+  }
+  return false;
+}
 
 // remap require() statements
 function CJSRequireTransformer(requireName, map, mappedRequireName) {
@@ -105,10 +118,12 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
     globalExpression += ';';
   }
 
-  scriptItemList = parseStatements([
+  var useStrict = hasRemoveUseStrict(scriptItemList) && [createUseStrictDirective()] || [];
+
+  scriptItemList = useStrict.concat(parseStatements([
     globalExpression + nl
     + 'var global = this, __define = global.define;' + nl + 'global.define = undefined;'
-  ]).concat(scriptItemList).concat(parseStatements([
+  ])).concat(scriptItemList).concat(parseStatements([
     'global.define = __define;' + nl
     + 'return module.exports;'
   ]));
