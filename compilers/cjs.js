@@ -3,6 +3,7 @@ var url = require('url');
 var traceur = require('traceur');
 var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
 var Script = traceur.get('syntax/trees/ParseTrees.js').Script;
+var FunctionBody = traceur.get('syntax/trees/ParseTrees.js').FunctionBody;
 var parseStatements = traceur.get('codegeneration/PlaceholderParser.js').parseStatements;
 var parseExpression = traceur.get('codegeneration/PlaceholderParser.js').parseExpression;
 var STRING = traceur.get('syntax/TokenType.js').STRING;
@@ -11,6 +12,8 @@ var LiteralToken = traceur.get('syntax/LiteralToken.js').LiteralToken;
 var IdentifierExpression = traceur.get('syntax/trees/ParseTrees.js').IdentifierExpression;
 var IdentifierToken = traceur.get('syntax/IdentifierToken.js').IdentifierToken;
 var BindingIdentifier = traceur.get('syntax/trees/ParseTrees.js').BindingIdentifier;
+var hasUseStrict = traceur.get('semantics/util.js').hasUseStrict;
+var createUseStrictDirective = traceur.get('codegeneration/ParseTreeFactory.js').createUseStrictDirective;
 
 // remap require() statements
 function CJSRequireTransformer(requireName, map, mappedRequireName) {
@@ -105,10 +108,15 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
     globalExpression += ';';
   }
 
-  scriptItemList = parseStatements([
+  var useStrict = [];
+  if (hasUseStrict(scriptItemList)) {
+    useStrict = [createUseStrictDirective()];
+  }
+
+  scriptItemList = useStrict.concat(parseStatements([
     globalExpression + nl
     + 'var global = this, __define = global.define;' + nl + 'global.define = undefined;'
-  ]).concat(scriptItemList).concat(parseStatements([
+  ])).concat(scriptItemList).concat(parseStatements([
     'global.define = __define;' + nl
     + 'return module.exports;'
   ]));
