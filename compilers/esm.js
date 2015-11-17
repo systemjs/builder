@@ -3,6 +3,28 @@ var traceur = require('traceur');
 var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
 var ModuleSpecifier = traceur.get('syntax/trees/ParseTrees.js').ModuleSpecifier;
 var createStringLiteralToken = traceur.get('codegeneration/ParseTreeFactory.js').createStringLiteralToken;
+var InstantiateModuleTransformer = traceur.get('codegeneration/InstantiateModuleTransformer.js').InstantiateModuleTransformer;
+var CollectingErrorReporter = traceur.get('util/CollectingErrorReporter.js').CollectingErrorReporter;
+var UniqueIdentifierGenerator = traceur.get('codegeneration/UniqueIdentifierGenerator.js').UniqueIdentifierGenerator;
+
+function InstantiateOnlyCompiler() {
+  traceur.Compiler.apply(this, arguments);
+}
+InstantiateOnlyCompiler.prototype = Object.create(traceur.Compiler.prototype);
+InstantiateOnlyCompiler.prototype.transform = function(tree, candidateModuleName, metadata) {
+  var errorReporter = new CollectingErrorReporter();
+
+  var transformer = new InstantiateModuleTransformer(new UniqueIdentifierGenerator(), errorReporter, this.options_);
+
+  if (candidateModuleName)
+    tree.moduleName = candidateModuleName;
+
+  var transformedTree = transformer.transformAny(tree);
+
+  this.throwIfErrors(errorReporter);
+
+  return transformedTree;
+};
 
 function TraceurImportNormalizeTransformer(map) {
   this.map = map;
@@ -31,12 +53,27 @@ function remap(source, map, fileName) {
 }
 exports.remap = remap;
 
+// override System instantiate to handle esm tracing
 exports.attach = function(loader) {
-  // NB for better performance, we should just parse and
-  // cache the AST and store on the metadata, returning the deps only
-  var loaderTranslate = loader.translate;
-  loader.translate = function(load) {
-    return loaderTranslate.call(this, load);
+  var systemInstantiate = loader.instantiate;
+  loader.instantiate = function(load) {
+    // skip plugin loader attachment || non es modules || es modules handled by internal transpilation layer
+    if (!loader.builder || load.metadata.format != 'esm' || load.metadata.originalSource)
+      return systemInstantiate.call(this, load);
+
+    var compiler = new traceur.Compiler({ script: false, sourceRoot: true });
+    load.metadata.parseTree = compiler.parse(load.source, load.path);
+    var depsList = load.metadata.deps.concat([]);
+    var extractDependencyTransformer = new TraceurImportNormalizeTransformer(function(dep) {
+      if (depsList.indexOf(dep) == -1)
+        depsList.push(dep);
+    });
+    extractDependencyTransformer.transformAny(load.metadata.parseTree);
+
+    return Promise.resolve({
+      deps: depsList,
+      execute: null
+    });
   };
 };
 
@@ -48,6 +85,29 @@ exports.compile = function(load, opts, loader) {
 
   // load.metadata.originalSource set by esm layer to allow plugin -> esm
   var source = load.metadata.originalSource || load.source;
+
+  // plugin to esm -> ONLY do traceur instantiate conversion, and nothing else
+  if (load.metadata.loader && load.metadata.format == 'esm') {
+    var compiler = new InstantiateOnlyCompiler({
+      script: false,
+      sourceRoot: true,
+      moduleName: !opts.anonymous,
+      inputSourceMap: load.metadata.sourceMap,
+      sourceMaps: opts.sourceMaps && 'memory',
+      lowResolutionSourceMap: opts.lowResSourceMaps
+    });
+
+    var tree = load.metadata.parseTree || compiler.parse(load.source, load.path);
+
+    tree = compiler.transform(tree, load.name);
+
+    var outputSource = compiler.write(tree, load.path);
+
+    return Promise.resolve({
+      source: outputSource,
+      sourceMap: compiler.getSourceMap()
+    });
+  }
 
   return Promise.resolve(global[loader.transpiler == 'typescript' ? 'ts' : loader.transpiler] || loader.import(loader.transpiler))
   .then(function(transpiler) {
