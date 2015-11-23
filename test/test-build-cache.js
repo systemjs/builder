@@ -79,6 +79,13 @@ suite('Test compiler cache', function() {
     });
   });
 
+  test('Cache invalidation when the cache is empty', function() {
+    builder.setCache({});
+    expect(function() {
+      builder.invalidate('*');
+    }).to.throw(/Invalidate was called/i);
+  });
+
   test('Cache invalidation', function() {
     var cacheObj = {
       trace: {
