@@ -19,6 +19,9 @@ System.config({
       globals: {
         Buffer: 'Buffer.js'
       }
+    },
+    '*.json': {
+      loader: 'json-plugin.js'
     }
   }
 });

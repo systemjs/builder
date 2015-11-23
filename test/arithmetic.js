@@ -36,8 +36,8 @@ suite('Bundle Expressions', function() {
     builder.trace('*.js - [amd-*] - [sfx-format-*]')
     .then(function(tree) {
       assert.deepEqual(Object.keys(tree).sort(), [
-          'Buffer.js', 'amd.js', 'babel', 'cjs-globals.js', 'cjs.js', 'component.jsx!jsx.js', 'first.js', 
-          'global-inner.js', 'global-outer.js', 'global.js', 'jquery-cdn', 'jquery.js', 'jsx.js', 'plugin.js', 'runtime.js', 
+          'Buffer.js', 'amd.js', 'babel', 'cjs-globals.js', 'cjs.js', 'component.jsx!jsx.js', 'file.json', 'first.js', 
+          'global-inner.js', 'global-outer.js', 'global.js', 'jquery-cdn', 'jquery.js', 'json-plugin.js', 'jsx.js', 'plugin.js', 'runtime.js', 
           'second.js', 'some.js!plugin.js', 'text-plugin.js', 'text.txt!text-plugin.js', 'third.js', 'umd.js']);
     })
     .then(done, done);
