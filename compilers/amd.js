@@ -187,6 +187,10 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
     deps = ['require', 'exports', 'module'].splice(0, args[0].parameterList.parameters.length).concat(this.load.deps);
     factoryTree = args[0];
   }
+  else if (args.length == 1) {
+    // allow a define(some && expression || statement) for an object
+    factoryTree = args[0];
+  }
   else {
     // not valid define
     return ParseTreeTransformer.prototype.transformCallExpression.call(this, tree);
