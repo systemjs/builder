@@ -12,6 +12,7 @@ var IdentifierExpression = traceur.get('syntax/trees/ParseTrees.js').IdentifierE
 var IdentifierToken = traceur.get('syntax/IdentifierToken.js').IdentifierToken;
 var BindingIdentifier = traceur.get('syntax/trees/ParseTrees.js').BindingIdentifier;
 var createUseStrictDirective = traceur.get('codegeneration/ParseTreeFactory.js').createUseStrictDirective;
+var Promise = require('bluebird');
 
 function hasRemoveUseStrict(list) {
   for (var i = 0; i < list.length; i++) {

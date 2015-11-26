@@ -6,6 +6,7 @@ var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js')
 var parseExpression = traceur.get('codegeneration/PlaceholderParser.js').parseExpression;
 
 var CJSRequireTransformer = require('./cjs').CJSRequireTransformer;
+var Promise = require('bluebird');
 
 // First of two-pass transform
 // lists number of define statements, the named module it defines (if any), and deps

@@ -1,7 +1,6 @@
 var Builder = require('../index');
 var inline = require('../lib/output').inlineSourceMap;
 var fs = require('fs');
-var Promise = require('rsvp').Promise;
 var spawn = require('child_process').spawn;
 if (process.argv[2] == 'typescript')
   global.ts = require('typescript');

@@ -1,7 +1,5 @@
 var Builder = require('../index');
 var fs = require('fs');
-var Promise = require('rsvp').Promise;
-
 
 suite('Test builder.loadConfig', function() {
     
