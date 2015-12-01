@@ -38,7 +38,7 @@ CJSRequireTransformer.prototype = Object.create(ParseTreeTransformer.prototype);
 CJSRequireTransformer.prototype.transformCallExpression = function(tree) {
   // found a require
   if (tree.operand.identifierToken && tree.operand.identifierToken.value == this.requireName
-      && tree.args.args.length && tree.args.args[0].type == 'LITERAL_EXPRESSION' && tree.args.args.length == 1) {  
+      && tree.args.args.length && tree.args.args.length == 1) {  
     var requireModule = tree.args.args[0].literalToken.processedValue;
     var requireModuleMapped = this.map && this.map(requireModule) || requireModule;
 
