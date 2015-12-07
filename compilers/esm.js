@@ -1,4 +1,5 @@
 var traceur = require('traceur');
+var path = require('path');
 
 var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
 var ModuleSpecifier = traceur.get('syntax/trees/ParseTrees.js').ModuleSpecifier;
@@ -165,7 +166,15 @@ exports.compile = function(load, opts, loader) {
       };
       
       var transpiled = transpiler.transpileModule(source, transpileOptions);
-      
+
+      // Typescript compiler source map has no "sourceRoot" on entries when
+      // transpiled in this way. Apply the sourceRoot to sourcemap manually.
+      if (transpiled.sourceMapText) {
+        var sourceMapObject = JSON.parse(transpiled.sourceMapText);
+        sourceMapObject.sourceRoot = path.dirname(load.path);
+        transpiled.sourceMapText = JSON.stringify(sourceMapObject);
+      }
+
       return Promise.resolve({
         source: transpiled.outputText,
         sourceMap: transpiled.sourceMapText
