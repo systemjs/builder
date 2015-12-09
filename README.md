@@ -115,10 +115,10 @@ builder.buildStatic('myModule.js', 'outfile.js', { runtime: false });
 
 SFX bundles can also be output as a custom module format - `amd`, `cjs` or `es6` for consumption in different environments.
 
-This is handled via the `sfxFormat` option:
+This is handled via the `format` (previously `sfxFormat`) option:
 
 ```javascript
-builder.buildStatic('myModule.js', 'outfile.js', { sfxFormat: 'cjs' });
+builder.buildStatic('myModule.js', 'outfile.js', { format: 'cjs' });
 ```
 
 The first module used as input (`myModule.js` here) will then have its exports output as the CommonJS exports of the whole SFX bundle itself
