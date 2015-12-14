@@ -90,9 +90,15 @@ CJSRegisterTransformer.prototype.transformMemberExpression = function(tree) {
 };
 CJSRegisterTransformer.prototype.transformIdentifierExpression = function(tree) {
   var value = tree.identifierToken.value;
-  if (!this.usesFilePaths && value == '__filename' || value == '__dirname')
+  if (value == '__filename' || value == '__dirname')
     this.usesFilePaths = true;
   return ParseTreeTransformer.prototype.transformIdentifierExpression.call(this, tree);
+};
+CJSRegisterTransformer.prototype.transformerBindingIdentifier = function(tree) {
+  var value = tree.identifierToken.value;
+  if (value == '__filename' || value == '__dirname')
+    this.usesFilePaths = true;
+  return ParseTreeTransformer.prototype.transformBindingIdentifier.call(this, tree);
 };
 
 CJSRegisterTransformer.prototype.transformScript = function(tree) {

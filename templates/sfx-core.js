@@ -173,7 +173,7 @@
 
       module.locked = false;
       return value;
-    });
+    }, entry.name);
 
     module.setters = declaration.setters;
     module.execute = declaration.execute;
