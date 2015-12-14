@@ -4,6 +4,9 @@
   <script src="../node_modules/mocha/mocha.js"></script>
   <body>
     <div id="mocha">
+  <script>
+    window.$ = { jquery: 1 };
+  </script>
   <script src="output/sfx.js"></script>
   <script>
     mocha.setup('tdd');

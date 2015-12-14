@@ -152,14 +152,26 @@ function doTests(transpiler) {
   if (transpiler != 'traceur')
   test('SFX tree build', function() {
     builder.reset();
-    builder.config({transpiler: transpiler });
+    builder.config({ transpiler: transpiler });
     builder.config({
       map: {
-        'jquery-cdn': '@empty',
         'toamd1': 'amd-1.js'
+      },
+      meta: {
+        'jquery-cdn': {
+          build: false
+        }
       }
     });
-    return builder.buildStatic('toamd1', 'test/output/sfx.js', { runtime: true, minify: minify, globalDefs: { DEBUG: false }, globalName: 'amd1' })
+    return builder.buildStatic('toamd1', 'test/output/sfx.js', {
+      runtime: true, 
+      minify: minify, 
+      globalDefs: { DEBUG: false }, 
+      globalName: 'amd1',
+      globalDeps: {
+        'jquery-cdn': '$'
+      }
+    })
     .then(function() {
       return testPhantom('test/test-sfx.html');
     });
