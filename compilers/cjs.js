@@ -103,7 +103,7 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
 
   if (this.usesFilePaths)
     scriptItemList = parseStatements([
-      "var __filename = module.id, __dirname = module.id.split('/').splice(0, module.id.split('/').length - 1).join('/');"
+      "var $__pathVars = " + this.systemGlobal + ".get('@@cjs-helpers').getPathVars(module.id), __filename = $__pathVars.filename, __dirname = $__pathVars.dirname;"
     ]).concat(scriptItemList);
 
   var globalExpression = '';
@@ -176,6 +176,10 @@ exports.compile = function(load, opts, loader) {
     source: output,
     sourceMap: compiler.getSourceMap()
   });
+};
+
+exports.sfx = function(loader) {
+  return require('fs').readFileSync(require('path').resolve(__dirname, '../templates/cjs-helpers.js')).toString();
 };
 
 function remap(source, map, fileName) {

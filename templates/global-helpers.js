@@ -16,7 +16,7 @@
   }
 
   // bare minimum ignores for IE8
-  var ignoredGlobalProps = ['_g', 'sessionStorage', 'localStorage', 'clipboardData', 'frames', 'external', 'mozAnimationStartTime', 'webkitStorageInfo', 'webkitIndexedDB'];
+  var ignoredGlobalProps = ['_g', 'sessionStorage', 'localStorage', 'clipboardData', 'frames', 'frameElement', 'external', 'mozAnimationStartTime', 'webkitStorageInfo', 'webkitIndexedDB'];
 
   var globalSnapshot;
 
@@ -60,7 +60,7 @@
       if (globals) {
         oldGlobals = {};
         for (var g in globals) {
-          oldGlobals[g] = globals[g];
+          oldGlobals[g] = __global[g];
           __global[g] = globals[g];
         }
       }
