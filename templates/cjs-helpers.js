@@ -8,6 +8,7 @@
     getPathVars: function(moduleId) {
       // remove any plugin syntax
       var pluginIndex = moduleId.lastIndexOf('!');
+      var filename;
       if (pluginIndex != -1)
         filename = filename.substr(0, pluginIndex);
       else
