@@ -84,11 +84,6 @@ RegisterTransformer.prototype.transformIdentifierExpression = function(tree) {
     this.usesModuleName = true;
   return ParseTreeTransformer.prototype.transformIdentifierExpression.call(this, tree);
 };
-RegisterTransformer.prototype.transformerBindingIdentifier = function(tree) {
-  if (tree.identifierToken.value == '__moduleName')
-    this.usesModuleName = true;
-  return ParseTreeTransformer.prototype.transformBindingIdentifier.call(this, tree);
-};
 
 exports.compile = function(load, opts, loader) {
   var options = { script: true, sourceRoot: true };
