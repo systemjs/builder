@@ -10,7 +10,7 @@
       var pluginIndex = moduleId.lastIndexOf('!');
       var filename;
       if (pluginIndex != -1)
-        filename = filename.substr(0, pluginIndex);
+        filename = moduleId.substr(0, pluginIndex);
       else
         filename = moduleId;
 
