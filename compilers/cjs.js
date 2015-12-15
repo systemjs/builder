@@ -38,13 +38,24 @@ CJSRequireTransformer.prototype = Object.create(ParseTreeTransformer.prototype);
 CJSRequireTransformer.prototype.transformCallExpression = function(tree) {
   // found a require
   if (tree.operand.identifierToken && tree.operand.identifierToken.value == this.requireName
-      && tree.args.args.length && tree.args.args.length == 1) {  
-    var requireModule = tree.args.args[0].literalToken.processedValue;
-    var requireModuleMapped = this.map && this.map(requireModule) || requireModule;
+      && tree.args.args.length && tree.args.args.length == 1) {
+    
+    var arg = tree.args.args[0];
+    var mappedCallExpression;
 
-    this.requires.push(requireModule);
+    // require('x');
+    if (arg.literalToken) {
+      var requireModule = tree.args.args[0].literalToken.processedValue;
+      var requireModuleMapped = this.map && this.map(requireModule) || requireModule;
 
-    var mappedCallExpression = parseExpression([this.mappedRequireName + "('" + requireModuleMapped + "')"], []);
+      this.requires.push(requireModule);
+
+      mappedCallExpression = parseExpression([this.mappedRequireName + "('" + requireModuleMapped + "')"], []);
+    }
+    // require(expr)
+    else {
+      mappedCallExpression = parseExpression([this.mappedRequireName + '(', ')'], [arg]);
+    }
 
     return ParseTreeTransformer.prototype.transformCallExpression.call(this, mappedCallExpression);
   }
