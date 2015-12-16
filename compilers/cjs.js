@@ -46,6 +46,11 @@ CJSRequireTransformer.prototype.transformCallExpression = function(tree) {
     // require('x');
     if (arg.literalToken) {
       var requireModule = tree.args.args[0].literalToken.processedValue;
+
+      // mirror behaviour at https://github.com/systemjs/systemjs/blob/0.19.8/lib/cjs.js#L50 to remove trailing slash
+      if (requireModule[requireModule.length - 1] == '/')
+        requireModule = requireModule.substr(0, requireModule.length - 1);
+      
       var requireModuleMapped = this.map && this.map(requireModule) || requireModule;
 
       this.requires.push(requireModule);
