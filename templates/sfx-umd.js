@@ -5,7 +5,7 @@
   else if (typeof module == 'object' && module.exports && typeof require == 'function')
     module.exports = factory${ deps.length ? '.apply(null, deps.map(require))' : '()' };
   else
-    ${ deps.length 
+    ${ deps.length && !globalDeps.length
       ? 'throw new Error("Module must be loaded as AMD or CommonJS")'
-      : 'factory()'};
+      : (globalName ? globalName + ' = ' : '') + 'factory(' + (globalDeps.length ? globalDeps.join(', ') : '') + ')'};
 });
