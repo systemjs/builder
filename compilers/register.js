@@ -71,7 +71,7 @@ RegisterTransformer.prototype.transformCallExpression = function(tree) {
     }
     // System.register(name, deps, declare)
     else {
-      var args = tree.args.concat([]);
+      var args = tree.args.args.concat([]);
       args.splice(2, 1, declare);
       return new CallExpression(tree.location, this.systemOperand, args);
     }
