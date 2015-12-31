@@ -1,17 +1,18 @@
 var path = require('path');
 var url = require('url');
 var traceur = require('traceur');
-var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
-var Script = traceur.get('syntax/trees/ParseTrees.js').Script;
-var parseStatements = traceur.get('codegeneration/PlaceholderParser.js').parseStatements;
-var parseExpression = traceur.get('codegeneration/PlaceholderParser.js').parseExpression;
-var STRING = traceur.get('syntax/TokenType.js').STRING;
-var LiteralExpression = traceur.get('syntax/trees/ParseTrees.js').LiteralExpression;
-var LiteralToken = traceur.get('syntax/LiteralToken.js').LiteralToken;
-var IdentifierExpression = traceur.get('syntax/trees/ParseTrees.js').IdentifierExpression;
-var IdentifierToken = traceur.get('syntax/IdentifierToken.js').IdentifierToken;
-var BindingIdentifier = traceur.get('syntax/trees/ParseTrees.js').BindingIdentifier;
-var createUseStrictDirective = traceur.get('codegeneration/ParseTreeFactory.js').createUseStrictDirective;
+var traceurGet = require('../lib/utils').traceurGet;
+var ParseTreeTransformer = traceurGet('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
+var Script = traceurGet('syntax/trees/ParseTrees.js').Script;
+var parseStatements = traceurGet('codegeneration/PlaceholderParser.js').parseStatements;
+var parseExpression = traceurGet('codegeneration/PlaceholderParser.js').parseExpression;
+var STRING = traceurGet('syntax/TokenType.js').STRING;
+var LiteralExpression = traceurGet('syntax/trees/ParseTrees.js').LiteralExpression;
+var LiteralToken = traceurGet('syntax/LiteralToken.js').LiteralToken;
+var IdentifierExpression = traceurGet('syntax/trees/ParseTrees.js').IdentifierExpression;
+var IdentifierToken = traceurGet('syntax/IdentifierToken.js').IdentifierToken;
+var BindingIdentifier = traceurGet('syntax/trees/ParseTrees.js').BindingIdentifier;
+var createUseStrictDirective = traceurGet('codegeneration/ParseTreeFactory.js').createUseStrictDirective;
 var Promise = require('bluebird');
 
 function hasRemoveUseStrict(list) {
@@ -201,7 +202,7 @@ exports.compile = function(load, opts, loader) {
 };
 
 exports.sfx = function(loader) {
-  return require('fs').readFileSync(require('path').resolve(__dirname, '../templates/cjs-helpers.js')).toString();
+  return require('fs').readFileSync(require('path').resolve(__dirname, '../templates/cjs-helpers.min.js')).toString();
 };
 
 function remap(source, map, fileName) {

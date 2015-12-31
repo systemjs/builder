@@ -346,6 +346,8 @@
     entry.module.execute.call(global);
   }
 
+  var nodeRequire = typeof System != 'undefined' && System._nodeRequire || typeof require != 'undefined' && require.resolve && typeof process != 'undefined' && require;
+
   // magical execution function
   var modules = {};
   function load(name) {
@@ -354,7 +356,7 @@
 
     // node core modules
     if (name.substr(0, 6) == '@node/')
-      return require(name.substr(6));
+      return nodeRequire(name.substr(6));
 
     var entry = defined[name];
 
@@ -384,7 +386,7 @@
     return function(formatDetect) {
       formatDetect(function(deps) {
         var System = {
-          _nodeRequire: typeof require != 'undefined' && require.resolve && typeof process != 'undefined' && require,
+          _nodeRequire: nodeRequire,
           register: register,
           registerDynamic: registerDynamic,
           get: load, 

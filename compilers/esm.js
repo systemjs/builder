@@ -1,11 +1,12 @@
 var traceur = require('traceur');
+var traceurGet = require('../lib/utils').traceurGet;
 
-var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
-var ModuleSpecifier = traceur.get('syntax/trees/ParseTrees.js').ModuleSpecifier;
-var createStringLiteralToken = traceur.get('codegeneration/ParseTreeFactory.js').createStringLiteralToken;
-var InstantiateModuleTransformer = traceur.get('codegeneration/InstantiateModuleTransformer.js').InstantiateModuleTransformer;
-var CollectingErrorReporter = traceur.get('util/CollectingErrorReporter.js').CollectingErrorReporter;
-var UniqueIdentifierGenerator = traceur.get('codegeneration/UniqueIdentifierGenerator.js').UniqueIdentifierGenerator;
+var ParseTreeTransformer = traceurGet('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
+var ModuleSpecifier = traceurGet('syntax/trees/ParseTrees.js').ModuleSpecifier;
+var createStringLiteralToken = traceurGet('codegeneration/ParseTreeFactory.js').createStringLiteralToken;
+var InstantiateModuleTransformer = traceurGet('codegeneration/InstantiateModuleTransformer.js').InstantiateModuleTransformer;
+var CollectingErrorReporter = traceurGet('util/CollectingErrorReporter.js').CollectingErrorReporter;
+var UniqueIdentifierGenerator = traceurGet('codegeneration/UniqueIdentifierGenerator.js').UniqueIdentifierGenerator;
 
 function InstantiateOnlyCompiler() {
   traceur.Compiler.apply(this, arguments);
@@ -79,9 +80,60 @@ exports.attach = function(loader) {
 
 var versionCheck = true;
 
+// helper functions used by trace
+exports.parse = function(source) {
+  var compiler = new traceur.Compiler({ script: false, sourceRoot: true });
+  return compiler.parse(source);
+};
+
+exports.getDeps = function(tree) {
+  var deps = [];
+  var transformer = new TraceurImportNormalizeTransformer(function(dep) {
+    deps.push(dep);
+  });
+  transformer.transformAny(tree);
+  return deps;
+};
+
 exports.compile = function(load, opts, loader) {
   var normalize = opts.normalize;
   var options;
+
+  // transpiler used was a plugin transpiler
+  if (!load.metadata.originalSource) {
+    var compiler = new InstantiateOnlyCompiler({
+      script: false,
+      sourceRoot: true,
+      moduleName: !opts.anonymous,
+      inputSourceMap: load.metadata.sourceMap,
+      sourceMaps: opts.sourceMaps && 'memory',
+      lowResolutionSourceMap: opts.lowResSourceMaps
+    });
+
+    var tree = load.metadata.parseTree || compiler.parse(load.source, load.path);
+
+    if (opts.normalize) {
+      var transformer = new TraceurImportNormalizeTransformer(function(dep) {
+        return load.depMap[dep];
+      });
+      tree = transformer.transformAny(tree);
+    }    
+
+    tree = compiler.transform(tree, load.name);
+
+    var outputSource = compiler.write(tree, load.path);
+
+    if (opts.systemGlobal != 'System')
+      outputSource = outputSource.replace(/System\.register\(/, opts.systemGlobal + '.register(');
+
+    return Promise.resolve({
+      source: outputSource,
+      sourceMap: compiler.getSourceMap()
+    });
+  }
+
+
+  // ... legacy transpilation, to be deprecated with internal transpilation layer
 
   // load.metadata.originalSource set by esm layer to allow plugin -> esm
   var source = load.metadata.originalSource || load.source;
@@ -102,6 +154,9 @@ exports.compile = function(load, opts, loader) {
     tree = compiler.transform(tree, load.name);
 
     var outputSource = compiler.write(tree, load.path);
+
+    if (opts.systemGlobal != 'System')
+      outputSource = outputSource.replace(/System\.register\(/, opts.systemGlobal + '.register(');
 
     return Promise.resolve({
       source: outputSource,

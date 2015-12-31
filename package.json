@@ -9,11 +9,10 @@
     "glob": "^6.0.1",
     "mkdirp": "^0.5.1",
     "rollup": "^0.21.0",
-    "rsvp": "^3.0.20",
-    "source-map": "^0.4.4",
-    "systemjs": "0.19.5",
-    "traceur": "0.0.92",
-    "uglify-js": "^2.4.23"
+    "source-map": "^0.5.3",
+    "systemjs": "0.19.9",
+    "traceur": "0.0.95",
+    "uglify-js": "^2.6.1"
   },
   "devDependencies": {
     "babel-core": "^5.8.22",

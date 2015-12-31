@@ -1,9 +1,10 @@
 var System = require('systemjs');
 var traceur = require('traceur');
 var vm = require('vm');
+var traceurGet = require('../lib/utils').traceurGet;
 
-var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
-var parseExpression = traceur.get('codegeneration/PlaceholderParser.js').parseExpression;
+var ParseTreeTransformer = traceurGet('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
+var parseExpression = traceurGet('codegeneration/PlaceholderParser.js').parseExpression;
 
 var CJSRequireTransformer = require('./cjs').CJSRequireTransformer;
 var Promise = require('bluebird');
@@ -375,5 +376,5 @@ exports.compile = function(load, opts, loader) {
 };
 
 exports.sfx = function(loader) {
-  return require('fs').readFileSync(require('path').resolve(__dirname, '../templates/amd-helpers.js')).toString();
+  return require('fs').readFileSync(require('path').resolve(__dirname, '../templates/amd-helpers.min.js')).toString();
 };
