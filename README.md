@@ -295,9 +295,11 @@ systemGlobal: 'System',
 buildConfig: false,
 inlinePlugins: true,
 static: false,
+// encodeNames' default is true for static builds:
 encodeNames: undefined,
 sourceMaps: false,
 lowResSourceMaps: false,
+// runtime's default is true for static builds:
 runtime: false,
 format: 'global',
 globalDeps: {},
