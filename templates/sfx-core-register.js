@@ -47,7 +47,7 @@
   }
 
   // module binding records
-  var moduleRecords = { '@empty': {} };
+  var moduleRecords = {};
   function getOrCreateModuleRecord(name) {
     return moduleRecords[name] || (moduleRecords[name] = {
       name: name,
@@ -200,7 +200,7 @@
   var nodeRequire = typeof System != 'undefined' && System._nodeRequire || typeof require != 'undefined' && require.resolve && typeof process != 'undefined' && require;
 
   // magical execution function
-  var modules = {};
+  var modules = { '@empty': {} };
   function load(name) {
     if (modules[name])
       return modules[name];
@@ -239,9 +239,9 @@
         // register external dependencies
         for (var i = 0; i < depNames.length; i++) (function(depName, dep) {
           if (dep && dep.__esModule)
-            moduleRecords[depName] = dep;
+            modules[depName] = dep;
           else
-            moduleRecords[depName] = getESModule(depModule);
+            modules[depName] = getESModule(dep);
         })(depNames[i], arguments[i]);
 
         // register modules in this bundle
