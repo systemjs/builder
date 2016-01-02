@@ -5,27 +5,16 @@ var ParseTreeTransformer = traceurGet('codegeneration/ParseTreeTransformer.js').
 var ModuleSpecifier = traceurGet('syntax/trees/ParseTrees.js').ModuleSpecifier;
 var createStringLiteralToken = traceurGet('codegeneration/ParseTreeFactory.js').createStringLiteralToken;
 var InstantiateModuleTransformer = traceurGet('codegeneration/InstantiateModuleTransformer.js').InstantiateModuleTransformer;
+
+// patch pending https://github.com/google/traceur-compiler/pull/2053
+var createUseStrictDirective = traceurGet('codegeneration/ParseTreeFactory.js').createUseStrictDirective;
+InstantiateModuleTransformer.prototype.__proto__.moduleProlog = function() {
+  return [createUseStrictDirective()];
+};
+
+
 var CollectingErrorReporter = traceurGet('util/CollectingErrorReporter.js').CollectingErrorReporter;
 var UniqueIdentifierGenerator = traceurGet('codegeneration/UniqueIdentifierGenerator.js').UniqueIdentifierGenerator;
-
-function InstantiateOnlyCompiler() {
-  traceur.Compiler.apply(this, arguments);
-}
-InstantiateOnlyCompiler.prototype = Object.create(traceur.Compiler.prototype);
-InstantiateOnlyCompiler.prototype.transform = function(tree, candidateModuleName, metadata) {
-  var errorReporter = new CollectingErrorReporter();
-
-  var transformer = new InstantiateModuleTransformer(new UniqueIdentifierGenerator(), errorReporter, this.options_);
-
-  if (candidateModuleName)
-    tree.moduleName = candidateModuleName;
-
-  var transformedTree = transformer.transformAny(tree);
-
-  this.throwIfErrors(errorReporter);
-
-  return transformedTree;
-};
 
 function TraceurImportNormalizeTransformer(map) {
   this.map = map;
@@ -101,7 +90,7 @@ exports.compile = function(load, opts, loader) {
 
   // transpiler used was a plugin transpiler
   if (!load.metadata.originalSource) {
-    var compiler = new InstantiateOnlyCompiler({
+    var compiler = new traceur.Compiler({
       script: false,
       sourceRoot: true,
       moduleName: !opts.anonymous,
@@ -117,9 +106,15 @@ exports.compile = function(load, opts, loader) {
         return load.depMap[dep];
       });
       tree = transformer.transformAny(tree);
-    }    
+    }
 
-    tree = compiler.transform(tree, load.name);
+    var errorReporter = new CollectingErrorReporter();
+    tree.moduleName = load.name;
+    var transformer = new InstantiateModuleTransformer(new UniqueIdentifierGenerator(), errorReporter, compiler.options_);
+
+    tree = transformer.transformAny(tree, load.name);
+
+    compiler.throwIfErrors(errorReporter);
 
     var outputSource = compiler.write(tree, load.path);
 
@@ -140,7 +135,7 @@ exports.compile = function(load, opts, loader) {
 
   // plugin to esm -> ONLY do traceur instantiate conversion, and nothing else
   if (load.metadata.loader && load.metadata.format == 'esm') {
-    var compiler = new InstantiateOnlyCompiler({
+    var compiler = new traceur.Compiler({
       script: false,
       sourceRoot: true,
       moduleName: !opts.anonymous,
@@ -151,7 +146,20 @@ exports.compile = function(load, opts, loader) {
 
     var tree = load.metadata.parseTree || compiler.parse(load.source, load.path);
 
-    tree = compiler.transform(tree, load.name);
+    if (opts.normalize) {
+      var transformer = new TraceurImportNormalizeTransformer(function(dep) {
+        return load.depMap[dep];
+      });
+      tree = transformer.transformAny(tree);
+    }
+
+    var errorReporter = new CollectingErrorReporter();
+    tree.moduleName = load.name;
+    var transformer = new InstantiateModuleTransformer(new UniqueIdentifierGenerator(), errorReporter, compiler.options_);
+
+    tree = transformer.transformAny(tree, load.name);
+
+    compiler.throwIfErrors(errorReporter);
 
     var outputSource = compiler.write(tree, load.path);
 

@@ -1,3 +1,4 @@
+// simplified sfx-core for all System.register (not System.registerDynamic) modules
 (function(global) {
 
   var defined = {};
@@ -35,99 +36,14 @@
   })();
 
   function register(name, deps, declare) {
-    if (arguments.length === 4)
-      return registerDynamic.apply(this, arguments);
-    doRegister(name, {
-      declarative: true,
-      deps: deps,
-      declare: declare
-    });
-  }
-
-  function registerDynamic(name, deps, executingRequire, execute) {
-    doRegister(name, {
-      declarative: false,
-      deps: deps,
-      executingRequire: executingRequire,
-      execute: execute
-    });
-  }
-
-  function doRegister(name, entry) {
-    entry.name = name;
-
-    // we never overwrite an existing define
     if (!(name in defined))
-      defined[name] = entry;
-
-    // we have to normalize dependencies
-    // (assume dependencies are normalized for now)
-    // entry.normalizedDeps = entry.deps.map(normalize);
-    entry.normalizedDeps = entry.deps;
-  }
-
-
-  function buildGroups(entry, groups) {
-    groups[entry.groupIndex] = groups[entry.groupIndex] || [];
-
-    if (indexOf.call(groups[entry.groupIndex], entry) != -1)
-      return;
-
-    groups[entry.groupIndex].push(entry);
-
-    for (var i = 0, l = entry.normalizedDeps.length; i < l; i++) {
-      var depName = entry.normalizedDeps[i];
-      var depEntry = defined[depName];
-
-      // not in the registry means already linked / ES6
-      if (!depEntry || depEntry.evaluated)
-        continue;
-
-      // now we know the entry is in our unlinked linkage group
-      var depGroupIndex = entry.groupIndex + (depEntry.declarative != entry.declarative);
-
-      // the group index of an entry is always the maximum
-      if (depEntry.groupIndex === undefined || depEntry.groupIndex < depGroupIndex) {
-
-        // if already in a group, remove from the old group
-        if (depEntry.groupIndex !== undefined) {
-          groups[depEntry.groupIndex].splice(indexOf.call(groups[depEntry.groupIndex], depEntry), 1);
-
-          // if the old group is empty, then we have a mixed depndency cycle
-          if (groups[depEntry.groupIndex].length == 0)
-            throw new TypeError("Mixed dependency cycle detected");
-        }
-
-        depEntry.groupIndex = depGroupIndex;
-      }
-
-      buildGroups(depEntry, groups);
-    }
-  }
-
-  function link(name) {
-    var startEntry = defined[name];
-
-    startEntry.groupIndex = 0;
-
-    var groups = [];
-
-    buildGroups(startEntry, groups);
-
-    var curGroupDeclarative = !!startEntry.declarative == groups.length % 2;
-    for (var i = groups.length - 1; i >= 0; i--) {
-      var group = groups[i];
-      for (var j = 0; j < group.length; j++) {
-        var entry = group[j];
-
-        // link each group
-        if (curGroupDeclarative)
-          linkDeclarativeModule(entry);
-        else
-          linkDynamicModule(entry);
-      }
-      curGroupDeclarative = !curGroupDeclarative; 
-    }
+      defined[name] = {
+        name: name,
+        declarative: true,
+        deps: deps,
+        declare: declare,
+        normalizedDeps: deps
+      };
   }
 
   // module binding records
@@ -218,74 +134,6 @@
     }
   }
 
-  // An analog to loader.get covering execution of all three layers (real declarative, simulated declarative, simulated dynamic)
-  function getModule(name) {
-    var exports;
-    var entry = defined[name];
-
-    if (!entry) {
-      exports = load(name);
-      if (!exports)
-        throw new Error("Unable to load dependency " + name + ".");
-    }
-
-    else {
-      if (entry.declarative)
-        ensureEvaluated(name, []);
-
-      else if (!entry.evaluated)
-        linkDynamicModule(entry);
-
-      exports = entry.module.exports;
-    }
-
-    if ((!entry || entry.declarative) && exports && exports.__useDefault)
-      return exports['default'];
-
-    return exports;
-  }
-
-  function linkDynamicModule(entry) {
-    if (entry.module)
-      return;
-
-    var exports = {};
-
-    var module = entry.module = { exports: exports, id: entry.name };
-
-    // AMD requires execute the tree first
-    if (!entry.executingRequire) {
-      for (var i = 0, l = entry.normalizedDeps.length; i < l; i++) {
-        var depName = entry.normalizedDeps[i];
-        var depEntry = defined[depName];
-        if (depEntry)
-          linkDynamicModule(depEntry);
-      }
-    }
-
-    // now execute
-    entry.evaluated = true;
-    var output = entry.execute.call(global, function(name) {
-      for (var i = 0, l = entry.deps.length; i < l; i++) {
-        if (entry.deps[i] != name)
-          continue;
-        return getModule(entry.normalizedDeps[i]);
-      }
-      throw new TypeError('Module ' + name + ' not declared as a dependency.');
-    }, exports, module);
-
-    if (output)
-      module.exports = output;
-
-    // create the esModule object, which allows ES6 named imports of dynamics
-    exports = module.exports;
- 
-    if (exports && exports.__esModule)
-      entry.esModule = exports;
-    else
-      entry.esModule = getESModule(exports);
-  }
-
   // converts any module.exports object into an object ready for SystemJS.newModule
   function getESModule(exports) {
     var esModule = {};
@@ -369,7 +217,7 @@
 
     // recursively ensure that the module and all its 
     // dependencies are linked (with dependency group handling)
-    link(name);
+    linkDeclarativeModule(defined[name]);
 
     // now handle dependency execution in correct order
     ensureEvaluated(name, []);
@@ -388,19 +236,6 @@
   return function(mains, depNames, declare) {
     return function(formatDetect) {
       formatDetect(function(deps) {
-        var System = {
-          _nodeRequire: nodeRequire,
-          register: register,
-          registerDynamic: registerDynamic,
-          get: load, 
-          set: function(name, module) {
-            modules[name] = module; 
-          },
-          newModule: function(module) {
-            return module;
-          }
-        };
-
         // register external dependencies
         for (var i = 0; i < depNames.length; i++) (function(depName, dep) {
           if (dep && dep.__esModule)
@@ -410,7 +245,7 @@
         })(depNames[i], arguments[i]);
 
         // register modules in this bundle
-        declare(System);
+        declare({ register: register });
 
         // load mains
         var firstLoad = load(mains[0]);

@@ -204,7 +204,7 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
   deps = deps.map(function(dep) {
     if (['require', 'exports', 'module'].indexOf(dep) != -1)
       return dep;
-    return self.load.depMap[dep] || dep;
+    return self.depMap[dep] || dep;
   });
 
   // normalize CommonJS-style requires in body
@@ -218,7 +218,7 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
 
   // ammend deps with extra dependencies from metadata or CJS trace
   deps = deps.concat(this.load.deps.map(function(dep) {
-    return self.load.depMap[dep] || dep;
+    return self.depMap[dep] || dep;
   }).filter(function(dep) {
     return deps.indexOf(dep) == -1;
   }));

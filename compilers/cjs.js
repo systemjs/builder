@@ -174,10 +174,10 @@ exports.compile = function(load, opts, loader) {
 
   var transformer;
 
-  if (opts.normalize) {
-    transformer = new CJSRequireTransformer('require', function(dep) { return load.depMap[dep]; }, '$__require');
-    tree = transformer.transformAny(tree);
-  }
+  var normalize = opts.normalize;
+
+  transformer = new CJSRequireTransformer('require', function(dep) { return opts.normalize ? load.depMap[dep] : dep; }, '$__require');
+  tree = transformer.transformAny(tree);
 
   var deps = opts.normalize ? load.deps.map(function(dep) { return load.depMap[dep]; }) : load.deps;
 
