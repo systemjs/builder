@@ -71,15 +71,12 @@ suite('Test builder.loadConfig', function() {
   });
   
   test('builder.loadConfig makes require available to config code',  function(done) {
-    global._tmp_channel = {};
     var configFile = 'test/output/builderConfig.js';
     var builder = new Builder();
-    fs.writeFileSync(configFile, 'global._tmp_channel.result = typeof require;');
+    fs.writeFileSync(configFile, 'var m = require("module"); System.config({baseURL:"base"});');
     builder.loadConfig(configFile).then(function() {
-
-      assert.equal(global._tmp_channel.result, 'function', 'typeof require === \'function\'');
-
-      delete global._tmp_channel;
+  
+      assert.match(builder.loader.baseURL, /base\/$/, 'builder baseURL set');
 
     }).then(done, done);
 
