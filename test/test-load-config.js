@@ -75,7 +75,7 @@ suite('Test builder.loadConfig', function() {
     var builder = new Builder();
     fs.writeFileSync(configFile, 'var m = require("module"); System.config({baseURL:"base"});');
     builder.loadConfig(configFile).then(function() {
-  
+
       assert.match(builder.loader.baseURL, /base\/$/, 'builder baseURL set');
 
     }).then(done, done);
