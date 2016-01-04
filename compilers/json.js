@@ -8,7 +8,7 @@ exports.compile = function(load, opts, loader) {
 
   return Promise.resolve({
     source: 'System.registerDynamic(' + (opts.anonymous ? '' : '"' + load.name + '", ') + '[], false, function() {\n' +
-            '  return ' + jsonString + ';\n' + 
+            '  return ' + jsonString.replace(/\n/g, '\n  ') + ';\n' + 
             '});\n'
   });
 };
