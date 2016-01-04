@@ -8,7 +8,7 @@
     "es6-template-strings": "^2.0.0",
     "glob": "^6.0.1",
     "mkdirp": "^0.5.1",
-    "rollup": "^0.21.0",
+    "rollup": "^0.24.0",
     "source-map": "^0.5.3",
     "systemjs": "systemjs/systemjs#master",
     "traceur": "0.0.95",

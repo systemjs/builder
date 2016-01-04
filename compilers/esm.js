@@ -95,7 +95,7 @@ exports.compile = function(load, opts, loader) {
       sourceRoot: true,
       moduleName: !opts.anonymous,
       inputSourceMap: load.metadata.sourceMap,
-      sourceMaps: opts.sourceMaps && 'memory',
+      sourceMaps: opts.sourceMaps && load.path && 'memory',
       lowResolutionSourceMap: opts.lowResSourceMaps
     });
 
