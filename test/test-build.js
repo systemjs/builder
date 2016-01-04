@@ -166,6 +166,7 @@ function doTests(transpiler) {
     return builder.buildStatic('toamd1', 'test/output/sfx.js', {
       runtime: true, 
       minify: minify, 
+      format: 'global',
       globalDefs: { DEBUG: false }, 
       globalName: 'amd1',
       globalDeps: {
