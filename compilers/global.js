@@ -1,10 +1,11 @@
 var traceur = require('traceur');
-var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
-var parseStatements = traceur.get('codegeneration/PlaceholderParser.js').parseStatements;
-var parseStatement = traceur.get('codegeneration/PlaceholderParser.js').parseStatement;
-var parseExpression = traceur.get('codegeneration/PlaceholderParser.js').parseExpression;
-var Script = traceur.get('syntax/trees/ParseTrees.js').Script;
-var FunctionBody = traceur.get('syntax/trees/ParseTrees.js').FunctionBody;
+var traceurGet = require('../lib/utils').traceurGet;
+var ParseTreeTransformer = traceurGet('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
+var parseStatements = traceurGet('codegeneration/PlaceholderParser.js').parseStatements;
+var parseStatement = traceurGet('codegeneration/PlaceholderParser.js').parseStatement;
+var parseExpression = traceurGet('codegeneration/PlaceholderParser.js').parseExpression;
+var Script = traceurGet('syntax/trees/ParseTrees.js').Script;
+var FunctionBody = traceurGet('syntax/trees/ParseTrees.js').FunctionBody;
 
 // wraps global scripts
 function GlobalTransformer(name, deps, exportName, globals, systemGlobal) {
@@ -144,5 +145,5 @@ exports.compile = function(load, opts, loader) {
 
 
 exports.sfx = function(loader) {
-  return require('fs').readFileSync(require('path').resolve(__dirname, '../templates/global-helpers.js')).toString();
+  return require('fs').readFileSync(require('path').resolve(__dirname, '../templates/global-helpers.min.js')).toString();
 };

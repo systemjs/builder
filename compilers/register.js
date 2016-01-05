@@ -1,11 +1,13 @@
 var traceur = require('traceur');
-var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
-var CallExpression = traceur.get('syntax/trees/ParseTrees.js').CallExpression;
-var ArgumentList = traceur.get('syntax/trees/ParseTrees.js').ArgumentList;
-var ArrayLiteral = traceur.get('syntax/trees/ParseTrees.js').ArrayLiteral;
-var createStringLiteral = traceur.get('codegeneration/ParseTreeFactory.js').createStringLiteral;
-var parseExpression = traceur.get('codegeneration/PlaceholderParser.js').parseExpression;
-var FunctionBody = traceur.get('syntax/trees/ParseTrees.js').FunctionBody;
+var traceurGet = require('../lib/utils').traceurGet;
+
+var ParseTreeTransformer = traceurGet('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
+var CallExpression = traceurGet('syntax/trees/ParseTrees.js').CallExpression;
+var ArgumentList = traceurGet('syntax/trees/ParseTrees.js').ArgumentList;
+var ArrayLiteral = traceurGet('syntax/trees/ParseTrees.js').ArrayLiteral;
+var createStringLiteral = traceurGet('codegeneration/ParseTreeFactory.js').createStringLiteral;
+var parseExpression = traceurGet('codegeneration/PlaceholderParser.js').parseExpression;
+var FunctionBody = traceurGet('syntax/trees/ParseTrees.js').FunctionBody;
 
 // converts anonymous System.register([] into named System.register('name', [], ...
 // NB need to add that if no anon, last named must define this module

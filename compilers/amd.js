@@ -1,9 +1,10 @@
 var System = require('systemjs');
 var traceur = require('traceur');
 var vm = require('vm');
+var traceurGet = require('../lib/utils').traceurGet;
 
-var ParseTreeTransformer = traceur.get('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
-var parseExpression = traceur.get('codegeneration/PlaceholderParser.js').parseExpression;
+var ParseTreeTransformer = traceurGet('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
+var parseExpression = traceurGet('codegeneration/PlaceholderParser.js').parseExpression;
 
 var CJSRequireTransformer = require('./cjs').CJSRequireTransformer;
 var Promise = require('bluebird');
@@ -203,7 +204,7 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
   deps = deps.map(function(dep) {
     if (['require', 'exports', 'module'].indexOf(dep) != -1)
       return dep;
-    return self.load.depMap[dep] || dep;
+    return self.depMap[dep] || dep;
   });
 
   // normalize CommonJS-style requires in body
@@ -217,7 +218,7 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
 
   // ammend deps with extra dependencies from metadata or CJS trace
   deps = deps.concat(this.load.deps.map(function(dep) {
-    return self.load.depMap[dep] || dep;
+    return self.depMap[dep] || dep;
   }).filter(function(dep) {
     return deps.indexOf(dep) == -1;
   }));
@@ -375,5 +376,5 @@ exports.compile = function(load, opts, loader) {
 };
 
 exports.sfx = function(loader) {
-  return require('fs').readFileSync(require('path').resolve(__dirname, '../templates/amd-helpers.js')).toString();
+  return require('fs').readFileSync(require('path').resolve(__dirname, '../templates/amd-helpers.min.js')).toString();
 };
