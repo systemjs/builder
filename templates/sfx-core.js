@@ -288,6 +288,8 @@
 
   // converts any module.exports object into an object ready for SystemJS.newModule
   function getESModule(exports) {
+    if (exports === global)
+      return exports;
     var esModule = {};
     // don't trigger getters/setters in environments that support them
     if (typeof exports == 'object' || typeof exports == 'function') {
