@@ -6,6 +6,8 @@ var ModuleSpecifier = traceurGet('syntax/trees/ParseTrees.js').ModuleSpecifier;
 var createStringLiteralToken = traceurGet('codegeneration/ParseTreeFactory.js').createStringLiteralToken;
 var InstantiateModuleTransformer = traceurGet('codegeneration/InstantiateModuleTransformer.js').InstantiateModuleTransformer;
 
+var extend = require('../lib/utils').extend;
+
 // patch pending https://github.com/google/traceur-compiler/pull/2053
 var createUseStrictDirective = traceurGet('codegeneration/ParseTreeFactory.js').createUseStrictDirective;
 InstantiateModuleTransformer.prototype.__proto__.moduleProlog = function() {
@@ -242,7 +244,7 @@ exports.compile = function(load, opts, loader) {
         versionCheck = false;
       }
         
-      options = loader.babelOptions || {};
+      options = extend({}, loader.babelOptions || {});
       options.modules = 'system';
       if (opts.sourceMaps)
         options.sourceMap = true;
