@@ -151,9 +151,10 @@ builder.bundle('myModule.js', 'outfile.js', { sourceMaps: true, lowResSourceMaps
 
 * `mangle`, defaults to true.
 * `globalDefs`, object allowing for global definition assignments for dead code removal.
+* `unused`, drop unreferenced functions and variables
 
 ```javascript
-builder.bundle('myModule.js', 'outfile.js', { minify: true, mangle: false, globalDefs: { DEBUG: false } });
+builder.bundle('myModule.js', 'outfile.js', { minify: true, mangle: false, globalDefs: { DEBUG: false }, unused: false });
 ```
 
 ### In-Memory Builds
