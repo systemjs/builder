@@ -91,7 +91,7 @@ suite('Test compiler cache', function() {
     builder.setCache(cacheObj);
 
     var invalidated = builder.invalidate('*');
-    assert.deepEqual(invalidated, [System.normalizeSync('simple.js'), System.normalizeSync('another/path.js')]);
+    assert.deepEqual(invalidated, [builder.loader.normalizeSync('simple.js'), builder.loader.normalizeSync('another/path.js')]);
 
     cacheObj = {
       trace: {
@@ -104,10 +104,10 @@ suite('Test compiler cache', function() {
     builder.setCache(cacheObj);
 
     invalidated = builder.invalidate('new/path.js');
-    assert.deepEqual(invalidated, [System.normalizeSync('new/path.js')]);
+    assert.deepEqual(invalidated, [builder.loader.normalizeSync('new/path.js')]);
 
     invalidated = builder.invalidate('deep/*.js');
-    assert.deepEqual(invalidated, [System.normalizeSync('deep/wildcard/test.js')]);
+    assert.deepEqual(invalidated, [builder.loader.normalizeSync('deep/wildcard/test.js')]);
   });
 
   test('Bundle example', function() {
