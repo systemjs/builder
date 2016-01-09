@@ -1,6 +1,8 @@
 SystemJS Build Tool [![Build Status][travis-image]][travis-url]
 ===
 
+_[SystemJS Builder 0.15 release notes](https://github.com/systemjs/builder/releases/tag/0.15.0)_
+
 _As of SystemJS Builder 0.14, `builder.build` and `builder.buildTree` are both `builder.bundle`, while `builder.buildSFX` is now `builder.buildStatic`.
 The previous APIs will continue to work, but display deprecation warnings._
 
