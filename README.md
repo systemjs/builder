@@ -215,8 +215,6 @@ The `fetch` function should return a string.
 
 Both `builder.build` and `builder.buildStatic` support bundle arithmetic expressions. This allows for the easy construction of custom bundles.
 
-**NOTE**: SFX Bundles can only use addition and wildcard arithmetic.
-
 There is also a `builder.trace` for building direct trace tree objects, which can be directly passed into `builder.bundle` or `builder.buildStatic`.
 
 #### Example - Arithmetic Expressions
