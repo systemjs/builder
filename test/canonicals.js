@@ -29,4 +29,16 @@ suite('Canonical Names', function() {
     assert.equal(builder.getCanonicalName('cjs'), 'cjs');
     assert.equal(builder.getCanonicalName(baseURL + 'test/dummy/file.jade!' + baseURL + 'test/fixtures/test-tree/jade.js'), 'file.jade!jade');
   });
+
+  test('Trailing / canonical', function() {
+    builder.loader.defaultJSExtensions = false;
+    builder.config({
+      paths: {
+        'trailing/': 'src/'
+      }
+    });
+    assert.equal(builder.getCanonicalName(baseURL + 'src/asdf'), 'trailing/asdf');
+    assert.equal(builder.getCanonicalName(baseURL + 'src/'), 'trailing/');
+    assert.equal(builder.getCanonicalName(baseURL + 'src'), 'trailing');
+  })
 });

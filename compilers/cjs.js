@@ -185,7 +185,7 @@ exports.compile = function(load, opts, loader) {
   for (var g in load.metadata.globals) {
     globals[g] = normalize && load.depMap[load.metadata.globals[g]] || load.metadata.globals[g];
   }
-  transformer = new CJSRegisterTransformer(!opts.anonymous && load.name, deps, load.path, opts.minify, globals, opts.systemGlobal);
+  transformer = new CJSRegisterTransformer(!opts.anonymous && load.name, deps, load.path, opts.production, globals, opts.systemGlobal);
   tree = transformer.transformAny(tree);
 
   var output = compiler.write(tree, load.path);
