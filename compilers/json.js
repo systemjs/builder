@@ -31,6 +31,12 @@ function optimizePackageConfig(json) {
   if (json.systemjs)
     json = json.systemjs;
 
+  // remove non SystemJS package config properties
+  var loaderConfigProperties = ['baseDir', 'defaultExtension', 'format', 'meta', 'map', 'main'];
+  for (var p in json)
+    if (loaderConfigProperties.indexOf(p) == -1)
+      delete json[p];
+
   if (json.map && !json.map['@env']) {
     Object.keys(json.map).forEach(function(target) {
       var mapped = json.map[target];
