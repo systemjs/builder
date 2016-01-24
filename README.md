@@ -105,7 +105,7 @@ To make a bundle that is independent of the SystemJS loader entirely, we can mak
 builder.buildStatic('myModule.js', 'outfile.js', options);
 ```
 
-This bundle file can then be included with a `<script>` tag, and no other dependencies would need to be included in the page. 
+This bundle file can then be included with a `<script>` tag, and no other dependencies would need to be included in the page.
 
 By default, Traceur or Babel runtime are automatically included in the SFX bundle if needed. To exclude the Babel or Traceur runtime set the `runtime` build option to false:
 
@@ -143,7 +143,7 @@ As well as an `options.config` parameter, it is also possible to specify minific
 builder.bundle('myModule.js', 'outfile.js', { minify: true, sourceMaps: true, config: cfg });
 ```
 
-Compile time with source maps can also be improved with the `lowResSourceMaps` option:
+Compile time with source maps can also be improved with the `lowResSourceMaps` option, where the mapping granularity is per-line instead of per-character:
 
 ```javascript
 builder.bundle('myModule.js', 'outfile.js', { sourceMaps: true, lowResSourceMaps: true });
