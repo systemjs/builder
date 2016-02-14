@@ -174,7 +174,7 @@ exports.compile = function(load, opts, loader) {
     });
   }
 
-  return Promise.resolve(global[loader.transpiler == 'typescript' ? 'ts' : loader.transpiler] || loader.import(loader.transpiler))
+  return Promise.resolve(global[loader.transpiler == 'typescript' ? 'ts' : loader.transpiler] || loader.pluginLoader.import(loader.transpiler))
   .then(function(transpiler) {
     if (transpiler.__useDefault)
       transpiler = transpiler['default'];
