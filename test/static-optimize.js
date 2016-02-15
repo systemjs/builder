@@ -13,10 +13,17 @@ builder.config({
     },
     'b.js': {
       format: 'esm'
+    },
+    'global-dep.js': {
+      format: 'esm'
+    },
+    'global-dep-loader.js': {
+      format: 'esm'
     }
   },
   paths: {
-    '*': './test/fixtures/es-tree/*'
+    '*': './test/fixtures/es-tree/*',
+    'global': './test/fixtures/test-tree/global-inner.js'
   }
 });
 
@@ -27,5 +34,13 @@ suite('SFX Optimizations', function() {
       assert(output.source, 'var b = \'b\';\n\nvar a = \'a\';\n\nexport { a, b };');
       done();
     }, done)
+  });
+
+  test('ES6 rollup with a global dep', function(done) {
+    builder.buildStatic('global-dep.js', 'test/output/es-sfx.js', { runtime: false, minify: minify, format: 'esm', encodeNames: true })
+    .then(function(output) {
+      assert(output.source.indexOf('System.registerDynamic("4"') != -1 && output.source.indexOf(', ["4"') != -1);
+      done();
+    }, done);
   });
 });
