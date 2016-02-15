@@ -1,1 +1,1 @@
-export * from 'global';
+export * from '../test-tree/global-inner.js';
