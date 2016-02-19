@@ -276,7 +276,7 @@ Promise.all([builder.trace('app/first.js'), builder.trace('app/second.js')])
 .then(function(trees) {
   var commonTree = builder.intersectTrees(trees[0], trees[1]);
   return Promise.all([
-    builder.bundle(commonTree, 'shared-bundle.js')
+    builder.bundle(commonTree, 'shared-bundle.js'),
     builder.bundle(builder.subtractTrees(trees[0], commonTree), 'first-bundle.js'),
     builder.bundle(builder.subtractTrees(trees[1], commonTree), 'second-bundle.js')
   ]);
