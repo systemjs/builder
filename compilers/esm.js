@@ -146,7 +146,7 @@ exports.compile = function(load, opts, loader) {
       lowResolutionSourceMap: opts.lowResSourceMaps
     });
 
-    var tree = load.metadata.parseTree || compiler.parse(load.source, load.path);
+    var tree = load.metadata.parseTree || compiler.parse(source, load.path);
 
     if (opts.normalize) {
       var transformer = new TraceurImportNormalizeTransformer(function(dep) {
