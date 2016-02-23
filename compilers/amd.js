@@ -134,7 +134,8 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
     this.deps = this.filterAMDDeps(cjsRequires.requires);
   }
 
-  this.defineRedefined = true;
+  // name every single anonymous define as we can't know which one will trigger specifically
+  // this.defineRedefined = true;
 
   return tree;
 };
