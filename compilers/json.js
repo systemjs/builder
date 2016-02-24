@@ -1,5 +1,3 @@
-var getPackageConfigPath = require('../lib/utils').getPackageConfigPath;
-
 function hasProperties(obj) {
   for (var p in obj)
     return true;
@@ -14,7 +12,7 @@ exports.compile = function(load, opts, loader) {
     throw new Error('Unable to parse JSON module ' + load.name + ' contents as JSON.');
   }
 
-  if (isPackageConfig(loader, loader.decanonicalize(load.name)))
+  if (load.isPackageConfig)
     json = optimizePackageConfig(json);
 
   return Promise.resolve({
@@ -61,25 +59,3 @@ function optimizePackageConfig(json) {
   return json;
 }
 
-// determine whether the given module name is a package config file
-var curHash;
-var configPathCache = {};
-function isPackageConfig(loader, moduleName) {
-  if (loader.configHash != curHash) {
-    configPathCache = {};
-    curHash = loader.configHash;
-  }
-
-  if (configPathCache[moduleName])
-    return true;
-
-  // repopulate config path cache
-  Object.keys(loader.packages).forEach(function(pkgName) {
-    var configPath = getPackageConfigPath(loader.packageConfigPaths, pkgName);
-
-    if (configPath)
-      configPathCache[configPath] = true;
-  });
-
-  return !!configPathCache[moduleName];
-}
