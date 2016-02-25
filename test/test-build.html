@@ -191,6 +191,42 @@
         .catch(done);
       });
 
+      test('AMD 9', function(done) {
+        System['import']('output/amd-9.js').then(function() {
+          return System['import']('amd-9.js');
+        })
+        .then(function(m) {
+          ok(m.b.b == 'b');
+          ok(m.c == 'c');
+          done();
+        })
+        .catch(done);
+      });
+
+      test('AMD 10', function(done) {
+        System['import']('output/amd-10.js').then(function() {
+          return System['import']('amd-10.js');
+        })
+        .then(function(m) {
+          ok(m.b.b == 'b');
+          ok(m.c == 'c');
+          done();
+        })
+        .catch(done);
+      });
+
+      test('AMD 11', function(done) {
+        System['import']('output/amd-11.js').then(function() {
+          return System['import']('amd-11.js');
+        })
+        .then(function(m) {
+          ok(m.b.b == 'b');
+          ok(m.c == 'c');
+          done();
+        })
+        .catch(done);
+      });
+
       test('CJS Globals', function(done) {
         System['import']('output/cjs-globals.js').then(function() {
           return System['import']('cjs-globals.js');

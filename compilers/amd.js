@@ -21,20 +21,34 @@ function AMDDependenciesTransformer(map) {
   this.anonDefineIndex = -1;
   this.anonNamed = false;
   this.deps = [];
+  this.bundleDefines = [];
   this.defineRedefined = false;
   return ParseTreeTransformer.call(this);
 }
 AMDDependenciesTransformer.prototype = Object.create(ParseTreeTransformer.prototype);
 AMDDependenciesTransformer.prototype.filterAMDDeps = function(deps) {
   var newDeps = [];
+  var bundleDefines = this.bundleDefines;
   deps.forEach(function(dep) {
     if (['require', 'exports', 'module'].indexOf(dep) != -1)
+      return;
+    if (bundleDefines.indexOf(dep) != -1)
       return;
     newDeps.push(dep);
   });
   return newDeps;
 };
-// NB we should really extend this to any scope change (but all ES5 cases are covered here)
+// var define = x is the stopping point for handling a define
+// we still allow (function(define) {})
+// these are the same rules of the r.js optimizer
+
+// var define disables until we quit the existing scope
+AMDDependenciesTransformer.prototype.transformVariableDeclaration = function(tree) {
+  if (tree.lvalue.identifierToken.value == 'define')
+    this.defineRedefined = true;
+  return tree;
+};
+// this catches the scope exit, although should be better handled than this (eg blocks for ES6)
 AMDDependenciesTransformer.prototype.transformFunctionDeclaration = function(tree) {
   var defineRedefined = this.defineRedefined;
   tree = ParseTreeTransformer.prototype.transformFunctionDeclaration.call(this, tree);
@@ -42,9 +56,11 @@ AMDDependenciesTransformer.prototype.transformFunctionDeclaration = function(tre
     this.defineRedefined = false;
   return tree;
 };
-AMDDependenciesTransformer.prototype.transformVariableDeclaration = function(tree) {
-  if (tree.lvalue.identifierToken.value == 'define')
-    this.defineRedefined = true;
+AMDDependenciesTransformer.prototype.transformFunctionExpression = function(tree) {
+  var defineRedefined = this.defineRedefined;
+  tree = ParseTreeTransformer.prototype.transformFunctionExpression.call(this, tree);
+  if (defineRedefined === false)
+    this.defineRedefined = false;
   return tree;
 };
 AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
@@ -71,7 +87,7 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
 
   // note the define index
   // so we know which one to name for the second pass
-  if (!this.anonDefine)
+  if (!this.anonDefine || this.anonNamed)
     this.anonDefineIndex++;
 
   var parseDeps = false;
@@ -87,6 +103,11 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
   }
   // named define
   else {
+    this.bundleDefines.push(name);
+    // remove any deps which exactly reference a name
+    var depsIndex = this.deps.indexOf(name);
+    if (depsIndex != -1)
+      this.deps.splice(depsIndex, 1);
     if (!this.anonDefine && this.anonDefineIndex == 0) {
       this.anonDefine = true;
       this.anonNamed = true;
@@ -158,6 +179,7 @@ function AMDDefineRegisterTransformer(moduleName, load, anonDefine, anonDefineIn
 AMDDefineRegisterTransformer.prototype = Object.create(ParseTreeTransformer.prototype);
 AMDDefineRegisterTransformer.prototype.transformVariableDeclaration = AMDDependenciesTransformer.prototype.transformVariableDeclaration;
 AMDDefineRegisterTransformer.prototype.transformFunctionDeclaration = AMDDependenciesTransformer.prototype.transformFunctionDeclaration;
+AMDDefineRegisterTransformer.prototype.transformFunctionExpression = AMDDependenciesTransformer.prototype.transformFunctionExpression;
 AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) {
   if (this.defineRedefined || !tree.operand.identifierToken || tree.operand.identifierToken.value != 'define')
     return ParseTreeTransformer.prototype.transformCallExpression.call(this, tree);
