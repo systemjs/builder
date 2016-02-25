@@ -91,15 +91,15 @@ GlobalTransformer.prototype.transformScript = function(tree) {
     globalExpression = '{';
     var first = true;
     for (var g in this.globals) {
-      globalExpression += (first ? '' : ',') + nl + '"' + g + '": __require("' + this.globals[g] + '")';
+      globalExpression += (first ? '' : ',') + nl + '"' + g + '": $__require("' + this.globals[g] + '")';
       first = false;
     }
     globalExpression += nl + '}';
   }
 
   return new Script(tree.location, parseStatements([
-      this.systemGlobal + '.registerDynamic(' + (this.name ? '"' + this.name + '", ' : '') + JSON.stringify(this.deps) + ', false, function(__require, __exports, __module) {\n'
-      + 'var _retrieveGlobal = ' + this.systemGlobal + '.get("@@global-helpers").prepareGlobal(__module.id, '
+      this.systemGlobal + '.registerDynamic(' + (this.name ? '"' + this.name + '", ' : '') + JSON.stringify(this.deps) + ', false, function($__require, $__exports, $__module) {\n'
+      + 'var _retrieveGlobal = ' + this.systemGlobal + '.get("@@global-helpers").prepareGlobal($__module.id, '
       + (this.exportName ? '"' + this.exportName + '"' : 'null') + ', ' + (globalExpression ? globalExpression : 'null') + ');\n'
       + '  (',
       ')();\n'

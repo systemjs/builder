@@ -49,11 +49,7 @@
     prepareGlobal: function(moduleName, exportName, globals) {
       // disable module detection
       var curDefine = __global.define;
-       
       __global.define = undefined;
-      __global.exports = undefined;
-      if (__global.module && __global.module.exports)
-        __global.module = undefined;
 
       // set globals
       var oldGlobals;

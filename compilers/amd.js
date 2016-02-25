@@ -12,13 +12,14 @@ var Promise = require('bluebird');
 // First of two-pass transform
 // lists number of define statements, the named module it defines (if any), and deps
 // second pass will do rewriting based on this info
-// we set this.isAnon, which is true if there is one named define, or one anonymous define
+// we set this.anonDefine, which is true if there is one named define, or one anonymous define
 // if there are more than one anonymous defines, it is invalid
 function AMDDependenciesTransformer(map) {
   // optional mapping function
   this.map = map;
   this.anonDefine = false;
-  this.defineBundle = false;
+  this.anonDefineIndex = -1;
+  this.anonNamed = false;
   this.deps = [];
   this.defineRedefined = false;
   return ParseTreeTransformer.call(this);
@@ -33,7 +34,7 @@ AMDDependenciesTransformer.prototype.filterAMDDeps = function(deps) {
   });
   return newDeps;
 };
-// NB we should really extend this to any scope change
+// NB we should really extend this to any scope change (but all ES5 cases are covered here)
 AMDDependenciesTransformer.prototype.transformFunctionDeclaration = function(tree) {
   var defineRedefined = this.defineRedefined;
   tree = ParseTreeTransformer.prototype.transformFunctionDeclaration.call(this, tree);
@@ -51,46 +52,58 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
     return ParseTreeTransformer.prototype.transformCallExpression.call(this, tree);
 
   var args = tree.args.args;
-  var name = args[0].type === 'LITERAL_EXPRESSION' && args[0].literalToken.processedValue;
+  var name;
+  var depArg = -1;
+  if (args[0].type == 'LITERAL_EXPRESSION') {
+    name = args[0].literalToken.processedValue;
+    if (args[1] && args[1].type == 'ARRAY_LITERAL')
+      depArg = 1;
+  }
+  else if (args[0].type == 'ARRAY_LITERAL') {
+    depArg = 0;
+  }
+
+  var factoryArg = name && depArg == -1 ? 1 : depArg + 1;
+  
+  // ignore requires of the wrong form
+  if (!args[factoryArg])
+    return ParseTreeTransformer.prototype.transformCallExpression.call(this, tree);
+
+  // note the define index
+  // so we know which one to name for the second pass
+  if (!this.anonDefine)
+    this.anonDefineIndex++;
+
+  var parseDeps = false;
 
   // anonymous define
   if (!name) {
+    if (this.anonDefine && !this.anonNamed)
+      throw new Error('Multiple anonymous defines.');
+    
     this.anonDefine = true;
+    this.anonNamed = false;
+    parseDeps = true;
   }
   // named define
   else {
-    // if we don't have any other defines,
-    // then let this be an anonymous define
-    if (!this.anonDefine && !this.defineBundle)
+    if (!this.anonDefine && this.anonDefineIndex == 0) {
       this.anonDefine = true;
-
-    // otherwise its a bundle only
-    else {
+      this.anonNamed = true;
+      parseDeps = true;
+    }
+    else if (this.anonDefine && this.anonNamed) {
       this.anonDefine = false;
+      this.anonNamed = false;
       this.deps = [];
     }
-
-    // the above is just to support single modules of the form:
-    // define('jquery')
-    // still loading anonymously
-    // because it is done widely enough to be useful
-
-    // note this is now a bundle
-    this.defineBundle = true;
   }
 
-  // only continue to extracting dependencies if we're anonymous
-  if (!this.anonDefine)
-    return tree;
+  // only continue to extracting dependencies if this is THE anonymous define
+  if (!parseDeps)
+    return ParseTreeTransformer.prototype.transformCallExpression.call(this, tree);
 
-  var depArg;
-
-  if (args[0].type === 'ARRAY_LITERAL')
-    depArg = 0;
-  else if (args[1] && args[1].type == 'ARRAY_LITERAL')
-    depArg = 1;
-
-  if (typeof depArg == 'number') {
+  if (depArg != -1) {
     var deps = args[depArg].elements.map(function(dep) {
       return dep.literalToken.processedValue;
     });
@@ -110,19 +123,11 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
     // this is ONLY a mutation for remap which will be deprecated
     args[depArg] = parseExpression([JSON.stringify(deps)]);
 
-    return tree;
+    return ParseTreeTransformer.prototype.transformCallExpression.call(this, tree);
   }
 
-  var cjsFactory;
-
-  if (args[0].type == 'FUNCTION_EXPRESSION')
-    cjsFactory = args[0];
-  else if (args[0].type == 'LITERAL_EXPRESSION' && args[1] && args[1].type == 'FUNCTION_EXPRESSION')
-    cjsFactory = args[1];
-  /* else if (args[0].type == 'IDENTIFIER_EXPRESSION')
-    this.globalCJSRequires = true; */
-
-  if (cjsFactory) {
+  if (depArg == -1 && args[factoryArg].type == 'FUNCTION_EXPRESSION') {
+    var cjsFactory = args[factoryArg];
     // now we need to do a scope transformer for the require function at this position
     var fnParameters = cjsFactory.parameterList.parameters;
     var reqName = fnParameters[0] && fnParameters[0].parameter.binding.identifierToken.value;
@@ -134,19 +139,18 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
     this.deps = this.filterAMDDeps(cjsRequires.requires);
   }
 
-  // name every single anonymous define as we can't know which one will trigger specifically
-  // this.defineRedefined = true;
-
-  return tree;
+  return ParseTreeTransformer.prototype.transformCallExpression.call(this, tree);
 };
 exports.AMDDependenciesTransformer = AMDDependenciesTransformer;
 
 // AMD System.registerDynamic transpiler
 // This is the second of the two pass transform
-function AMDDefineRegisterTransformer(moduleName, load, isAnon, depMap) {
+function AMDDefineRegisterTransformer(moduleName, load, anonDefine, anonDefineIndex, depMap) {
   this.name = moduleName;
   this.load = load;
-  this.isAnon = isAnon;
+  this.anonDefine = anonDefine;
+  this.anonDefineIndex = anonDefineIndex;
+  this.curDefineIndex = -1;
   this.depMap = depMap;
   this.defineRedefined = false;
   return ParseTreeTransformer.call(this);
@@ -159,54 +163,49 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
     return ParseTreeTransformer.prototype.transformCallExpression.call(this, tree);
 
   var self = this;
+
   var args = tree.args.args;
-  var name = this.name;
-
-  // check for named modules
-  if (args[0].type === 'LITERAL_EXPRESSION') {
-    if (!this.isAnon)
-      name = args[0].literalToken.processedValue;
-    args = args.splice(1);
+  var name;
+  var depArg = -1;
+  if (args[0].type == 'LITERAL_EXPRESSION') {
+    name = args[0].literalToken.processedValue;
+    if (args[1] && args[1].type == 'ARRAY_LITERAL')
+      depArg = 1;
+  }
+  else if (args[0].type == 'ARRAY_LITERAL') {
+    depArg = 0;
   }
 
-  if (!args[0])
-    return;
-
-  var deps;
-  var factoryTree;
-
-  if (args[0].type === 'ARRAY_LITERAL') {
-    deps = args[0].elements.map(function(dep) {
-      return dep.literalToken.processedValue;
-    });
-
-    factoryTree = args[1];
-  }
-  else if (args[0].type == 'OBJECT_LITERAL' || args[0].type == 'IDENTIFIER_EXPRESSION') {
-    factoryTree = args[0];
-  }
-  else if (args[0].type == 'FUNCTION_EXPRESSION') {
-    // deps already parsed on trace
-    deps = ['require', 'exports', 'module'].splice(0, args[0].parameterList.parameters.length).concat(this.load.deps);
-    factoryTree = args[0];
-  }
-  else if (args.length == 1) {
-    // allow a define(some && expression || statement) for an object
-    factoryTree = args[0];
-  }
-  else {
-    // not valid define
+  var factoryArg = name && depArg == -1 ? 1 : depArg + 1;
+  
+  // ignore requires of the wrong form
+  // skip all named defines until we reach our anonymous define
+  // then skip all further named defines
+  if (!args[factoryArg] || ++this.curDefineIndex != this.anonDefineIndex)
     return ParseTreeTransformer.prototype.transformCallExpression.call(this, tree);
+
+
+  var factoryTree = args[factoryArg];
+
+  // put together normalized deps array
+  var deps = [];
+  if (depArg != -1) {
+    deps = args[depArg].elements.map(function(dep) {
+      var depVal = dep.literalToken.processedValue;
+      return self.depMap[depVal] || depVal;
+    });
+    // amend deps with any extra dependencies from metadata
+    deps = deps.concat(this.load.deps.map(function(dep) {
+      return self.depMap[dep] || dep;
+    }).filter(function(dep) {
+      return deps.indexOf(dep) == -1;
+    }));
   }
-
-  deps = deps || [];
-
-  // normalize existing dep array
-  deps = deps.map(function(dep) {
-    if (['require', 'exports', 'module'].indexOf(dep) != -1)
-      return dep;
-    return self.depMap[dep] || dep;
-  });
+  else if (factoryTree.type == 'FUNCTION_EXPRESSION') {
+    deps = ['require', 'exports', 'module'].splice(0, args[0].parameterList.parameters.length).concat(this.load.deps.map(function(dep) {
+      return self.depMap[dep] || dep;
+    }));
+  }
 
   // normalize CommonJS-style requires in body
   var requireIndex = deps.indexOf('require');
@@ -217,16 +216,22 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
     factoryTree.body = cjsRequireTransformer.transformAny(factoryTree.body);
   }
 
-  // ammend deps with extra dependencies from metadata or CJS trace
-  deps = deps.concat(this.load.deps.map(function(dep) {
-    return self.depMap[dep] || dep;
-  }).filter(function(dep) {
-    return deps.indexOf(dep) == -1;
-  }));
+  // support for single named modules as doubling as anonymous modules
+  /*
+    define('jquery', function() {
+      ...
+    })
+    ->
+    define('this:name', function() {
+      ...
+    }), define('jquery', ['this:name'], function(m) { return m; })
+  */
+  var nameAlias = '';
+  if (name && this.name && name != this.name)
+    nameAlias = ', define("' + name + '", ["' + this.name + '"], function(m) { return m; })';
 
-  this.defineRedefined = true;
-
-  return parseExpression(['define(' + (name ? '"' + name + '", ' : '') + (deps ? JSON.stringify(deps) + ', ' : ''), ');'], factoryTree);
+  // write out the anonymous define as named and dep-normalized
+  return parseExpression(['define(' + (this.name ? '"' + this.name + '", ' : '') + JSON.stringify(deps) + ', ', ')' + nameAlias + ';'], factoryTree);
 };
 exports.AMDDefineRegisterTransformer = AMDDefineRegisterTransformer;
 
@@ -271,14 +276,8 @@ exports.attach = function(loader) {
         depTransformer.transformAny(load.metadata.parseTree);
 
         // we store the results as meta
-        load.metadata.isAnon = depTransformer.anonDefine;
-        // load.metadata.globalCJSRequires = depTransformer.globalCJSRequires;
-
-        /* if (depTransformer.globalCJSRequires) {
-          var cjsRequires = new CJSRequireTransformer('require');
-          cjsRequires.transformAny(load.metadata.parseTree);
-          depTransformer.deps = depTransformer.filterAMDDeps(cjsRequires.requires);
-        } */
+        load.metadata.anonDefine = depTransformer.anonDefine;
+        load.metadata.anonDefineIndex = depTransformer.anonDefineIndex;
 
         var entry = loader.defined[load.name];
         entry.deps = dedupe(depTransformer.deps.concat(load.metadata.deps));
@@ -331,11 +330,6 @@ exports.remap = function(source, map, fileName) {
   var transformer = new AMDDependenciesTransformer(map);
   tree = transformer.transformAny(tree);
 
-  /* if (transformer.globalCJSRequires) {
-    var cjsRequires = new CJSRequireTransformer('require', function(v) { return map[v] || v; });
-    tree = cjsRequires.transformAny(tree);
-  } */
-
   var output = compiler.write(tree);
   return Promise.resolve(output);
 };
@@ -356,21 +350,15 @@ exports.compile = function(load, opts, loader) {
   var compiler = new traceur.Compiler(options);
 
   var tree = load.metadata.parseTree || compiler.parse(load.source, load.path);
-  var transformer = new AMDDefineRegisterTransformer(!opts.anonymous && load.name, load, load.metadata.isAnon, normalize ? load.depMap : {});
+  var transformer = new AMDDefineRegisterTransformer(!opts.anonymous && load.name, load, load.metadata.anonDefine, load.metadata.anonDefineIndex, normalize ? load.depMap : {});
   tree = transformer.transformAny(tree);
-
-  // normalize cjs requires
-  /* if (load.metadata.globalCJSRequires) {
-    var cjsRequires = new CJSRequireTransformer('require', normalize && function(v) { return load.depMap[v] || v; });
-    tree = cjsRequires.transformAny(tree);
-  } */
 
   var output = compiler.write(tree, load.path);
 
-  // because we've blindly replaced the define statement from AMD with a System.registerDynamic call
-  // we have to ensure we still trigger any AMD guard statements in the code by creating a dummy define which isn't called
+  // AMD define extraction via parsing stops on var define redefinitions
+  // so this creates a natural boundary to allow future folds of this same code through rebundling
   return Promise.resolve({
-    source: '(function() {\nvar _removeDefine = ' + opts.systemGlobal + '.get("@@amd-helpers").createDefine();\n' + output + '\n_removeDefine();\n})();',
+    source: '(function() {\nvar define = ' + opts.systemGlobal + '.amdDefine;\n' + output + '\n})();',
     sourceMap: compiler.getSourceMap(),
     sourceMapOffset: 2
   });

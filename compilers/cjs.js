@@ -145,11 +145,9 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
   var useStrict = hasRemoveUseStrict(scriptItemList) && [createUseStrictDirective()] || [];
 
   scriptItemList = useStrict.concat(parseStatements([
-    globalExpression + nl
-    + 'var global = this, __define = global.define;' + nl + 'global.define = undefined;'
+    globalExpression + nl + 'var define;'
   ])).concat(scriptItemList).concat(parseStatements([
-    'global.define = __define;' + nl
-    + 'return module.exports;'
+    'return module.exports;'
   ]));
 
   // wrap everything in System.register
