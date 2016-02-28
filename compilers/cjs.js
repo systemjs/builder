@@ -145,7 +145,7 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
   var useStrict = hasRemoveUseStrict(scriptItemList) && [createUseStrictDirective()] || [];
 
   scriptItemList = useStrict.concat(parseStatements([
-    globalExpression + nl + 'var define;' + nl + 'var global = this;' + nl + 'var GLOBAL = this;'
+    globalExpression + nl + 'var define, global = this, GLOBAL = this;'
   ])).concat(scriptItemList).concat(parseStatements([
     'return module.exports;'
   ]));
