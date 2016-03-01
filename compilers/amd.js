@@ -70,8 +70,8 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
   var args = tree.args.args;
   var name;
   var depArg = -1;
-  if (args[0].type == 'LITERAL_EXPRESSION') {
-    name = args[0].literalToken.processedValue;
+  if (args[0].type == 'LITERAL_EXPRESSION' || args[1] && args[1].type == 'ARRAY_LITERAL') {
+    name = args[0].literalToken && args[0].literalToken.processedValue || true;
     if (args[1] && args[1].type == 'ARRAY_LITERAL')
       depArg = 1;
   }
@@ -103,12 +103,14 @@ AMDDependenciesTransformer.prototype.transformCallExpression = function(tree) {
   }
   // named define
   else {
-    this.bundleDefines.push(name);
-    // remove any deps which exactly reference a name
-    var depsIndex = this.deps.indexOf(name);
-    if (depsIndex != -1)
-      this.deps.splice(depsIndex, 1);
-    if (!this.anonDefine && this.anonDefineIndex == 0) {
+    if (typeof name != 'boolean') {
+      this.bundleDefines.push(name);
+      // remove any deps which exactly reference a name
+      var depsIndex = this.deps.indexOf(name);
+      if (depsIndex != -1)
+        this.deps.splice(depsIndex, 1);
+    }
+    if (!this.anonDefine && this.anonDefineIndex == 0 && typeof name != 'boolean') {
       this.anonDefine = true;
       this.anonNamed = true;
       parseDeps = true;
@@ -189,8 +191,8 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
   var args = tree.args.args;
   var name;
   var depArg = -1;
-  if (args[0].type == 'LITERAL_EXPRESSION') {
-    name = args[0].literalToken.processedValue;
+  if (args[0].type == 'LITERAL_EXPRESSION' || args[1] && args[1].type == 'ARRAY_LITERAL') {
+    name = args[0].literalToken && args[0].literalToken.processedValue || true;
     if (args[1] && args[1].type == 'ARRAY_LITERAL')
       depArg = 1;
   }

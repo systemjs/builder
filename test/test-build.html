@@ -227,6 +227,17 @@
         .catch(done);
       });
 
+      test('AMD 12', function(done) {
+        System['import']('output/amd-12.js').then(function() {
+          return System['import']('amd-12.js');
+        })
+        .then(function(m) {
+          ok(m.a == 'a');
+          done();
+        })
+        .catch(done);
+      });
+
       test('CJS Globals', function(done) {
         System['import']('output/cjs-globals.js').then(function() {
           return System['import']('cjs-globals.js');

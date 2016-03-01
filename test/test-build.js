@@ -144,6 +144,10 @@ function doTests(transpiler) {
       })
 
       .then(function() {
+        return builder.bundle('amd-12.js', 'test/output/amd-12.js');
+      })
+
+      .then(function() {
         builder.loader.config({ paths: { 'output/*': './test/output/*' } });
         return builder.bundle('cjs-globals.js - output/amd-8.js', 'test/output/cjs-globals.js');
       })
