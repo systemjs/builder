@@ -8,7 +8,7 @@ suite('Conditional Builds', function() {
   test('Package environment traces all conditional variations', function() {
     return builder.trace('pkg/env-condition')
     .then(function(tree) {
-      assert.deepEqual(Object.keys(tree).sort(), ['pkg/#:./env-condition', 'pkg/lib/env-condition-browser.js', 'pkg/lib/env-condition.js'].sort());
+      assert.deepEqual(Object.keys(tree).sort(), ['pkg/#:./env-condition', 'pkg/env-condition-browser.js', 'pkg/env-condition.js'].sort());
     });
   });
 
@@ -43,7 +43,7 @@ suite('Conditional Builds', function() {
   test('Browser:false tracing', function() {
     return builder.trace('pkg/env-condition + interpolated-#{conditions.js|test}.js', { browser: false })
     .then(function(tree) {
-      assert.deepEqual(Object.keys(tree).sort(), ['pkg/#:./env-condition', 'pkg/lib/env-condition.js', 'interpolated-#{conditions.js|test}.js', 'conditions.js', 'interpolated-1.js', 'interpolate-1-dep.js', 'interpolated-2.js'].sort())
+      assert.deepEqual(Object.keys(tree).sort(), ['pkg/#:./env-condition', 'pkg/env-condition.js', 'interpolated-#{conditions.js|test}.js', 'conditions.js', 'interpolated-1.js', 'interpolate-1-dep.js', 'interpolated-2.js'].sort())
     });
   });
 
