@@ -226,7 +226,7 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
     }));
   }
   else if (factoryTree.type == 'FUNCTION_EXPRESSION') {
-    deps = ['require', 'exports', 'module'].splice(0, args[0].parameterList.parameters.length).concat(this.load.deps.map(function(dep) {
+    deps = ['require', 'exports', 'module'].splice(0, factoryTree.parameterList.parameters.length).concat(this.load.deps.map(function(dep) {
       return self.depMap[dep] || dep;
     }));
   }
