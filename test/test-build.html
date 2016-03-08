@@ -249,6 +249,17 @@
         .catch(done);
       });
 
+      test('CJS require.resolve', function(done) {
+        System['import']('output/cjs-resolve.js').then(function(m) {
+          return System['import']('cjs-resolve.js');
+        })
+        .then(function(m) {
+          ok(m.substr(m.length - 27, 27) == 'fixtures/test-tree/first.js');
+          done();
+        })
+        .catch(done);
+      });
+
       (/PhantomJS/.test(window.navigator.userAgent) ? test.skip : test)('Runtime', function(done) {
         System['import']('output/runtime.js').then(function() {
           return System['import']('runtime.js');

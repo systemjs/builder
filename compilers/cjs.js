@@ -84,18 +84,30 @@ exports.CJSRequireTransformer = CJSRequireTransformer;
 
 
 // convert CommonJS into System.registerDynamic
-function CJSRegisterTransformer(name, deps, address, optimize, globals, systemGlobal) {
+function CJSRegisterTransformer(name, deps, path, optimize, static, globals, systemGlobal) {
   this.name = name;
   this.deps = deps;
-  this.address = address;
+  this.path = path;
   this.usesFilePaths = false;
+  this.usesRequireResolve = false;
   this.optimize = optimize;
+  this.static = static;
   this.globals = globals;
   this.systemGlobal = systemGlobal;
   return ParseTreeTransformer.call(this);
 }
 
 CJSRegisterTransformer.prototype = Object.create(ParseTreeTransformer.prototype);
+
+CJSRegisterTransformer.prototype.transformCallExpression = function(tree) {
+  // require.resolve
+  if (!this.usesRequireResolve && tree.operand.type == 'MEMBER_EXPRESSION' && 
+      tree.operand.operand.identifierToken && tree.operand.operand.identifierToken.value == '$__require' && 
+      tree.operand.memberName && tree.operand.memberName.value == 'resolve') {
+    this.usesRequireResolve = true;
+  }
+  return ParseTreeTransformer.prototype.transformCallExpression.call(this, tree);
+}
 
 CJSRegisterTransformer.prototype.transformMemberExpression = function(tree) {
   if (this.optimize && tree.operand.operand && tree.operand.operand.identifierToken && 
@@ -124,7 +136,18 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
   var scriptItemList = tree.scriptItemList;
   var nl = '\n    ';
 
-  if (this.usesFilePaths)
+  if (this.usesFilePaths && this.static)
+    scriptItemList = parseStatements([
+      "var __filename = '" + this.path + "', __dirname = '" + this.path.split('/').slice(0, -1).join('/') + "';"
+    ]).concat(scriptItemList);
+
+  if (this.usesRequireResolve && !this.static) {
+    scriptItemList = parseStatements([
+      "$__require.resolve = function(request) { return " + this.systemGlobal + ".get('@@cjs-helpers').requireResolve(request, module.id); };"
+    ]).concat(scriptItemList);
+  }
+
+  if (this.usesFilePaths && !this.static)
     scriptItemList = parseStatements([
       "var $__pathVars = " + this.systemGlobal + ".get('@@cjs-helpers').getPathVars(module.id), __filename = $__pathVars.filename, __dirname = $__pathVars.dirname;"
     ]).concat(scriptItemList);
@@ -142,17 +165,17 @@ CJSRegisterTransformer.prototype.transformScript = function(tree) {
     globalExpression += ';';
   }
 
-  var useStrict = hasRemoveUseStrict(scriptItemList) && [createUseStrictDirective()] || [];
+  var useStrict = hasRemoveUseStrict(scriptItemList) ? [createUseStrictDirective()] : [];
 
   scriptItemList = useStrict.concat(parseStatements([
-    globalExpression + nl + 'var define, global = this, GLOBAL = this;'
+    (globalExpression ? globalExpression + nl : '') + 'var define, global = this, GLOBAL = this;'
   ])).concat(scriptItemList).concat(parseStatements([
     'return module.exports;'
   ]));
 
   // wrap everything in System.register
   return new Script(tree.location, parseStatements([
-    this.systemGlobal + '.registerDynamic(' + (this.name ? '"' + this.name + '", ' : '') + JSON.stringify(this.deps) + ', true, function($__require, exports, module) {\n',
+    this.systemGlobal + '.registerDynamic(' + (this.name ? '"' + this.name + '", ' : '') + JSON.stringify(this.deps) + ', true, function($__require, exports, module) {',
     '});'], scriptItemList));
 };
 exports.CJSRegisterTransformer = CJSRequireTransformer;
@@ -183,7 +206,12 @@ exports.compile = function(load, opts, loader) {
   for (var g in load.metadata.globals) {
     globals[g] = normalize && load.depMap[load.metadata.globals[g]] || load.metadata.globals[g];
   }
-  transformer = new CJSRegisterTransformer(!opts.anonymous && load.name, deps, load.path, opts.production, globals, opts.systemGlobal);
+  if (opts.static) {
+    var path = load.path;
+    if (path.substr(0, loader.baseURL.length) == loader.baseURL)
+      path = path.substr(loader.baseURL.length);
+  }
+  transformer = new CJSRegisterTransformer(!opts.anonymous && load.name, deps, path, opts.production, opts.static, globals, opts.systemGlobal);
   tree = transformer.transformAny(tree);
 
   var output = compiler.write(tree, load.path);
@@ -197,10 +225,6 @@ exports.compile = function(load, opts, loader) {
     source: output,
     sourceMap: compiler.getSourceMap()
   });
-};
-
-exports.sfx = function(loader) {
-  return require('fs').readFileSync(require('path').resolve(__dirname, '../templates/cjs-helpers.min.js')).toString();
 };
 
 function remap(source, map, fileName) {

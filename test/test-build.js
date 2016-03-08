@@ -153,6 +153,10 @@ function doTests(transpiler) {
       })
 
       .then(function() {
+        return builder.bundle('cjs-resolve.js', 'test/output/cjs-resolve.js');
+      })
+
+      .then(function() {
         return builder.bundle('runtime.js', 'test/output/runtime.js');
       })
     })
