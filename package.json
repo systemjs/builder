@@ -1,16 +1,16 @@
 {
   "name": "systemjs-builder",
-  "version": "0.15.10",
+  "version": "0.15.11",
   "description": "SystemJS Build Tool",
   "main": "index.js",
   "dependencies": {
-    "bluebird": "^3.0.6",
+    "bluebird": "^3.3.4",
     "es6-template-strings": "^2.0.0",
-    "glob": "^6.0.1",
+    "glob": "^7.0.3",
     "mkdirp": "^0.5.1",
     "rollup": "^0.25.0",
     "source-map": "^0.5.3",
-    "systemjs": "^0.19.23",
+    "systemjs": "^0.19.24",
     "traceur": "0.0.102",
     "uglify-js": "^2.6.1"
   },
