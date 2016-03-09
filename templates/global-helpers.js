@@ -15,8 +15,29 @@
     return value;
   }
 
-  // bare minimum ignores for IE8
-  var ignoredGlobalProps = ['_g', 'sessionStorage', 'localStorage', 'clipboardData', 'frames', 'frameElement', 'external', 'mozAnimationStartTime', 'webkitStorageInfo', 'webkitIndexedDB'];
+  function getGlobalValue(exports) {
+    if (typeof exports == 'string')
+      return readMemberExpression(exports, __global);
+
+    if (!(exports instanceof Array))
+      throw new Error('Global exports must be a string or array.');
+
+    var globalValue = {};
+    var first = true;
+    for (var i = 0; i < exports.length; i++) {
+      var val = readMemberExpression(exports[i], __global);
+      if (first) {
+        globalValue['default'] = val;
+        first = false;
+      }
+      globalValue[exports[i].split('.').pop()] = val;
+    }
+    return globalValue;
+  }
+
+  // bare minimum ignores
+  var ignoredGlobalProps = ['_g', 'sessionStorage', 'localStorage', 'clipboardData', 'frames', 'frameElement', 'external', 
+      'mozAnimationStartTime', 'webkitStorageInfo', 'webkitIndexedDB', 'mozInnerScreenY', 'mozInnerScreenX'];
 
   var globalSnapshot;
 
@@ -46,7 +67,7 @@
   }
 
   loader.set('@@global-helpers', loader.newModule({
-    prepareGlobal: function(moduleName, exportName, globals) {
+    prepareGlobal: function(moduleName, exports, globals) {
       // disable module detection
       var curDefine = __global.define;
       __global.define = undefined;
@@ -62,7 +83,7 @@
       }
 
       // store a complete copy of the global object in order to detect changes
-      if (!exportName) {
+      if (!exports) {
         globalSnapshot = {};
 
         forEachGlobalValue(function(name, value) {
@@ -74,20 +95,20 @@
       return function() {
         var globalValue;
 
-        if (exportName) {
-          globalValue = readMemberExpression(exportName, __global);
+        if (exports) {
+          globalValue = getGlobalValue(exports);
         }
         else {
+          globalValue = {};
           var singleGlobal;
           var multipleExports;
-          var exports = {};
 
           forEachGlobalValue(function(name, value) {
             if (globalSnapshot[name] === value)
               return;
             if (typeof value == 'undefined')
               return;
-            exports[name] = value;
+            globalValue[name] = value;
 
             if (typeof singleGlobal != 'undefined') {
               if (!multipleExports && singleGlobal !== value)
@@ -97,7 +118,7 @@
               singleGlobal = value;
             }
           });
-          globalValue = multipleExports ? exports : singleGlobal;
+          globalValue = multipleExports ? globalValue : singleGlobal;
         }
 
         // revert globals
