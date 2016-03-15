@@ -135,7 +135,7 @@ jquery.js
 module.exports = window.jQuery;
 ```
 
-### Minfication & Source Maps
+### Minification & Source Maps
 
 As well as an `options.config` parameter, it is also possible to specify minification and source maps options:
 
