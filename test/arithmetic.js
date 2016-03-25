@@ -36,7 +36,8 @@ suite('Bundle Expressions', function() {
     builder.trace('*.js - [amd-*] - [sfx-format-*]')
     .then(function(tree) {
       assert.deepEqual(Object.keys(tree).sort(), [
-          'Buffer.js', 'amd.js', 'babel', 'cjs-globals.js', 'cjs-resolve.js', 'cjs.js', 'component.jsx!jsx.js', 'file.json', 'first.js', 
+          'Buffer.js', 'amd.js', 'babel', 'cjs-1.js', 'cjs-2.js', 'cjs-3.js', 'cjs-4.js', 'cjs-5.js', 'cjs-globals.js', 'cjs-in-12.js', 'cjs-in-13.js',
+          'cjs-resolve.js', 'cjs.js', 'component.jsx!jsx.js', 'file.json', 'first.js',
           'global-inner.js', 'global-outer.js', 'global.js', 'jquery-cdn', 'jquery.js', 'json-plugin.js', 'jsx.js', 'plugin.js', 'runtime.js', 
           'second.js', 'some.js!plugin.js', 'text-plugin.js', 'text.txt!text-plugin.js', 'third.js', 'umd.js']);
     })
@@ -50,4 +51,145 @@ suite('Bundle Expressions', function() {
     })
     .then(done, done);
   });
+
+  test('cjs bundles added', function(done){
+    builder.trace('cjs-1.js + cjs-2.js + cjs-3.js')
+    .then(function(tree) {
+      assert.deepEqual(Object.keys(tree).sort(), [
+          'cjs-1.js', 'cjs-2.js', 'cjs-3.js', 'cjs-in-12.js', 'cjs-in-13.js']);
+    })
+    .then(done, done);
+  });
+
+  test('cjs bundles added with parens', function(done){
+    builder.trace('(cjs-1.js & cjs-2.js) + (cjs-1.js & cjs-3.js)')
+    .then(function(tree) {
+      assert.deepEqual(Object.keys(tree).sort(), ['cjs-in-12.js', 'cjs-in-13.js']);
+    })
+    .then(done, done);
+  });
+
+  test('cjs bundles added with parens and extra spaces', function(done){
+    builder.trace('  (   cjs-1.js    &     cjs-2.js          )       + ( cjs-1.js & cjs-3.js)')
+    .then(function(tree) {
+      assert.deepEqual(Object.keys(tree).sort(), ['cjs-in-12.js', 'cjs-in-13.js']);
+    })
+    .then(done, done);
+  });
+
+  test('cjs bundles added with single-value parameters', function(done){
+    builder.trace('(cjs-1.js) + (cjs-2.js) + (cjs-3.js)')
+    .then(function(tree) {
+      assert.deepEqual(Object.keys(tree).sort(), [
+        'cjs-1.js', 'cjs-2.js', 'cjs-3.js', 'cjs-in-12.js', 'cjs-in-13.js']);
+    })
+    .then(done, done);
+  });
+
+  test('cjs bundles added with parens', function(done){
+    builder.trace('(cjs-1.js & cjs-2.js)')
+    .then(function(tree) {
+      assert.deepEqual(Object.keys(tree).sort(), ['cjs-in-12.js']);
+    })
+    .then(done, done);
+  });
+
+  test('cjs bundles added with parens', function(done){
+    builder.trace('(cjs-1.js & cjs-2.js) + cjs-in-13.js - cjs-in-13.js')
+    .then(function(tree) {
+      assert.deepEqual(Object.keys(tree).sort(), ['cjs-in-12.js']);
+    })
+    .then(done, done);
+  });
+
+  test('cjs bundles added with parens', function(done){
+    builder.trace('(cjs-1.js & cjs-2.js) + cjs-in-13.js - cjs-in-13.js')
+    .then(function(tree) {
+      assert.deepEqual(Object.keys(tree).sort(), ['cjs-in-12.js']);
+    })
+    .then(done, done);
+  });
+
+  test('cjs bundles added with parens', function(done){
+    builder.trace('cjs-in-13.js + (cjs-1.js & cjs-2.js) - cjs-in-13.js')
+    .then(function(tree) {
+      assert.deepEqual(Object.keys(tree).sort(), ['cjs-in-12.js']);
+    })
+    .then(done, done);
+  });
+
+  test('cjs bundles added with multiple parens', function(done){
+    builder.trace('cjs-in-13.js + (cjs-1.js & cjs-2.js) - (cjs-in-13.js)')
+    .then(function(tree) {
+      assert.deepEqual(Object.keys(tree).sort(), ['cjs-in-12.js']);
+    })
+    .then(done, done);
+  });
+
+  test('cjs bundles added with multiple parens 2', function(done){
+    builder.trace('(cjs-1.js & cjs-2.js) + (cjs-1.js & cjs-3.js) - cjs-in-12.js')
+    .then(function(tree) {
+      assert.deepEqual(Object.keys(tree).sort(), ['cjs-in-13.js']);
+    })
+    .then(done, done);
+  });
+
+  test('cjs bundles with nested parens 3', function(done){
+    builder.trace('(cjs-1.js + cjs-2.js - ([cjs-1.js] + [cjs-2.js])) - (cjs-in-12.js)')
+    .then(function(tree) {
+      assert.deepEqual(Object.keys(tree).sort(), ['cjs-in-13.js']);
+    })
+    .then(done, done);
+  });
+
+  test('cjs bundles with nested parens 4', function(done){
+    builder.trace('(cjs-1.js + cjs-2.js - ([cjs-1.js] + [cjs-2.js])) - (cjs-in-12.js) + (cjs-4.js + cjs-5.js)')
+    .then(function(tree) {
+      assert.deepEqual(Object.keys(tree).sort(), ['cjs-4.js', 'cjs-5.js', 'cjs-in-13.js']);
+    })
+    .then(done, done);
+  });
+
+  test('cjs bundles with nested parens 5', function(done){
+    builder.trace('((cjs-1.js + cjs-2.js - ([cjs-1.js] + [cjs-2.js])) - (cjs-in-12.js) + (cjs-4.js + cjs-5.js)) - ([cjs-4.js] + [cjs-5.js])')
+    .then(function(tree) {
+      assert.deepEqual(Object.keys(tree).sort(), ['cjs-in-13.js']);
+    })
+    .then(done, done);
+  });
+
+  test('cjs bundles with nested parens 5', function(done){
+    builder.trace('((cjs-1.js + cjs-2.js - ([cjs-1.js] + [cjs-2.js] + ([cjs-4.js] + [cjs-5.js]))) - (cjs-4.js + cjs-5.js))')
+    .then(function(tree) {
+      assert.deepEqual(Object.keys(tree).sort(), ['cjs-in-12.js', 'cjs-in-13.js']);
+    })
+    .then(done, done);
+  });
+
+
+  test('ibid with single module subtracted', function(done){
+    builder.trace('(cjs-1.js + cjs-2.js - ([cjs-1.js] + [cjs-2.js])) - ([cjs-in-12.js])')
+    .then(function(tree) {
+      assert.deepEqual(Object.keys(tree).sort(), ['cjs-in-13.js']);
+    })
+    .then(done, done);
+  });
+
+  test('cjs bundles added with nested parens', function(done){
+    builder.trace('(cjs-1.js + cjs-2.js - (cjs-1.js & cjs-2.js))')
+    .then(function(tree) {
+      assert.deepEqual(Object.keys(tree).sort(), ['cjs-1.js', 'cjs-2.js', 'cjs-in-13.js']);
+    })
+    .then(done, done);
+  });
+
+  test('cjs bundles with parens and single modules', function(done){
+    builder.trace('(cjs-1.js + cjs-2.js) - ([cjs-1.js] + [cjs-2.js])')
+    .then(function(tree) {
+      assert.deepEqual(Object.keys(tree).sort(), ['cjs-in-12.js', 'cjs-in-13.js']);
+    })
+    .then(done, done);
+  });
+
+
 });
