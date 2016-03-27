@@ -190,6 +190,59 @@ suite('Bundle Expressions', function() {
     })
     .then(done, done);
   });
+});
 
+suite('Bundle Expression Validation', function() {
+  test('missing identifier 1', function(){
+    return validateInvalidExpression('cjs-1.js + +');
+  });
+
+  test('missing identifier 2', function(){
+    return validateInvalidExpression('cjs-1.js + -');
+  });
+
+  test('missing identifier 3', function(){
+    return validateInvalidExpression('cjs-1.js + &');
+  });
+
+  test('unclosed parens 1', function(){
+    return validateInvalidExpression('(cjs-1.js + cjs-2.js');
+  });
+
+  test('unclosed parens 2', function(){
+    return validateInvalidExpression('(cjs-1.js + (cjs-2.js + cjs-3.js');
+  });
+
+  test('unclosed parens 3', function(){
+    return validateInvalidExpression('(cjs-1.js + (cjs-2.js + cjs-3.js)');
+  });
+
+  test('unclosed parens 4', function(){
+    return validateInvalidExpression('(cjs-2.js + cjs-3.js) + (cjs-1.js + (cjs-2.js + cjs-3.js)');
+  });
+
+  test('missing operator 1', function(){
+    return validateInvalidExpression('cjs-1.js + cjs-2.js cjs-3.js');
+  });
+
+  function validateInvalidExpression(expression){
+    return Promise
+           .resolve()
+           .then(function(){ return builder.trace(expression) })
+           .then(
+             function(){ return Promise.reject('Invalid expression <' + expression + '> was parsed without error'); }, //it worked but shouldn't have
+             function(err){
+               //uncomment this line to view the Syntax Errors' wordings in the test console
+               //console.log(err);
+               if (typeof err !== 'string' || !/^Syntax Error/i.test(err)){
+                 return Promise.reject('Syntax error was expected, but not generated')
+               } else {
+                 return Promise.resolve(1);
+               }
+             }
+           )
+  }
 
 });
+
+
