@@ -29,7 +29,7 @@
     "url": "http://github.com/systemjs/builder.git"
   },
   "scripts": {
-    "test": "mkdir -p test/output && ./node_modules/.bin/mocha"
+    "test": "./node_modules/.bin/mocha"
   },
   "author": "",
   "license": "MIT",

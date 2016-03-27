@@ -1,6 +1,7 @@
 var Builder = require('../index');
 var inline = require('../lib/output').inlineSourceMap;
 var fs = require('fs');
+var path = require('path');
 var spawn = require('child_process').spawn;
 if (process.argv[2] == 'typescript')
   global.ts = require('typescript');
@@ -17,7 +18,7 @@ var builder = new Builder('test/fixtures/test-tree', 'test/fixtures/test-tree.co
 
 function testPhantom(html) {
   return new Promise(function(resolve, reject) {
-    spawn('node_modules/.bin/mocha-phantomjs', [html], { stdio: 'inherit' })
+    spawn('node_modules/.bin/mocha-phantomjs' + (process.platform.match(/^win/) ? '.cmd' : ''), [html], { stdio: 'inherit' })
     .on('close', function(code) {
       if (code !== 0)
         reject(Error('Phantom test failed ' + html + ' failed.'));
