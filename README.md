@@ -259,6 +259,14 @@ builder.bundle('app/**/* - [app/**/*]', 'dependencies.js', { minify: true, sourc
 
 The above means _take the tree of app and all its dependencies, and subtract just the modules in app_, thus leaving us with just the tree of dependencies of the app package.
 
+#### Example - Multiple Common Bundles
+
+Parentheses are supported, so the following would bundle everything in common with `page1` and `page2`, and also everything in common between `page3` and `page4`:
+
+```javascript
+builder.bundle('(app/page1.js & app/page2.js) + (app/page3.js & app/page4.js)', 'common.js');
+```
+
 #### Example - Direct Trace API
 
 Instead of using the arithmetic syntax, we can construct the trace ourselves.
