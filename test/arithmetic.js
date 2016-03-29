@@ -36,7 +36,7 @@ suite('Bundle Expressions', function() {
     builder.trace('*.js - [amd-*] - [sfx-format-*]')
     .then(function(tree) {
       assert.deepEqual(Object.keys(tree).sort(), [
-          'Buffer.js', 'amd.js', 'babel', 'cjs-1.js', 'cjs-2.js', 'cjs-3.js', 'cjs-4.js', 'cjs-5.js', 'cjs-globals.js', 'cjs-in-12.js', 'cjs-in-13.js',
+          'Buffer.js', 'amd.js', 'babel', 'cjs space.js', 'cjs-1.js', 'cjs-2.js', 'cjs-3.js', 'cjs-4.js', 'cjs-5.js', 'cjs-globals.js', 'cjs-in-12.js', 'cjs-in-13.js',
           'cjs-resolve.js', 'cjs.js', 'component.jsx!jsx.js', 'file.json', 'first.js',
           'global-inner.js', 'global-outer.js', 'global.js', 'jquery-cdn', 'jquery.js', 'json-plugin.js', 'jsx.js', 'plugin.js', 'runtime.js', 
           'second.js', 'some.js!plugin.js', 'text-plugin.js', 'text.txt!text-plugin.js', 'third.js', 'umd.js']);
@@ -61,14 +61,6 @@ suite('Bundle Expressions', function() {
     .then(done, done);
   });
 
-  test('cjs bundles added with parens', function(done){
-    builder.trace('(cjs-1.js & cjs-2.js) + (cjs-1.js & cjs-3.js)')
-    .then(function(tree) {
-      assert.deepEqual(Object.keys(tree).sort(), ['cjs-in-12.js', 'cjs-in-13.js']);
-    })
-    .then(done, done);
-  });
-
   test('cjs bundles added with parens and extra spaces', function(done){
     builder.trace('  (   cjs-1.js    &     cjs-2.js          )       + ( cjs-1.js & cjs-3.js)')
     .then(function(tree) {
@@ -87,6 +79,14 @@ suite('Bundle Expressions', function() {
   });
 
   test('cjs bundles added with parens', function(done){
+    builder.trace('(cjs-1.js & cjs-2.js) + (cjs-1.js & cjs-3.js)')
+    .then(function(tree) {
+      assert.deepEqual(Object.keys(tree).sort(), ['cjs-in-12.js', 'cjs-in-13.js']);
+    })
+    .then(done, done);
+  });
+
+  test('cjs bundles added with parens 2', function(done){
     builder.trace('(cjs-1.js & cjs-2.js)')
     .then(function(tree) {
       assert.deepEqual(Object.keys(tree).sort(), ['cjs-in-12.js']);
@@ -94,7 +94,7 @@ suite('Bundle Expressions', function() {
     .then(done, done);
   });
 
-  test('cjs bundles added with parens', function(done){
+  test('cjs bundles added with parens 3', function(done){
     builder.trace('(cjs-1.js & cjs-2.js) + cjs-in-13.js - cjs-in-13.js')
     .then(function(tree) {
       assert.deepEqual(Object.keys(tree).sort(), ['cjs-in-12.js']);
@@ -102,7 +102,7 @@ suite('Bundle Expressions', function() {
     .then(done, done);
   });
 
-  test('cjs bundles added with parens', function(done){
+  test('cjs bundles added with parens 4', function(done){
     builder.trace('(cjs-1.js & cjs-2.js) + cjs-in-13.js - cjs-in-13.js')
     .then(function(tree) {
       assert.deepEqual(Object.keys(tree).sort(), ['cjs-in-12.js']);
@@ -110,7 +110,7 @@ suite('Bundle Expressions', function() {
     .then(done, done);
   });
 
-  test('cjs bundles added with parens', function(done){
+  test('cjs bundles added with parens 5', function(done){
     builder.trace('cjs-in-13.js + (cjs-1.js & cjs-2.js) - cjs-in-13.js')
     .then(function(tree) {
       assert.deepEqual(Object.keys(tree).sort(), ['cjs-in-12.js']);
@@ -134,7 +134,7 @@ suite('Bundle Expressions', function() {
     .then(done, done);
   });
 
-  test('cjs bundles with nested parens 3', function(done){
+  test('cjs bundles with nested parens', function(done){
     builder.trace('(cjs-1.js + cjs-2.js - ([cjs-1.js] + [cjs-2.js])) - (cjs-in-12.js)')
     .then(function(tree) {
       assert.deepEqual(Object.keys(tree).sort(), ['cjs-in-13.js']);
@@ -142,7 +142,7 @@ suite('Bundle Expressions', function() {
     .then(done, done);
   });
 
-  test('cjs bundles with nested parens 4', function(done){
+  test('cjs bundles with nested parens 2', function(done){
     builder.trace('(cjs-1.js + cjs-2.js - ([cjs-1.js] + [cjs-2.js])) - (cjs-in-12.js) + (cjs-4.js + cjs-5.js)')
     .then(function(tree) {
       assert.deepEqual(Object.keys(tree).sort(), ['cjs-4.js', 'cjs-5.js', 'cjs-in-13.js']);
@@ -150,7 +150,7 @@ suite('Bundle Expressions', function() {
     .then(done, done);
   });
 
-  test('cjs bundles with nested parens 5', function(done){
+  test('cjs bundles with nested parens 3', function(done){
     builder.trace('((cjs-1.js + cjs-2.js - ([cjs-1.js] + [cjs-2.js])) - (cjs-in-12.js) + (cjs-4.js + cjs-5.js)) - ([cjs-4.js] + [cjs-5.js])')
     .then(function(tree) {
       assert.deepEqual(Object.keys(tree).sort(), ['cjs-in-13.js']);
@@ -158,7 +158,7 @@ suite('Bundle Expressions', function() {
     .then(done, done);
   });
 
-  test('cjs bundles with nested parens 5', function(done){
+  test('cjs bundles with nested parens 4', function(done){
     builder.trace('((cjs-1.js + cjs-2.js - ([cjs-1.js] + [cjs-2.js] + ([cjs-4.js] + [cjs-5.js]))) - (cjs-4.js + cjs-5.js))')
     .then(function(tree) {
       assert.deepEqual(Object.keys(tree).sort(), ['cjs-in-12.js', 'cjs-in-13.js']);
@@ -190,6 +190,43 @@ suite('Bundle Expressions', function() {
     })
     .then(done, done);
   });
+
+  test('file with space', function(done){
+    builder.trace('cjs-1.js + cjs space.js')
+    .then(function(tree) {
+      assert.deepEqual(Object.keys(tree).sort(), [
+        'cjs space.js', 'cjs-1.js', 'cjs-in-12.js', 'cjs-in-13.js']);
+    })
+    .then(done, done);
+  });
+
+  test('file with space 2', function(done){
+    builder.trace('cjs-1.js + cjs space.js   ')
+    .then(function(tree) {
+      assert.deepEqual(Object.keys(tree).sort(), [
+        'cjs space.js', 'cjs-1.js', 'cjs-in-12.js', 'cjs-in-13.js']);
+    })
+    .then(done, done);
+  });
+
+  test('file with space 3', function(done){
+    builder.trace('cjs-1.js + cjs space.js   + cjs-2.js')
+    .then(function(tree) {
+      assert.deepEqual(Object.keys(tree).sort(), [
+        'cjs space.js', 'cjs-1.js', 'cjs-2.js', 'cjs-in-12.js', 'cjs-in-13.js']);
+    })
+    .then(done, done);
+  });
+
+  test('file with space 4', function(done){
+    builder.trace('cjs-1.js + cjs space.js   + cjs-2.js   ')
+    .then(function(tree) {
+      assert.deepEqual(Object.keys(tree).sort(), [
+        'cjs space.js', 'cjs-1.js', 'cjs-2.js', 'cjs-in-12.js', 'cjs-in-13.js']);
+    })
+    .then(done, done);
+  });
+
 });
 
 suite('Bundle Expression Validation', function() {
@@ -219,10 +256,6 @@ suite('Bundle Expression Validation', function() {
 
   test('unclosed parens 4', function(){
     return validateInvalidExpression('(cjs-2.js + cjs-3.js) + (cjs-1.js + (cjs-2.js + cjs-3.js)');
-  });
-
-  test('missing operator 1', function(){
-    return validateInvalidExpression('cjs-1.js + cjs-2.js cjs-3.js');
   });
 
   function validateInvalidExpression(expression){
