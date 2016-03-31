@@ -2,7 +2,7 @@ var Builder = require('../index');
 var inline = require('../lib/output').inlineSourceMap;
 var fs = require('fs');
 var path = require('path');
-var spawn = require('child_process').spawn;
+var spawnSync = require('child_process').spawnSync;
 if (process.argv[2] == 'typescript')
   global.ts = require('typescript');
 
@@ -18,13 +18,12 @@ var builder = new Builder('test/fixtures/test-tree', 'test/fixtures/test-tree.co
 
 function testPhantom(html) {
   return new Promise(function(resolve, reject) {
-    spawn('node_modules/.bin/mocha-phantomjs' + (process.platform.match(/^win/) ? '.cmd' : ''), [html], { stdio: 'inherit' })
-    .on('close', function(code) {
-      if (code !== 0)
-        reject(Error('Phantom test failed ' + html + ' failed.'));
-      else
-        resolve();
-    });
+    try {
+      spawnSync('/node_modules/.bin/mocha-phantomjs' + (process.platform.match(/^win/) ? '.cmd' : ''), [html], {stdio: 'inherit'});
+      resolve();
+    } catch (err){
+      reject(Error('Phantom test failed ' + html + ' failed.'));
+    }
   });
 }
 
@@ -220,6 +219,9 @@ suite('Test tree builds - TypeScript', function() {
 
 suite('Bundle Format', function() {
   test('Test AMD format', function() {
+    //fresh instance of builder free of side effects from doTests()
+    var builder = new Builder('test/fixtures/test-tree', 'test/fixtures/test-tree.config.js');
+
     return Promise.resolve()
     .then(function() {
       return builder.buildStatic('sfx-format-01.js', 'test/output/sfx-amd.js', { format: 'amd' });
