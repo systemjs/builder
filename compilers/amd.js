@@ -44,7 +44,7 @@ AMDDependenciesTransformer.prototype.filterAMDDeps = function(deps) {
 
 // var define disables until we quit the existing scope
 AMDDependenciesTransformer.prototype.transformVariableDeclaration = function(tree) {
-  if (tree.lvalue.identifierToken.value == 'define')
+  if (tree.lvalue.identifierToken && tree.lvalue.identifierToken.value == 'define')
     this.defineRedefined = true;
   return tree;
 };
