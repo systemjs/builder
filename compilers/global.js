@@ -91,6 +91,8 @@ GlobalTransformer.prototype.transformScript = function(tree) {
     globalExpression = '{';
     var first = true;
     for (var g in this.globals) {
+      if (!this.globals[g])
+        continue;
       globalExpression += (first ? '' : ',') + nl + '"' + g + '": $__require("' + this.globals[g] + '")';
       first = false;
     }
