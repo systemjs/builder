@@ -265,7 +265,7 @@ exports.compile = function(load, opts, loader) {
         options.metadataUsedHelpers = true;
 
       var usesLoaderSyntax = Object.keys(load.depMap).some(function(dep){
-        dep.endsWith('!');
+        return dep.endsWith('!');
       });
 
       if (normalize || usesLoaderSyntax)
