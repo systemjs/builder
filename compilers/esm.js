@@ -264,7 +264,11 @@ exports.compile = function(load, opts, loader) {
       else if (transpiler.version.match(/^5\.[01234]\./))
         options.metadataUsedHelpers = true;
 
-      if (normalize)
+      var usesLoaderSyntax = Object.keys(load.depMap).some(function(dep){
+        dep.endsWith('!');
+      });
+
+      if (normalize || usesLoaderSyntax)
         options.resolveModuleSource = function(dep) {
           return load.depMap[dep] || dep;
         };
