@@ -288,23 +288,19 @@
 
   // converts any module.exports object into an object ready for SystemJS.newModule
   function getESModule(exports) {
-    if (exports === global)
-      return exports;
     var esModule = {};
     // don't trigger getters/setters in environments that support them
     if (typeof exports == 'object' || typeof exports == 'function') {
+      var hasOwnProperty = exports && exports.hasOwnProperty;
       if (getOwnPropertyDescriptor) {
-        var d;
-        for (var p in exports)
-          if (d = Object.getOwnPropertyDescriptor(exports, p))
-            defineProperty(esModule, p, d);
+        for (var p in exports) {
+          if (!trySilentDefineProperty(esModule, exports, p))
+            setPropertyIfHasOwnProperty(esModule, exports, p, hasOwnProperty);
+        }
       }
       else {
-        var hasOwnProperty = exports && exports.hasOwnProperty;
-        for (var p in exports) {
-          if (!hasOwnProperty || exports.hasOwnProperty(p))
-            esModule[p] = exports[p];
-        }
+        for (var p in exports)
+          setPropertyIfHasOwnProperty(esModule, exports, p, hasOwnProperty);
       }
     }
     esModule['default'] = exports;
@@ -312,6 +308,24 @@
       value: true
     });
     return esModule;
+  }
+
+  function setPropertyIfHasOwnProperty(targetObj, sourceObj, propName, hasOwnProperty) {
+    if (!hasOwnProperty || sourceObj.hasOwnProperty(propName))
+      targetObj[propName] = sourceObj[propName];
+  }
+
+  function trySilentDefineProperty(targetObj, sourceObj, propName) {
+    try {
+      var d;
+      if (d = Object.getOwnPropertyDescriptor(sourceObj, propName))
+        defineProperty(targetObj, propName, d);
+
+      return true;
+    } catch (ex) {
+      // Object.getOwnPropertyDescriptor threw an exception, fall back to normal set property.
+      return false;
+    }
   }
 
   /*
