@@ -158,6 +158,12 @@ builder.bundle('myModule.js', 'outfile.js', { sourceMaps: true, lowResSourceMaps
 builder.bundle('myModule.js', 'outfile.js', { minify: true, mangle: false, globalDefs: { DEBUG: false } });
 ```
 
+#### SourceMap Options
+
+* `sourceMaps`, Either boolean value (enable/disable) or string value `'inline'` which will inline the SourceMap data as Base64 data URI right in the generated output file (never use in production). *(Default is `false`)*
+* `sourceMapContents`, Boolean value that determines if original sources shall be directly included in the SourceMap. Using inline source contents generates truely self contained SourceMaps which will not need to load the external original source files during debugging. *(Default is `false`; when using `sourceMaps='inline'` it defaults `true`)*
+
+
 ### In-Memory Builds
 
 Leave out the `outFile` option to run an in-memory build:
