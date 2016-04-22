@@ -84,14 +84,14 @@ exports.CJSRequireTransformer = CJSRequireTransformer;
 
 
 // convert CommonJS into System.registerDynamic
-function CJSRegisterTransformer(name, deps, path, optimize, static, globals, systemGlobal) {
+function CJSRegisterTransformer(name, deps, path, optimize, isStatic, globals, systemGlobal) {
   this.name = name;
   this.deps = deps;
   this.path = path;
   this.usesFilePaths = false;
   this.usesRequireResolve = false;
   this.optimize = optimize;
-  this.static = static;
+  this.static = isStatic;
   this.globals = globals;
   this.systemGlobal = systemGlobal;
   return ParseTreeTransformer.call(this);
