@@ -1,9 +1,6 @@
 var fs = require('fs');
 var Builder = require('../index');
 
-// OH DEAR!
-return;
-
 function atob(str) {
   return new Buffer(str, 'base64').toString('binary');
 }
@@ -18,12 +15,13 @@ var buildOpts = { sourceMaps: true };
 var configFile = './test/fixtures/test-tree.config.js';
 
 var compareSourceMaps = function(filename, expectation, done, transpiler) {
-  var instance = new Builder(configFile);
+  var instance = new Builder();
+  instance.loadConfigSync(configFile);
   buildOpts.config = buildOpts.config || {};
   buildOpts.config.transpiler = transpiler || 'traceur';
-  instance.build(filename, null, buildOpts)
+  instance.bundle(filename, null, buildOpts)
   .then(function(output) {
-    assert.equal(expectation, output.sourceMap.toString());
+    assert.equal(output.sourceMap.toString(), expectation);
   })
   .then(done)
   .catch(err);
@@ -33,26 +31,27 @@ var readExpectation = function(filename) {
   return fs.readFileSync('test/fixtures/sourcemaps-expectations/' + filename).toString().replace(/\n$/, '');
 };
 
-function writeTestOutput() {
-  (new Builder()).loadConfig(configFile)
-    .then(function(builder) {
-      builder.buildSFX('first', 'test/output/output.js', buildOpts);
+function writeTestOutput(done) {
+  var builder = new Builder();
+  return builder.loadConfig(configFile)
+    .then(function() {
+      builder.buildStatic('first.js', 'test/output/output.js', buildOpts);
     })
-  .catch(err);
+    .then(done)
+    .catch(err);
 }
 
 function writeSourceMaps(moduleName, transpiler, sourceMapFile) {
-  var instance = new Builder(configFile);
+  var instance = new Builder();
+  instance.loadConfigSync(configFile);
   buildOpts.config = buildOpts.config || {};
   buildOpts.config.transpiler = transpiler || 'traceur';
-  instance.build(moduleName, null, buildOpts)
+  instance.bundle(moduleName, null, buildOpts)
   .then(function(output) {
     fs.writeFile('test/fixtures/sourcemaps-expectations/' + sourceMapFile, output.sourceMap.toString());
   })
   .catch(err);
 }
-
-writeTestOutput();
 
 var toJSON = function(map) {
   return JSON.parse(map.toString());
@@ -63,13 +62,14 @@ var getSources = function(map) {
 };
 
 suite('Source Maps', function() {
+  suiteSetup(writeTestOutput);
 
   test('can render inline', function(done) {
-    var module = 'amd-2';
-    var filename = 'inline-source-map.js';
+    var module = 'amd-2.js';
 
-    var instance = new Builder(configFile);
-    instance.build(module, null, { sourceMaps: 'inline' })
+    var instance = new Builder();
+    instance.loadConfigSync(configFile);
+    instance.bundle(module, null, { sourceMaps: 'inline' })
     .then(function(output) {
       assert.equal(undefined, output.sourceMap);
       var source = output.source;
@@ -82,50 +82,56 @@ suite('Source Maps', function() {
       var decoded = JSON.parse(atob(encoding));
       // not a regular array so tedious
       assert.equal(1, decoded.sources.length);
-      assert.equal('amd-2.js', decoded.sources[0]);
-      done();
-    });
+      assert.equal('test/fixtures/test-tree/amd-2.js', decoded.sources[0]);
+    })
+    .then(done)
+    .catch(err);
   });
 
   suite('sources paths', function() {
 
     test('are relative to outFile', function(done) {
-      var builder = new Builder(configFile);
-      builder.buildSFX('first', 'dist/output.js', buildOpts)
+      var builder = new Builder();
+      builder.loadConfigSync(configFile);
+      builder.buildStatic('first.js', 'test/output/output.js', buildOpts)
       .then(function(outputs) {
         var sources = getSources(outputs.sourceMap);
         assert.deepEqual(sources,
-        [ '../test/fixtures/test-tree/third.js',
-          '../test/fixtures/test-tree/cjs.js',
-          '../test/fixtures/test-tree/jquery.js',
-          '../test/fixtures/test-tree/some',
-          '../test/fixtures/test-tree/text.txt',
-          '../test/fixtures/test-tree/component.jsx',
-          '../test/fixtures/test-tree/global.js',
-          '../test/fixtures/test-tree/amd.js',
-          '../test/fixtures/test-tree/second.js',
-          '../test/fixtures/test-tree/first.js' ]);
+        [ '../fixtures/test-tree/third.js',
+          '../fixtures/test-tree/cjs.js',
+          '../fixtures/test-tree/second.js',
+          '../fixtures/test-tree/jquery.js',
+          '../fixtures/test-tree/global.js',
+          '../fixtures/test-tree/some.js',
+          '../fixtures/test-tree/text.txt',
+          '../fixtures/test-tree/amd.js',
+          '../fixtures/test-tree/component.jsx',
+          '../fixtures/test-tree/file.json',
+          '../fixtures/test-tree/first.js' ]);
       })
       .then(done)
       .catch(err);
     });
 
     test('are relative to baseURL, if no outFile', function(done) {
-      var builder = new Builder(configFile);
-      var opts = { sourceMaps: true, config: { baseURL: 'test/fixtures/test-tree' } };
-      builder.buildSFX('first', null, opts)
+      var builder = new Builder();
+      builder.config({ baseURL: 'test/fixtures/test-tree' });
+      builder.loadConfigSync(configFile);
+      var opts = { sourceMaps: true };
+      builder.buildStatic('first.js', null, opts)
       .then(function(outputs) {
         var sources = getSources(outputs.sourceMap);
         assert.deepEqual(sources,
         [ 'third.js',
           'cjs.js',
-          'jquery.js',
-          'some',
-          'text.txt',
-          'component.jsx',
-          'global.js',
-          'amd.js',
           'second.js',
+          'jquery.js',
+          'global.js',
+          'some.js',
+          'text.txt',
+          'amd.js',
+          'component.jsx',
+          'file.json',
           'first.js' ]);
       })
       .then(done)
@@ -134,10 +140,11 @@ suite('Source Maps', function() {
   });
 
   suite('Option: sourceMapContents', function() {
-    suite('includes all file contents', function(done) {
-      var builder = new Builder(configFile);
+    test.skip('includes all file contents', function(done) {
+      var builder = new Builder();
+      builder.loadConfigSync(configFile);
       var opts = { sourceMaps: true, sourceMapContents: true };
-      builder.buildSFX('first', null, opts)
+      builder.buildStatic('first.js', null, opts)
       .then(function(outputs) {
         var map = toJSON(outputs.sourceMap);
         var sources = map.sources;
@@ -145,8 +152,8 @@ suite('Source Maps', function() {
         assert.equal(sources.length, contents.length);
         for (var i=0; i<contents.length; i++) {
           var content = contents[i];
-          assert(content && content.length > 0);
-          assert.equal(content, fs.readFileSync('test/fixtures/test-tree/' + sources[i]).toString());
+          assert(content && content.length > 0, 'empty sourcemap content');
+          assert.equal(content, fs.readFileSync(sources[i]).toString());
         }
       })
       .then(done)
@@ -160,7 +167,7 @@ suite('Source Maps', function() {
 
     suite('without input source maps', function() {
       test('handles single compilation targets correctly', function(done) {
-        var module = 'amd-2';
+        var module = 'amd-2.js';
         var source = 'traceur.tree.single.json';
         if (process.env.UPDATE_EXPECTATIONS)
           writeSourceMaps(module, transpiler, source);
@@ -168,14 +175,14 @@ suite('Source Maps', function() {
         compareSourceMaps(module, expected, done, transpiler);
       });
 
-      /* test('handles multiple compilation targets correctly', function(done) {
-        var module = 'first';
+      test('handles multiple compilation targets correctly', function(done) {
+        var module = 'first.js';
         var source = 'traceur.tree.multi.json';
         if (process.env.UPDATE_EXPECTATIONS)
           writeSourceMaps(module, transpiler, source);
         var expected = readExpectation(source);
         compareSourceMaps(module, expected, done, transpiler);
-      }); */
+      });
     });
   });
 
@@ -184,7 +191,7 @@ suite('Source Maps', function() {
 
     suite('without input source maps', function() {
       test('handles single compilation targets correctly', function(done) {
-        var module = 'amd-2';
+        var module = 'amd-2.js';
         var source = 'babel.tree.single.json';
         if (process.env.UPDATE_EXPECTATIONS)
           writeSourceMaps(module, transpiler, source);
@@ -192,14 +199,14 @@ suite('Source Maps', function() {
         compareSourceMaps(module, expected, done, transpiler);
       });
 
-      /* test('handles multiple compilation targets correctly', function(done) {
-        var module = 'first';
+      test('handles multiple compilation targets correctly', function(done) {
+        var module = 'first.js';
         var source = 'babel.tree.multi.json';
         if (process.env.UPDATE_EXPECTATIONS)
           writeSourceMaps(module, transpiler, source);
         var expected = readExpectation(source);
         compareSourceMaps(module, expected, done, transpiler);
-      }); */
+      });
     });
   });
 });
