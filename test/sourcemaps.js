@@ -88,6 +88,26 @@ suite('Source Maps', function() {
     .catch(err);
   });
 
+  test('can consume input source maps', function(done) {
+    var module = 'register.js';
+
+    var instance = new Builder();
+    instance.loadConfigSync(configFile);
+    instance.bundle(module, null, { sourceMaps: true })
+    .then(function(output) {
+      var sources = getSources(output.sourceMap);
+      assert.deepEqual(sources,
+        [ "test/fixtures/test-tree/jquery.js",
+          "test/fixtures/test-tree/global.js",
+          "test/fixtures/test-tree/example",
+          "test/fixtures/test-tree/example.js",
+          "test/fixtures/test-tree/register.js",
+          "test/fixtures/test-tree/babel.js" ]);
+    })
+    .then(done)
+    .catch(err);
+  });
+
   suite('sources paths', function() {
 
     test('are relative to outFile', function(done) {
