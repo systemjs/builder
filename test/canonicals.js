@@ -17,7 +17,7 @@ suite('Canonical Names', function() {
   });
 
   test('Exact beats wildcard', function() {
-    assert.equal(builder.getCanonicalName(baseURL + 'node_modules/babel-core/browser.js'), 'babel');
+    assert.equal(builder.getCanonicalName(baseURL + 'node_modules/babel/node_modules/babel-core/browser.js'), 'babel');
   });
 
   test('Wildcard extensions', function() {
