@@ -67,6 +67,10 @@ exports.attach = function(loader) {
         return dep;
       }
     });
+    // turn back on comments (for some reason!)
+    output.ast.comments.forEach(function(comment) {
+      comment.ignore = false;
+    });
     load.metadata.ast = output.ast;
 
     return Promise.resolve({
