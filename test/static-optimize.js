@@ -39,7 +39,6 @@ suite('SFX Optimizations', function() {
   test('ES6 rollup with a global dep', function(done) {
     builder.buildStatic('global-dep.js', 'test/output/es-sfx.js', { runtime: false, minify: minify, format: 'esm', rollup: true })
     .then(function(output) {
-      console.log(output.source);
       assert(output.source.indexOf('System.registerDynamic("2"') != -1 && output.source.indexOf(', [\'2\'') != -1);
       done();
     }, done);
