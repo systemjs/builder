@@ -252,7 +252,7 @@ AMDDefineRegisterTransformer.prototype.transformCallExpression = function(tree) 
   */
   var nameAlias = '';
   if (name && this.name && name != this.name)
-    nameAlias = ', define("' + name + '", ["' + this.name + '"], function(m) { return m; })';
+    nameAlias = '&& define("' + name + '", ["' + this.name + '"], function(m) { return m; })';
 
   // write out the anonymous define as named and dep-normalized
   return parseExpression(['define(' + (this.name ? '"' + this.name + '", ' : '') + JSON.stringify(deps) + ', ', ')' + nameAlias + ';'], factoryTree);
