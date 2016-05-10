@@ -6,7 +6,7 @@ builder.loadConfigSync('test/fixtures/conditional-tree.config.js');
 
 suite('Conditional Builds', function() {  
   test('Package environment traces all conditional variations', function() {
-    return builder.trace('pkg/env-condition', { browser: true, node: true })
+    return builder.trace('pkg/env-condition')
     .then(function(tree) {
       assert.deepEqual(Object.keys(tree).sort(), ['pkg/#:./env-condition', 'pkg/env-condition-browser.js', 'pkg/env-condition.js'].sort());
     });
@@ -36,7 +36,7 @@ suite('Conditional Builds', function() {
   test('traceAllConditionals false', function() {
     return builder.trace('pkg/env-condition + interpolated-#{conditions.js|test}.js', { traceAllConditionals: false })
     .then(function(tree) {
-      assert.deepEqual(Object.keys(tree).sort(), ['interpolated-#{conditions.js|test}.js', 'pkg/#:./env-condition', 'conditions.js', 'pkg/env-condition-browser.js'].sort());
+      assert.deepEqual(Object.keys(tree).sort(), ['interpolated-#{conditions.js|test}.js', 'pkg/#:./env-condition', 'conditions.js'].sort());
     });
   });
 
