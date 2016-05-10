@@ -291,16 +291,17 @@
     var esModule = {};
     // don't trigger getters/setters in environments that support them
     if ((typeof exports == 'object' || typeof exports == 'function') && exports !== global) {
-      var hasOwnProperty = exports && exports.hasOwnProperty;
       if (getOwnPropertyDescriptor) {
-        for (var p in exports) {
-          if (!trySilentDefineProperty(esModule, exports, p))
-            setPropertyIfHasOwnProperty(esModule, exports, p, hasOwnProperty);
-        }
+        for (var p in exports)
+          defineOrCopyProperty(esModule, exports, p);
       }
       else {
-        for (var p in exports)
-          setPropertyIfHasOwnProperty(esModule, exports, p, hasOwnProperty);
+        var hasOwnProperty = exports && exports.hasOwnProperty;
+        for (var p in exports) {
+          if (hasOwnProperty && !exports.hasOwnProperty(p))
+            continue;
+          esModule[p] = exports[p];
+        }
       }
     }
     esModule['default'] = exports;
@@ -310,20 +311,16 @@
     return esModule;
   }
 
-  function setPropertyIfHasOwnProperty(targetObj, sourceObj, propName, hasOwnProperty) {
-    if (!hasOwnProperty || sourceObj.hasOwnProperty(propName))
-      targetObj[propName] = sourceObj[propName];
-  }
-
-  function trySilentDefineProperty(targetObj, sourceObj, propName) {
+  function defineOrCopyProperty(targetObj, sourceObj, propName) {
     try {
       var d;
       if (d = Object.getOwnPropertyDescriptor(sourceObj, propName))
         defineProperty(targetObj, propName, d);
-
-      return true;
-    } catch (ex) {
-      // Object.getOwnPropertyDescriptor threw an exception, fall back to normal set property.
+    }
+    catch (ex) {
+      // Object.getOwnPropertyDescriptor threw an exception, fall back to normal set property
+      // we dont need hasOwnProperty here because getOwnPropertyDescriptor would have returned undefined above
+      targetObj[propName] = sourceObj[propName];
       return false;
     }
   }
