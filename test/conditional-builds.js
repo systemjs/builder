@@ -20,7 +20,7 @@ suite('Conditional Builds', function() {
   });
 
   test('Boolean conditional', function() {
-    return builder.trace('interpolated-1.js#?|browser')
+    return builder.trace('interpolated-1.js#?browser')
     .then(function(tree) {
       assert.deepEqual(Object.keys(tree).sort(), ['interpolated-1.js#?@system-env|browser', 'interpolated-1.js', 'interpolate-1-dep.js'].sort());
     });
