@@ -398,7 +398,7 @@
     return modules[name] = entry.declarative ? entry.module.exports : entry.esModule;
   };
 
-  return function(mains, depNames, declare) {
+  return function(mains, depNames, exportDefault, declare) {
     return function(formatDetect) {
       formatDetect(function(deps) {
         var System = {
@@ -431,7 +431,7 @@
           for (var i = 1; i < mains.length; i++)
             load(mains[i]);
 
-        if (firstLoad.__useDefault)
+        if (exportDefault)
           return firstLoad['default'];
         else
           return firstLoad;
@@ -440,7 +440,7 @@
   };
 
 })(typeof self != 'undefined' ? self : global)
-/* (['mainModule'], ['external-dep'], function($__System) {
+/* (['mainModule'], ['external-dep'], false, function($__System) {
   System.register(...);
 })
 (function(factory) {
