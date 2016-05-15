@@ -1,4 +1,4 @@
-SystemJS Build Tool [![Build Status][travis-image]][travis-url]
+SystemJS Build Tool [![Build Status][travis-image]][travis-url] [![Support](https://supporterhq.com/api/b/33df4abbec4d39260f49015d2457eafe/SystemJS)](https://supporterhq.com/support/33df4abbec4d39260f49015d2457eafe/SystemJS)
 ===
 
 _[SystemJS Builder 0.15 release notes](https://github.com/systemjs/builder/releases/tag/0.15.0)_
