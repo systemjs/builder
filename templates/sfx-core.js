@@ -292,13 +292,18 @@
     // don't trigger getters/setters in environments that support them
     if ((typeof exports == 'object' || typeof exports == 'function') && exports !== global) {
       if (getOwnPropertyDescriptor) {
-        for (var p in exports)
+        for (var p in exports) {
+          // The default property is copied to esModule later on
+          if (p === 'default')
+            continue;
           defineOrCopyProperty(esModule, exports, p);
+        }
       }
       else {
         var hasOwnProperty = exports && exports.hasOwnProperty;
         for (var p in exports) {
-          if (hasOwnProperty && !exports.hasOwnProperty(p))
+          // The default property is copied to esModule later on
+          if (p === 'default' || (hasOwnProperty && !exports.hasOwnProperty(p)))
             continue;
           esModule[p] = exports[p];
         }
