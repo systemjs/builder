@@ -58,7 +58,7 @@ exports.attach = function(loader) {
     var babel = require('babel-core');
     var output = babel.transform(load.source, {
       babelrc: false,
-      filename: load.address,
+      filename: load.path,
       inputSourceMap: load.metadata.sourceMap,
       ast: true,
       resolveModuleSource: function(dep) {
