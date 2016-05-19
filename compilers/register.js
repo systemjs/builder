@@ -59,6 +59,7 @@ RegisterTransformer.prototype.transformCallExpression = function(tree) {
       }
 
       // normalize dependencies in array
+      // NB add metadata.deps here too
       var map = this.map;
       var normalizedDepArray = new ArrayLiteral(firstArg.location, firstArg.elements.map(function(el) {
         var str = el.literalToken.value.toString();
