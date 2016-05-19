@@ -200,6 +200,13 @@ function doTests(transpiler) {
   });
 }
 
+suite('Basics', function() {
+  test('Circular map config', function() {
+    builder.reset();
+    return builder.bundle('lodash');
+  });
+});
+
 suite('Test tree builds - Traceur', function() {
 
   doTests('traceur');

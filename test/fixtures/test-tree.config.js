@@ -8,6 +8,9 @@ System.config({
     'traceur-runtime': './node_modules/traceur/bin/traceur-runtime.js',
     'typescript': './node_modules/typescript/lib/typescript.js'
   },
+  map: {
+    lodash: 'lodash/lodash.js'
+  },
   meta: {
     'babel': {
       format: 'global'
