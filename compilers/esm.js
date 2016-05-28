@@ -59,6 +59,7 @@ exports.attach = function(loader) {
     var output = babel.transform(load.source, {
       babelrc: false,
       filename: load.path,
+      //sourceFileName: load.path,
       inputSourceMap: load.metadata.sourceMap,
       ast: true,
       resolveModuleSource: function(dep) {
@@ -90,6 +91,7 @@ exports.compile = function(load, opts, loader) {
       babelrc: false,
       plugins: [[require('babel-plugin-transform-es2015-modules-systemjs'), { systemGlobal: opts.systemGlobal }]],
       filename: load.path,
+      //sourceFileName: load.path,
       sourceMaps: opts.sourceMaps,
       inputSourceMap: load.metadata.sourceMap,
       moduleIds: !opts.anonymous,
@@ -114,6 +116,9 @@ exports.compile = function(load, opts, loader) {
     // NB this can be removed with merging of ()
     if (opts.systemGlobal != 'System')
       output.code = output.code.replace(/(\s|^)System\.register\(/, '$1' + opts.systemGlobal + '.register(');
+
+    // for some reason Babel isn't respecting sourceFileName...
+    output.map.sources[0] = load.path;
 
     return Promise.resolve({
       source: output.code,
