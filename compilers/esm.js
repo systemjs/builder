@@ -118,7 +118,8 @@ exports.compile = function(load, opts, loader) {
       output.code = output.code.replace(/(\s|^)System\.register\(/, '$1' + opts.systemGlobal + '.register(');
 
     // for some reason Babel isn't respecting sourceFileName...
-    output.map.sources[0] = load.path;
+    if (output.map)
+      output.map.sources[0] = load.path;
 
     return Promise.resolve({
       source: output.code,
