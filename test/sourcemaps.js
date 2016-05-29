@@ -108,6 +108,22 @@ suite('Source Maps', function() {
     .catch(err);
   });
 
+  test('can be disabled for tracing', function(done) {
+    var module = 'register.js';
+    var instance = new Builder();
+
+    // Load our test configuration.
+    instance.loadConfigSync(configFile);
+
+    instance
+      .bundle(module, { sourceMaps: false })
+      .then(function(output) {
+        assert.isUndefined(output.sourceMap);
+      })
+      .then(done)
+      .catch(err);
+  });
+
   suite('sources paths', function() {
 
     test('are relative to outFile', function(done) {
