@@ -39,6 +39,6 @@ suite('Canonical Names', function() {
     });
     assert.equal(builder.getCanonicalName(baseURL + 'src/asdf'), 'trailing/asdf');
     assert.equal(builder.getCanonicalName(baseURL + 'src/'), 'trailing/');
-    assert.equal(builder.getCanonicalName(baseURL + 'src'), 'trailing/');
+    assert.equal(builder.getCanonicalName(baseURL + 'src'), 'trailing');
   })
 });
