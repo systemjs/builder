@@ -95,7 +95,7 @@ exports.compile = function(load, opts, loader) {
       sourceMaps: opts.sourceMaps,
       inputSourceMap: load.metadata.sourceMap,
       moduleIds: !opts.anonymous,
-      moduleId: load.name,
+      moduleId: !opts.anonymous && load.name,
       code: true,
       resolveModuleSource: function(dep) {
         if (opts.normalize)
