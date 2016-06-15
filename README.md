@@ -109,7 +109,9 @@ This bundle file can then be included with a `<script>` tag, and no other depend
 to export a global variable when loaded from a script tag, and this can be configured via `globalName`.  For example
 
 ```javascript
-builder.buildStatic('src/NavBar.js', 'dist/NavBarStaticBuild.js', { globalName: 'NavBar' });
+builder.buildStatic('src/NavBar.js', 'dist/NavBarStaticBuild.js', { 
+  globalName: 'NavBar' 
+});
 ```
 
 will cause the output of your module to be assigned to a global variable named `NavBar`.  If you're making a static bundle, while excluding certain dependencies, those dependencies 
@@ -117,7 +119,12 @@ will of course need to have already been loaded on your page, with their own glo
 with `globalDeps`.  For example
 
 ```javascript
-builder.buildStatic('src/NavBar.js - react', 'dist/NavBarStaticBuild.js', { globalName: 'NavBar', globalDeps: { 'react': 'React' } });
+builder.buildStatic('src/NavBar.js - react', 'dist/NavBarStaticBuild.js', { 
+  globalName: 'NavBar', 
+  globalDeps: { 
+    'react': 'React' 
+  } 
+});
 ```
 
 will create a static build of NavBar—without React—which, when loaded via a script tag, exports an eponymous global variable, and assumes the existence of a React global variable, which will be used for the `react` dependency. 
@@ -128,6 +135,20 @@ This would support users with a setup of
 <script src='path/to/react.min.js'></script>
 <script src='path/to/NavBarStaticBuild.js'></script>
 ```
+
+Note that another way of excluding `react` would be with `externals`.
+
+```javascript
+builder.buildStatic('src/NavBar.js', 'dist/NavBarStaticBuild.js', {
+  externals: ['react'],
+  globalName: 'NavBar',
+  globalDeps: {
+    'react': 'React'
+  }
+});
+```
+
+This would also exclude react but, if react defined any dependencies which NavBar *also* defined, those dependencies would be *included* in the build.
 
 Of course the above explanations involving `globalDeps` and `globalName` only apply to when your end user loads the static file from a script tag.  Since the output is (by default, see below) UMD, a 
 script loader like SystemJS or requireJS would process it as configured, or via AMD respectively.
