@@ -84,6 +84,20 @@ suite('Conditional Builds', function() {
   test('Build including all conditional variations', function() {
     return builder.bundle('pkg/env-condition + interpolated-#{conditions.js|test}.js', 'test/output/conditional-build.js', { sourceMaps: true })
     .then(function(output) {
+      assert(output.source.indexOf('"interpolated-2.js"') != -1);
+      assert(output.source);
+    });
+  });
+
+  test('Bundle conditional inlining', function() {
+    return builder.bundle('interpolated-#{conditions.js|test}.js', {
+      inlineConditions: true,
+      conditions: {
+        'conditions.js|test': '2'
+      }
+    })
+    .then(function(output) {
+      assert(output.source.indexOf('"interpolated-2.js"') != -1);
       assert(output.source);
     });
   });
