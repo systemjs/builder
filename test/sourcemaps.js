@@ -101,7 +101,6 @@ suite('Source Maps', function() {
           "test/fixtures/test-tree/global.js",
           "test/fixtures/test-tree/example",
           "test/fixtures/test-tree/example.js",
-          "test/fixtures/test-tree/register.js",
           "test/fixtures/test-tree/babel.js" ]);
     })
     .then(done)
@@ -141,7 +140,7 @@ suite('Source Maps', function() {
           '../fixtures/test-tree/some.js',
           '../fixtures/test-tree/text.txt',
           '../fixtures/test-tree/amd.js',
-          '../fixtures/test-tree/component.jsx',
+          '../fixtures/test-tree/unknown', // component.jsx
           '../fixtures/test-tree/file.json',
           '../fixtures/test-tree/first.js' ]);
       })
@@ -166,7 +165,7 @@ suite('Source Maps', function() {
           'some.js',
           'text.txt',
           'amd.js',
-          'component.jsx',
+          'unknown', // component.jsx
           'file.json',
           'first.js' ]);
       })

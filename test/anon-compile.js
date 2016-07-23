@@ -29,7 +29,7 @@ suite('Anonymous Compilation', function() {
 
   test('Register', function(done) {
     builder.compile('third.js').then(function(output) {
-      assert.match(output.source, /System\.register\(\["\.\/second.js"\]/);
+      assert.match(output.source, /System\.register\(\['\.\/second.js'\]/);
     })
     .then(done, done);
   });
