@@ -100,7 +100,6 @@ suite('Source Maps', function() {
         [ "test/fixtures/test-tree/jquery.js",
           "test/fixtures/test-tree/global.js",
           "test/fixtures/test-tree/example",
-          "test/fixtures/test-tree/example.js",
           "test/fixtures/test-tree/babel.js" ]);
     })
     .then(done)
@@ -137,7 +136,6 @@ suite('Source Maps', function() {
           '../fixtures/test-tree/second.js',
           '../fixtures/test-tree/jquery.js',
           '../fixtures/test-tree/global.js',
-          '../fixtures/test-tree/some.js',
           '../fixtures/test-tree/text.txt',
           '../fixtures/test-tree/amd.js',
           '../fixtures/test-tree/unknown', // component.jsx
@@ -162,7 +160,6 @@ suite('Source Maps', function() {
           'second.js',
           'jquery.js',
           'global.js',
-          'some.js',
           'text.txt',
           'amd.js',
           'unknown', // component.jsx
