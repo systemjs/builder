@@ -1,9 +1,4 @@
-var path = require('path');
-var babel = require('babel-core');
-
-function pathToUrl(p) {
-  return p.replace(/\\/g, '/');
-}
+var compiler = require('./compiler');
 
 exports.compile = function (load, opts, loader) {
   var deps = opts.normalize ? load.deps.map(function(dep) { return load.depMap[dep]; }) : load.deps;
@@ -16,36 +11,13 @@ exports.compile = function (load, opts, loader) {
       normalizedGlobals[g] = opts.normalize ? load.depMap[load.metadata.globals[g]] : load.metadata.globals[g];
   }
 
-  var sourceRoot = pathToUrl(path.dirname(load.path) + '/');
-  var options = {
-    babelrc: false,
-    filename: pathToUrl(load.path),
-    filenameRelative: path.basename(load.path),
-    inputSourceMap: load.metadata.sourceMap,
-    sourceFileName: path.basename(load.path),
-    sourceMaps: opts.sourceMaps,
-    sourceRoot: sourceRoot,
-    plugins: [
-      ['transform-global-system-wrapper', {
-        deps: deps,
-        exportName: load.metadata.exports,
-        globals: normalizedGlobals,
-        moduleName: !opts.anonymous && load.name,
-        systemGlobal: opts.systemGlobal
-      }]
-    ]
-  };
-
-  var output = babel.transform(load.source, options);
-
-  var sourceMap = output.map;
-  if (sourceMap && !sourceMap.sourceRoot) // if input source map doesn't have sourceRoot - add it
-    sourceMap.sourceRoot = sourceRoot;
-
-  return Promise.resolve({
-    source: output.code,
-    sourceMap: sourceMap
-  });
+  return compiler.compile(load, opts, ['transform-global-system-wrapper', {
+    deps: deps,
+    exportName: load.metadata.exports,
+    globals: normalizedGlobals,
+    moduleName: !opts.anonymous && load.name,
+    systemGlobal: opts.systemGlobal
+  }]);
 };
 
 exports.sfx = function(loader) {
