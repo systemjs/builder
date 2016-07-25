@@ -115,7 +115,7 @@ suite('Test compiler cache', function() {
     var builder = new Builder('test/output');
     fs.writeFileSync('./test/output/timestamp-module.js', source);
     var address = builder.loader.normalizeSync('./test/output/timestamp-module.js');
-    var load = { name: address, address, metadata: {} };
+    var load = { name: address, address: address, metadata: {} };
     return builder.loader.fetch(load)
       .then(function(text) {
          //console.log(JSON.stringify(load));
