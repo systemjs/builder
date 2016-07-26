@@ -11,7 +11,7 @@ exports.compile = function (load, opts, loader) {
       normalizedGlobals[g] = opts.normalize ? load.depMap[load.metadata.globals[g]] : load.metadata.globals[g];
   }
 
-  return compiler.compile(load, opts, ['transform-global-system-wrapper', {
+  return compiler.compile(load, opts, [require('babel-plugin-transform-global-system-wrapper').default, {
     deps: deps,
     exportName: load.metadata.exports,
     globals: normalizedGlobals,
