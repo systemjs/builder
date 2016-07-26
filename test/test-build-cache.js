@@ -110,6 +110,21 @@ suite('Test compiler cache', function() {
     assert.deepEqual(invalidated, [builder.loader.normalizeSync('deep/wildcard/test.js')]);
   });
 
+  test('builder.loader.fetch sets load.metadata.timestamp', function() {
+    var source = 'export var p = 5;';
+    var builder = new Builder('test/output');
+    fs.writeFileSync('./test/output/timestamp-module.js', source);
+    var address = builder.loader.normalizeSync('./test/output/timestamp-module.js');
+    var load = { name: address, address: address, metadata: {} };
+    return builder.loader.fetch(load)
+      .then(function(text) {
+         //console.log(JSON.stringify(load));
+         assert(text == source);          // true
+         assert(load.metadata.deps);      // true
+         assert(load.metadata.timestamp); // false
+      })
+  });
+
   test('Bundle example', function() {
     var builder = new Builder('test/output');
     fs.writeFileSync('./test/output/dynamic-module.js', 'export var p = 5;');
