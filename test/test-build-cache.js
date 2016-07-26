@@ -236,6 +236,15 @@ suite('Test compiler cache', function() {
     });
   });
 
+  test('Static build, fetch override with callback', function () {
+    var builder = new Builder('test/fixtures/test-tree');
+    return builder.buildStatic('cjs.js', {
+      fetch: function (load, fetch) {
+        return fetch(load);
+      }
+    });
+  });
+
   test('Static string build', function () {
     var builder = new Builder('test/fixtures/test-tree');
     return builder.bundle('foo.js', {
