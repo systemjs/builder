@@ -1,39 +1,11 @@
-var path = require('path');
-var babel = require('babel-core');
-
-function pathToUrl(p) {
-  return p.replace(/\\/g, '/');
-}
+var compiler = require('./compiler');
 
 exports.compile = function (load, opts, loader) {
-  var sourceRoot = pathToUrl(path.dirname(load.path) + '/');
-  var options = {
-    babelrc: false,
-    filename: pathToUrl(load.path),
-    filenameRelative: path.basename(load.path),
-    inputSourceMap: load.metadata.sourceMap,
-    sourceFileName: path.basename(load.path),
-    sourceMaps: opts.sourceMaps,
-    sourceRoot: sourceRoot,
-    plugins: [
-      ['transform-system-register', {
-        moduleName: !opts.anonymous && load.name,
-        map: function (dep) {
-          return opts.normalize ? load.depMap[dep] : dep;
-        },
-        systemGlobal: opts.systemGlobal
-      }]
-    ]
-  };
-
-  var output = babel.transform(load.source, options);
-
-  var sourceMap = output.map;
-  if (sourceMap && !sourceMap.sourceRoot) // if input source map doesn't have sourceRoot - add it
-    sourceMap.sourceRoot = sourceRoot;
-
-  return Promise.resolve({
-    source: output.code,
-    sourceMap: sourceMap
-  });
+  return compiler.compile(load, opts, ['transform-system-register', {
+    moduleName: !opts.anonymous && load.name,
+    map: function (dep) {
+      return opts.normalize ? load.depMap[dep] : dep;
+    },
+    systemGlobal: opts.systemGlobal
+  }]);
 };
