@@ -1,6 +1,6 @@
 {
   "name": "systemjs-builder",
-  "version": "0.15.24",
+  "version": "0.15.25",
   "description": "SystemJS Build Tool",
   "main": "index.js",
   "dependencies": {
@@ -15,7 +15,7 @@
     "mkdirp": "^0.5.1",
     "rollup": "^0.31.2",
     "source-map": "^0.5.3",
-    "systemjs": "^0.19.33",
+    "systemjs": "^0.19.35",
     "traceur": "0.0.105",
     "uglify-js": "^2.6.1"
   },
