@@ -5,6 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "babel-core": "^6.9.0",
+    "babel-plugin-transform-cjs-system-wrapper": "0.0.1",
     "babel-plugin-transform-es2015-modules-systemjs": "^6.6.5",
     "babel-plugin-transform-global-system-wrapper": "0.0.1",
     "babel-plugin-transform-system-register": "0.0.1",
