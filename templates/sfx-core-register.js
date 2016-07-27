@@ -225,7 +225,7 @@
 
     // node core modules
     if (name.substr(0, 6) == '@node/')
-      return nodeRequire(name.substr(6));
+      return modules[name] = getESModule(nodeRequire(name.substr(6)));
 
     var entry = defined[name];
 
