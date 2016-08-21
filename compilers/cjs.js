@@ -94,3 +94,18 @@ exports.compile = function (load, opts, loader) {
     systemGlobal: opts.systemGlobal
   }]);
 };
+
+function remap(source, map, fileName) {
+  var options = {script: true};
+  var compiler = new traceur.Compiler(options);
+  var tree = compiler.parse(source, fileName);
+
+  var transformer = new CJSRequireTransformer('require', map);
+  tree = transformer.transformAny(tree);
+
+  var output = compiler.write(tree, fileName);
+  return Promise.resolve({
+    source: output
+  });
+}
+exports.remap = remap;
