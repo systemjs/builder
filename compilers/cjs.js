@@ -89,6 +89,9 @@ exports.compile = function (load, opts, loader) {
     deps: deps,
     globals: normalizedGlobals,
     optimize: opts.production,
+    map: function(dep) {
+      return opts.normalize ? load.depMap[dep] : dep;
+    },
     path: path,
     static: opts.static,
     systemGlobal: opts.systemGlobal
