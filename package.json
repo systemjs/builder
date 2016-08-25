@@ -34,7 +34,8 @@
     "url": "http://github.com/systemjs/builder.git"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha"
+    "test": "mocha",
+    "update-expectations": "UPDATE_EXPECTATIONS=1 mocha"
   },
   "author": "",
   "license": "MIT",
