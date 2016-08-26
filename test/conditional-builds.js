@@ -65,7 +65,7 @@ suite('Conditional Builds', function() {
   test('Environment tracing', function() {
     return builder.traceConditionalEnv('pkg/env-condition + interpolated-#{conditions.js|test}.js')
     .then(function(conditions) {
-      assert.deepEqual(conditions, { 'conditions.js|test': ['1', '2'], '@system-env|browser': true });
+      assert.deepEqual(conditions, { 'conditions.js|test': ['1', '2'], '@system-env|browser': [true] });
     });
   });
 
