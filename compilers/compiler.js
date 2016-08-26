@@ -10,6 +10,7 @@ exports.compile = function (load, opts, plugin) {
   var options = {
     babelrc: false,
     compact: false,
+    sourceType: 'script',
     filename: pathToUrl(load.path),
     filenameRelative: path.basename(load.path),
     inputSourceMap: load.metadata.sourceMap,
