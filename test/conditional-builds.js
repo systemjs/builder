@@ -32,13 +32,6 @@ suite('Conditional Builds', function() {
     .then(function(tree) {
       assert.deepEqual(Object.keys(tree), ['interpolated-1.js#?@system-env|browser']);
     })
-  })
-
-  test('traceAllConditionals false', function() {
-    return builder.trace('pkg/env-condition + interpolated-#{conditions.js|test}.js', { traceAllConditionals: false })
-    .then(function(tree) {
-      assert.deepEqual(Object.keys(tree).sort(), ['interpolated-#{conditions.js|test}.js', 'pkg/#:./env-condition', 'conditions.js'].sort());
-    });
   });
 
   test('traceConditionModules false', function() {
@@ -65,7 +58,7 @@ suite('Conditional Builds', function() {
   test('Environment tracing', function() {
     return builder.traceConditionalEnv('pkg/env-condition + interpolated-#{conditions.js|test}.js')
     .then(function(conditions) {
-      assert.deepEqual(conditions, { 'conditions.js|test': ['1', '2'], '@system-env|browser': [true] });
+      assert.deepEqual(conditions, { 'conditions.js|test': ['1', '2'], '@system-env|browser': [true, false] });
     });
   });
 
