@@ -34,10 +34,10 @@ suite('Conditional Builds', function() {
     })
   });
 
-  test('traceConditionModules false', function() {
-    return builder.trace('pkg/env-condition + interpolated-#{conditions.js|test}.js', { traceConditionModules: false })
+  test('More conditions', function() {
+    return builder.trace('pkg/env-condition + interpolated-#{conditions.js|test}.js')
     .then(function(tree) {
-      assert.deepEqual(Object.keys(tree).sort(), ['interpolate-1-dep.js', 'interpolated-1.js', 'interpolated-2.js', 'pkg/env-condition-browser.js', 'pkg/env-condition.js', 'interpolated-#{conditions.js|test}.js', 'pkg/#:./env-condition'].sort());
+      assert.deepEqual(Object.keys(tree).sort(), ['conditions.js', 'interpolate-1-dep.js', 'interpolated-1.js', 'interpolated-2.js', 'pkg/env-condition-browser.js', 'pkg/env-condition.js', 'interpolated-#{conditions.js|test}.js', 'pkg/#:./env-condition'].sort());
     });
   });
 
@@ -90,6 +90,22 @@ suite('Conditional Builds', function() {
       }
     })
     .then(function(output) {
+      assert(output.source.indexOf('interpolated-#{') == -1);
+      assert(output.source.indexOf('"interpolated-2.js"') != -1);
+      assert(output.source);
+    });
+  });
+
+  test('Selective conditional inlining', function() {
+    return builder.bundle('custom-conditions.js + interpolated-#{conditions.js|test}.js', {
+      inlineConditions: {
+        'conditions.js|test': '2'
+      }
+    })
+    .then(function(output) {
+      assert(output.modules.indexOf('conditions.js') == -1);
+      assert(output.modules.indexOf('ENV.js') != -1);
+      assert(output.source.indexOf('interpolated-#{') == -1);
       assert(output.source.indexOf('"interpolated-2.js"') != -1);
       assert(output.source);
     });
