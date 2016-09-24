@@ -28,6 +28,7 @@ builder.config({
 });
 
 suite('SFX Optimizations', function() {
+  if (process.versions.node && process.versions.node.substr(0, 5) !== '0.10.')
   test('All ES6 rollup optimization', function(done) {
     builder.buildStatic('a.js', 'test/output/es-sfx.js', { runtime: false, minify: minify, format: 'esm', rollup: true })
     .then(function(output) {
@@ -36,6 +37,7 @@ suite('SFX Optimizations', function() {
     }, done)
   });
 
+  if (process.versions.node && process.versions.node.substr(0, 5) !== '0.10.')
   test('ES6 rollup with a global dep', function(done) {
     builder.buildStatic('global-dep.js', 'test/output/es-sfx.js', { runtime: false, minify: minify, format: 'esm', rollup: true })
     .then(function(output) {
