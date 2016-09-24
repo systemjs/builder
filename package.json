@@ -14,7 +14,7 @@
     "es6-template-strings": "^2.0.0",
     "glob": "^7.0.3",
     "mkdirp": "^0.5.1",
-    "rollup": "^0.31.2",
+    "rollup": "^0.36.0",
     "source-map": "^0.5.3",
     "systemjs": "^0.19.38",
     "traceur": "0.0.105",
