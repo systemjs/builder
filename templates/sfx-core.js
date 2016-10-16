@@ -274,7 +274,7 @@
       throw new TypeError('Module ' + name + ' not declared as a dependency.');
     }, exports, module);
 
-    if (typeof output !== undefined)
+    if (output)
       module.exports = output;
 
     // create the esModule object, which allows ES6 named imports of dynamics

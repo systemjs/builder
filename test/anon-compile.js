@@ -8,7 +8,7 @@ builder.config({ transpiler: 'babel' });
 suite('Anonymous Compilation', function() {
   test('AMD', function(done) {
     builder.compile('amd.js').then(function(output) {
-      assert.match(output.source, /define\(\["\.\/global\.js"/);
+      assert.match(output.source, /System\.registerDynamic\(\['\.\/global.js', '\.\/some.js!\.\/plugin.js', '\.\/text.txt!\.\/text-plugin.js'\]/);
     })
     .then(done, done);
   });

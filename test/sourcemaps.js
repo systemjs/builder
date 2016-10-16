@@ -31,14 +31,12 @@ var readExpectation = function(filename) {
   return fs.readFileSync('test/fixtures/sourcemaps-expectations/' + filename).toString().replace(/\n$/, '');
 };
 
-function writeTestOutput(done) {
+function writeTestOutput() {
   var builder = new Builder();
   return builder.loadConfig(configFile)
     .then(function() {
       builder.buildStatic('first.js', 'test/output/output.js', buildOpts);
-    })
-    .then(done)
-    .catch(err);
+    });
 }
 
 function writeSourceMaps(moduleName, transpiler, sourceMapFile) {
@@ -82,7 +80,9 @@ suite('Source Maps', function() {
       var decoded = JSON.parse(atob(encoding));
       // not a regular array so tedious
       assert.equal(1, decoded.sources.length);
-      assert.equal('test/fixtures/test-tree/amd-2.js', decoded.sources[0]);
+	  assert.equal('amd-2.js', decoded.file);
+      assert.equal('amd-2.js', decoded.sources[0]);
+	  assert.equal('test/fixtures/test-tree/', decoded.sourceRoot);
     })
     .then(done)
     .catch(err);
