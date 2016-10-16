@@ -22,7 +22,7 @@ exports.compile = function (load, opts, plugin) {
   };
 
   var output = babel.transform(load.source, options);
-  
+
   var sourceMap = output.map;
   if (sourceMap && !sourceMap.sourceRoot) // if input source map doesn't have sourceRoot - add it
     sourceMap.sourceRoot = sourceRoot;
@@ -32,3 +32,15 @@ exports.compile = function (load, opts, plugin) {
     sourceMap: sourceMap
   });
 };
+
+exports.transformAMDDependencies = function (load) {
+  var options = {
+    plugins: [[require('babel-plugin-transform-amd-system-dependencies').default]]
+  };
+
+  var output = babel.transform(load.source, options);
+
+  return {
+    amdDeps: output.metadata.amdDeps
+  };
+}

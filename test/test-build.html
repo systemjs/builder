@@ -17,14 +17,17 @@
 
     System.config({
       baseURL: './fixtures/test-tree/',
+      meta: {
+         'output/*': { format: 'register' }
+      },
       paths: {
         'traceur-runtime': '../node_modules/traceur/bin/traceur-runtime.js',
         'babel/external-helpers': '../node_modules/babel-core/external-helpers.js',
         'jquery-cdn': './jquery.js',
-        'output/*': './output/*'
+        'output/*': './output/*',	
       },
       bundles: {
-        'output/tree-build.js': ['third.js', 'cjs.js', 'jquery.js', 'second.js', 'global.js', 'amd.js', 'first.js'],
+        'output/tree-build.js': ['first.js', 'second.js', 'third.js', 'cjs.js', 'jquery.js', 'global.js', 'amd.js'],
         'output/umd.js': ['umd.js']
       }
     });
@@ -145,7 +148,7 @@
           return System['import']('amd-6a.js');
         })
         .then(function(m) {
-          ok(window.p == 'a');
+          ok(m.p == 'a');
           done();
         })
         .catch(done);
