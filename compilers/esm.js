@@ -58,6 +58,7 @@ exports.attach = function(loader) {
     var babel = require('babel-core');
     var output = babel.transform(load.source, {
       babelrc: false,
+      compact: false,
       filename: load.path,
       //sourceFileName: load.path,
       inputSourceMap: load.metadata.sourceMap,
