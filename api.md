@@ -8,35 +8,26 @@ Builder
 * [**new Builder()**](#new-builderconfig)
 * [**config()**](#builderconfigconfig-saveforreset-ignorebaseurl)
 * [**loadConfig()**](#builderloadconfigconfigfile-saveforreset-ignorebaseurl)
-* [**loadConfigSync()**](#builderloadconfigsyncconfigfile-saveforreset-ignorebaseurl)
-* [**reset()**](#builderconfigconfig-saveforreset-ignorebaseurl)
-* [**bundle()**](#builderconfigconfig-saveforreset-ignorebaseurl)
-* [**buildStatic()**](#builderconfigconfig-saveforreset-ignorebaseurl)
-* [**trace()**](#builderconfigconfig-saveforreset-ignorebaseurl)
+* [**loadConfigSync()**](#builderloadconfigsyncconfigfilepath)
+* [**reset()**](#builderreset)
+* [**invalidate()**](#builderinvalidate)
+* [**bundle()**](#builderbundletree-outfile-options)
+* [**buildStatic()**](#builderbuildstatictree-outfile-options)
+* [**trace()**](#buildertraceexpression)
 * [**addTrees()**](#builderaddtreesfirsttree-secondtree)
 * [**subtractTrees()**](#buildersubtracttreesfirsttree-secondtree)
 * [**intersectTrees()**](#builderintersecttreesfirsttree-secondtree)
 
-### new Builder([config])
-### new Builder([baseURL, [configFile]])
-`config`: An object conforming to the [config api] (https:/github.com/systemjs/systemjs/blob/master/docs/config-api.md)  
+### new Builder(baseURL[, configFilePath])
 `baseURL`: Sets the root for the loader  
-`configFile`: A systemjs config file conforming to the [systemjs config api] (https:/github.com/systemjs/systemjs/blob/master/docs/config-api.md)  
+`configFilePath`: A systemjs config file conforming to the [systemjs config api] (https:/github.com/systemjs/systemjs/blob/master/docs/config-api.md)  
 #### Example
 ```javascript
-new Builder({
-  map: {
-    'a': 'b.js'
-  }
-});
-
-new Builder('scripts', 'config.js');
+new Builder('/scripts', 'config.js');
 ```
 
-### builder.config(config[, saveForReset[, ignoreBaseURL]])
+### builder.config(config)
 `config`: An object conforming to the [config api] (https:/github.com/systemjs/systemjs/blob/master/docs/config-api.md)  
-`saveForReset`: Reload this config when builder.reset() is called  
-`ignoreBaseURL`: Don't use the baseURL property from this config  
 #### Example
 ```javascript
 builder.config({
@@ -46,39 +37,51 @@ builder.config({
 });
 ```
 
-### builder.loadConfig(configFile[, saveForReset[, ignoreBaseURL]])
-`configFile`: A systemjs config file conforming to the [systemjs config api] (https:/github.com/systemjs/systemjs/blob/master/docs/config-api.md)  
-`saveForReset`: Reload this config when builder.reset() is called  
-`ignoreBaseURL`: Don't use the baseURL property from this config  
+### builder.loadConfig(configFilePath)
+`configFilePath`: A systemjs config file conforming to the [systemjs config api] (https:/github.com/systemjs/systemjs/blob/master/docs/config-api.md)  
+
+Returns a promise which resolves when config has been loaded  
 #### Example
 ```javascript
 builder.loadConfig('config.js').then(() => {
 });
 ```
-### builder.loadConfigSync(configFile[, saveForReset[, ignoreBaseURL]])
+### builder.loadConfigSync(configFilePath)
 Synchronous version of `builder.loadConfig()`  
 
-`configFile`: A systemjs config file conforming to the [systemjs config api] (https:/github.com/systemjs/systemjs/blob/master/docs/config-api.md)  
-`saveForReset`: Reload this config when builder.reset() is called  
-`ignoreBaseURL`: Don't use the baseURL property from this config  
+`configFilePath`: A systemjs config file conforming to the [systemjs config api] (https:/github.com/systemjs/systemjs/blob/master/docs/config-api.md)  
 #### Example
 ```javascript
 builder.loadConfigSync('config.js');
 ```
 
 ### builder.reset()
-Reset the builder config to its initial state, or the last saved config() state
+Reset the builder config to its initial state  
 #### Example
 ```javascript
 builder.reset();
 ```
 
+### builder.invalidate(moduleName)
+Removes a module from the loader cache
+
+`moduleName`: The name of the module to invalidate, this can include wildcards  
+
+Returns the list of invalidated modules
+#### Example
+```javascript
+builder.invalidate("/jquery.js");
+builder.invalidate("someLib/*");
+```
+
 ### builder.bundle(tree[, outfile][, options])
 ### builder.bundle(expression[, outfile][, options])
+### builder.bundle(moduleNames[, outfile][, options])
 Concatenate all modules in the tree or module tree expression and optionally write them out to a file  
 
 `tree`: A tree object as returned from builder.trace(), or one of the arithmetic functions  
 `expression`: A [module tree expression](#module-tree-expressions)  
+`moduleNames`: An array of exact, unnormalized module names  
 `outfile`: The file to write out the bundle to  
 `options`: Additional bundle options as outlined below  
 
@@ -120,10 +123,11 @@ Creates the module tree object represented by `expression`
 
 `expression`: A [module tree expression](#module-tree-expressions)  
 
+Returns a promise which resolves with the module tree 
+
 #### Example
 ```javascript
-builder.trace('moduleA.js').then((sfxBundle) => {
-    //sfxBundle contains source to moduleA.js + dependencies + self-executing intialization code
+builder.trace('moduleA.js').then((moduleTree) => {
 });
 ```
 
