@@ -17,7 +17,7 @@ exports.compile = function(load, opts, loader) {
 
   return Promise.resolve({
     source: opts.systemGlobal + '.registerDynamic(' + (opts.anonymous ? '' : '"' + load.name + '", ') + '[], false, function() {\n' +
-            '  return ' + JSON.stringify(json, null, 2).replace(/\n/g, '\n  ') + ';\n' + 
+            '  return ' + JSON.stringify(json, null, 2).replace(/\n/g, '\n  ') + ';\n' +
             '});\n'
   });
 };
@@ -56,6 +56,9 @@ function optimizePackageConfig(json) {
       delete json.map;
   }
 
+  // set default extension to js for forwards compatibility
+  if (!json.defaultExtension && json.defaultExtension !== false)
+    json.defaultExtension = 'js';
+
   return json;
 }
-
