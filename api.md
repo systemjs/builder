@@ -10,7 +10,7 @@ Builder
 * [**loadConfig()**](#builderloadconfigconfigfile-saveforreset-ignorebaseurl)
 * [**loadConfigSync()**](#builderloadconfigsyncconfigfilepath)
 * [**reset()**](#builderreset)
-* [**invalidate()**](#builderinvalidate)
+* [**invalidate()**](#builderinvalidatemodulename)
 * [**bundle()**](#builderbundletree-outfile-options)
 * [**buildStatic()**](#builderbuildstatictree-outfile-options)
 * [**trace()**](#buildertraceexpression)
@@ -56,7 +56,7 @@ builder.loadConfigSync('config.js');
 ```
 
 ### builder.reset()
-Reset the builder config to its initial state  
+Reset the builder config to its initial state and clear loader registry. This will remove any registered modules, but will maintain the builder's compiled module cache. For efficiency, use [builder.invalidate()](#builderinvalidatemodulename) to clear individual modules from the cache.
 #### Example
 ```javascript
 builder.reset();
@@ -88,12 +88,18 @@ Concatenate all modules in the tree or module tree expression and optionally wri
 Returns a promise which resolves with the bundle content
 #### Bundle options
 `minify`: Minify source in bundle output _(Default:true)_  
+`uglify`: Options to pass to uglifyjs
 `mangle`: Allow the minifier to shorten non-public variable names _(Default:false)_  
 `sourceMaps`: Generate source maps for minified code _(Default:false)_  
+`sourceMapContents`: Include original source in the generated sourceMaps, this will generate a self-contained sourceMap which will not require the browser to load the original source file during debugging   _(Default:false)_  
 `lowResSourceMaps`:  When true, use line-number level source maps, when false, use character level source maps _(Default:false)_  
 `globalName`: When building a self-executing bundle, assign the bundle output to a global variable _(Default:null)_   
 `globalDeps`: When building a self-executing bundle, indicates external dependendencies available in the global context _(Default:{})_  
-`fetch`: Override the fetch function to retrieve module source manually _(Default:undefined)_
+`fetch`: Override the fetch function to retrieve module source manually _(Default:undefined)_  
+`normalize`: Rewrite required module names to their normalized names  _(Default:false)_  
+`anonymous`: Compile modules as anonymous modules _(Default:false)_  
+`systemGlobal`: The global used to register compiled modules with systemjs _(Default:'System')_  
+`format`: Module format to compile modules to _(Default:'umd')_  
 
 #### Example
 ```javascript
