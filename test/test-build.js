@@ -185,10 +185,10 @@ function doTests(transpiler) {
       }
     });
     return builder.buildStatic('toamd1', 'test/output/sfx.js', {
-      runtime: true, 
-      minify: minify, 
+      runtime: true,
+      minify: minify,
       format: 'global',
-      globalDefs: { DEBUG: false }, 
+      globalDefs: { DEBUG: false },
       globalName: 'amd1',
       globalDeps: {
         'jquery-cdn': '$'
@@ -222,7 +222,7 @@ suite('Test tree builds - Babel', function() {
 suite('Test tree builds - TypeScript', function() {
 
   doTests('typescript');
- 
+
 });
 
 suite('Bundle Format', function() {
@@ -236,6 +236,3 @@ suite('Bundle Format', function() {
     });
   });
 });
-
-
-
