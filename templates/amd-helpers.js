@@ -39,7 +39,7 @@
   }
 
   function define (name, deps, factory) {
-    if (typeof name != 'string') {
+    if (typeof name !== 'string') {
       factory = deps;
       deps = name;
       name = null;
@@ -53,10 +53,6 @@
       factory = (function (factory) {
         return function () { return factory; }
       })(factory);
-
-    // in IE8, a trailing comma becomes a trailing undefined entry
-    if (deps[deps.length - 1] === undefined)
-      deps.pop();
 
     // remove system dependencies
     var requireIndex, exportsIndex, moduleIndex;
@@ -88,18 +84,15 @@
 
       if (requireIndex !== -1)
         depValues.splice(requireIndex, 0, function(names, callback, errback) {
-          if (typeof names == 'string' && typeof callback != 'function')
+          if (typeof names === 'string' && typeof callback !== 'function')
             return req(names);
           return require.call(loader, names, callback, errback, module.id);
         });
 
       var output = factory.apply(exportsIndex === -1 ? global : exports, depValues);
 
-      if (typeof output === 'undefined' && module)
-        output = module.exports;
-
       if (typeof output !== 'undefined')
-        return output;
+        module.exports = output;
     }
 
     if (!name)
