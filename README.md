@@ -34,6 +34,10 @@ Will build the module `app` into a bundle containing both `app` and `jquery` def
 
 Circular references and bindings in ES6, CommonJS and AMD all behave exactly as they should, including maintaining execution order.
 
+Documentation
+---
+[API Reference] (docs/api.md)
+
 Usage
 ---
 
