@@ -367,7 +367,7 @@
     entry.module.execute.call(global);
   }
 
-  var nodeRequire = typeof System != 'undefined' && System._nodeRequire || typeof process != 'undefined' && !process.browser && typeof require != 'undefined' && typeof require.resolve != 'undefined' && require;
+  var nodeRequire = typeof System != 'undefined' && System._nodeRequire || typeof require != 'undefined' && typeof require.resolve != 'undefined' && typeof process != 'undefined' && process.platform && require;
 
   // magical execution function
   var modules = { '@empty': {} };
