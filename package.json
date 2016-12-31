@@ -1,12 +1,12 @@
 {
   "name": "systemjs-builder",
-  "version": "0.15.32",
+  "version": "0.15.34",
   "description": "SystemJS Build Tool",
   "main": "index.js",
   "dependencies": {
     "babel-core": "^6.9.0",
     "babel-plugin-transform-amd-system-wrapper": "^0.0.1",
-    "babel-plugin-transform-cjs-system-wrapper": "^0.2.1",
+    "babel-plugin-transform-cjs-system-wrapper": "^0.3.0",
     "babel-plugin-transform-es2015-modules-systemjs": "^6.6.5",
     "babel-plugin-transform-global-system-wrapper": "0.0.1",
     "babel-plugin-transform-system-register": "0.0.1",
@@ -15,9 +15,9 @@
     "es6-template-strings": "^2.0.0",
     "glob": "^7.0.3",
     "mkdirp": "^0.5.1",
-    "rollup": "^0.36.0",
+    "rollup": "^0.36.3",
     "source-map": "^0.5.3",
-    "systemjs": "^0.19.39",
+    "systemjs": "^0.19.41",
     "traceur": "0.0.105",
     "uglify-js": "^2.6.1"
   },

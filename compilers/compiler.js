@@ -1,8 +1,5 @@
 var path = require('path');
 var babel = require('babel-core');
-var babylon = require('babylon');
-var traverse = require('babel-traverse').default;
-var t = require('babel-types');
 
 function pathToUrl(p) {
   return p.replace(/\\/g, '/');
@@ -38,7 +35,9 @@ exports.compile = function (load, opts, plugin) {
 
 exports.transformAMDDependencies = function (load) {
   var options = {
-    plugins: [[require('babel-plugin-transform-amd-system-dependencies').default]]
+    plugins: [[require('babel-plugin-transform-amd-system-wrapper').default, {
+      filterMode: true
+    }]]
   };
 
   var output = babel.transform(load.source, options);

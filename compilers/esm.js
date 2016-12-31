@@ -58,6 +58,7 @@ exports.attach = function(loader) {
     var babel = require('babel-core');
     var output = babel.transform(load.source, {
       babelrc: false,
+      compact: false,
       filename: load.path,
       //sourceFileName: load.path,
       inputSourceMap: load.metadata.sourceMap,
@@ -89,6 +90,7 @@ exports.compile = function(load, opts, loader) {
 
     var babelOptions = {
       babelrc: false,
+      compact: false,
       plugins: [[require('babel-plugin-transform-es2015-modules-systemjs'), { systemGlobal: opts.systemGlobal }]],
       filename: load.path,
       //sourceFileName: load.path,
@@ -118,7 +120,7 @@ exports.compile = function(load, opts, loader) {
       output.code = output.code.replace(/(\s|^)System\.register\(/, '$1' + opts.systemGlobal + '.register(');
 
     // for some reason Babel isn't respecting sourceFileName...
-    if (output.map)
+    if (output.map && !load.metadata.sourceMap)
       output.map.sources[0] = load.path;
 
     return Promise.resolve({
@@ -175,16 +177,16 @@ exports.compile = function(load, opts, loader) {
       if (options.target === undefined)
         options.target = transpiler.ScriptTarget.ES5;
       options.module = transpiler.ModuleKind.System;
-      
-      var transpileOptions = { 
-        compilerOptions: options, 
-        renamedDependencies: load.depMap, 
-        fileName: load.path, 
-        moduleName: !opts.anonymous && load.name 
+
+      var transpileOptions = {
+        compilerOptions: options,
+        renamedDependencies: load.depMap,
+        fileName: load.path,
+        moduleName: !opts.anonymous && load.name
       };
-      
+
       var transpiled = transpiler.transpileModule(load.source, transpileOptions);
-      
+
       return Promise.resolve({
         source: transpiled.outputText,
         sourceMap: transpiled.sourceMapText
@@ -197,7 +199,7 @@ exports.compile = function(load, opts, loader) {
           console.log('Warning - using Babel ' + babelVersion + '. This version of SystemJS builder is designed to run against Babel 5.');
         versionCheck = false;
       }
-        
+
       var options = extend({}, loader.babelOptions || {});
       options.modules = 'system';
       if (opts.sourceMaps)
