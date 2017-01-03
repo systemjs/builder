@@ -1,7 +1,7 @@
 console.log(__filename);
 
 (function(require) {
-  if (typeof require != 'undefined' && eval('typeof require') == 'undefined')
+  if (typeof require != 'undefined')
     exports.cjs = true;
 
   if (false)
