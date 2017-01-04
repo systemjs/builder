@@ -241,4 +241,28 @@ suite('Source Maps', function() {
       });
     });
   });
+  
+  test('can handle multiple transpiled files with same name', function(done) {
+    var module = 'sameName/1/amd.js + sameName/2/amd.js';
+
+    var instance = new Builder();
+    instance.loadConfigSync(configFile);
+    instance.config({
+      transpiler: 'plugin-babel',
+      map: {
+        'plugin-babel': './node_modules/systemjs-plugin-babel/plugin-babel.js',
+        'systemjs-babel-build': './node_modules/systemjs-plugin-babel/systemjs-babel-node.js',
+      },
+      packages: {
+        sameName: {
+          format: 'esm',
+        },
+      },
+    });
+    instance.buildStatic(module, null, { sourceMaps: true, sourceMapContents: true })
+    .then(function() {
+      done()
+    })
+    .catch(err);
+  });
 });
