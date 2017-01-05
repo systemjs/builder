@@ -34,8 +34,3 @@ exports.compile = function (load, opts, loader) {
     systemGlobal: opts.systemGlobal
   }]);
 };
-
-function remap(source, map, fileName) {
-  return compiler.compile(load, opts, [require('babel-plugin-transform-cjs-system-require').default, {}]);
-}
-exports.remap = remap;
