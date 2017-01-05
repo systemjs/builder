@@ -238,21 +238,6 @@
         .catch(done);
       });
 
-      test('AMD Circular', function(done) {
-        System['import']('output/amd-circular.js').then(function() {
-          return System['import']('amd-circular1.js');
-        })
-        .then(function(m) {
-          let circular2 = m();
-          ok(circular2.ready === true);
-          ok(circular2.circular1 === undefined);
-          circular2.getCircular();
-          ok(circular2.circular1 === circular2);
-          done();
-        })
-        .catch(done);
-      });
-
       test('CJS Globals', function(done) {
         System['import']('output/cjs-globals.js').then(function() {
           return System['import']('cjs-globals.js');

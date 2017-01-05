@@ -149,10 +149,6 @@ function doTests(transpiler) {
       })
 
       .then(function() {
-        return builder.bundle('amd-circular1.js', 'test/output/amd-circular.js');
-      })
-
-      .then(function() {
         builder.loader.config({ paths: { 'output/*': './test/output/*' } });
         return builder.bundle('cjs-globals.js - output/amd-8.js', 'test/output/cjs-globals.js');
       })
@@ -189,10 +185,10 @@ function doTests(transpiler) {
       }
     });
     return builder.buildStatic('toamd1', 'test/output/sfx.js', {
-      runtime: true,
-      minify: minify,
+      runtime: true, 
+      minify: minify, 
       format: 'global',
-      globalDefs: { DEBUG: false },
+      globalDefs: { DEBUG: false }, 
       globalName: 'amd1',
       globalDeps: {
         'jquery-cdn': '$'
@@ -226,7 +222,7 @@ suite('Test tree builds - Babel', function() {
 suite('Test tree builds - TypeScript', function() {
 
   doTests('typescript');
-
+ 
 });
 
 suite('Bundle Format', function() {
@@ -240,3 +236,6 @@ suite('Bundle Format', function() {
     });
   });
 });
+
+
+
