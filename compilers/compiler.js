@@ -6,14 +6,14 @@ function pathToUrl(p) {
 }
 
 exports.compile = function (load, opts, plugin) {
-  var sourceRoot = load.path && pathToUrl(path.dirname(load.path) + '/');
+  var sourceRoot = pathToUrl(path.dirname(load.path) + '/');
   var options = {
     babelrc: false,
     compact: false,
     sourceType: 'script',
-    filename: load.path && pathToUrl(load.path),
-    filenameRelative: load.path && path.basename(load.path),
-    inputSourceMap: load.metadata && load.metadata.sourceMap,
+    filename: pathToUrl(load.path),
+    filenameRelative: path.basename(load.path),
+    inputSourceMap: load.metadata.sourceMap,
     moduleId: opts.moduleId,
     sourceFileName: path.basename(load.path),
     sourceMaps: !!opts.sourceMaps,
