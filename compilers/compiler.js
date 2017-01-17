@@ -15,8 +15,8 @@ exports.compile = function (load, opts, plugin) {
     filenameRelative: load.path && path.basename(load.path),
     inputSourceMap: load.metadata && load.metadata.sourceMap,
     moduleId: opts.moduleId,
-    sourceFileName: load.path && path.basename(load.path),
-    sourceMaps: opts.sourceMaps,
+    sourceFileName: path.basename(load.path),
+    sourceMaps: !!opts.sourceMaps,
     sourceRoot: sourceRoot,
     plugins: [plugin]
   };

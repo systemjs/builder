@@ -126,7 +126,7 @@
         else
           linkDynamicModule(entry);
       }
-      curGroupDeclarative = !curGroupDeclarative; 
+      curGroupDeclarative = !curGroupDeclarative;
     }
   }
 
@@ -279,7 +279,7 @@
 
     // create the esModule object, which allows ES6 named imports of dynamics
     exports = module.exports;
- 
+
     if (exports && exports.__esModule)
       entry.esModule = exports;
     else
@@ -336,7 +336,7 @@
    *  (unless one is a circular dependency already in the list of seen
    *  modules, in which case we execute it)
    *
-   * Then we evaluate the module itself depth-first left to right 
+   * Then we evaluate the module itself depth-first left to right
    * execution to match ES6 modules
    */
   function ensureEvaluated(moduleName, seen) {
@@ -385,7 +385,7 @@
     if (!entry)
       throw "Module " + name + " not present.";
 
-    // recursively ensure that the module and all its 
+    // recursively ensure that the module and all its
     // dependencies are linked (with dependency group handling)
     link(name);
 
@@ -410,9 +410,9 @@
           _nodeRequire: nodeRequire,
           register: register,
           registerDynamic: registerDynamic,
-          get: load, 
+          get: load,
           set: function(name, module) {
-            modules[name] = module; 
+            modules[name] = module;
           },
           newModule: function(module) {
             return module;

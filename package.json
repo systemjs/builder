@@ -17,7 +17,7 @@
     "mkdirp": "^0.5.1",
     "rollup": "^0.36.3",
     "source-map": "^0.5.3",
-    "systemjs": "^0.19.41",
+    "systemjs": "^0.19.42",
     "traceur": "0.0.105",
     "uglify-js": "^2.6.1"
   },
@@ -27,6 +27,7 @@
     "mocha": "^2.2.5",
     "mocha-phantomjs": "3.5.6",
     "phantomjs": "1.9.18",
+    "systemjs-plugin-babel": "0.0.18",
     "typescript": "1.6.2",
     "unexpected": "^9.11.0"
   },

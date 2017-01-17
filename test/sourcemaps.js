@@ -63,7 +63,7 @@ suite('Source Maps', function() {
   suiteSetup(writeTestOutput);
 
   test('can render inline', function(done) {
-    var module = 'amd-2.js';
+    var module = 'amd-2.js + cjs.js';
 
     var instance = new Builder();
     instance.loadConfigSync(configFile);
@@ -78,11 +78,9 @@ suite('Source Maps', function() {
       assert(lastLine.match(commentPrefix));
       var encoding = lastLine.replace(commentPrefix, "");
       var decoded = JSON.parse(atob(encoding));
-      // not a regular array so tedious
-      assert.equal(1, decoded.sources.length);
-	  assert.equal('amd-2.js', decoded.file);
-      assert.equal('amd-2.js', decoded.sources[0]);
-	  assert.equal('test/fixtures/test-tree/', decoded.sourceRoot);
+      assert.deepEqual(decoded.sources,
+        [ "test/fixtures/test-tree/amd-2.js",
+          "test/fixtures/test-tree/cjs.js" ]);
     })
     .then(done)
     .catch(err);
@@ -240,5 +238,29 @@ suite('Source Maps', function() {
         compareSourceMaps(module, expected, done, transpiler);
       });
     });
+  });
+  
+  test('can handle multiple transpiled files with same name', function(done) {
+    var module = 'sameName/1/amd.js + sameName/2/amd.js';
+
+    var instance = new Builder();
+    instance.loadConfigSync(configFile);
+    instance.config({
+      transpiler: 'plugin-babel',
+      map: {
+        'plugin-babel': './node_modules/systemjs-plugin-babel/plugin-babel.js',
+        'systemjs-babel-build': './node_modules/systemjs-plugin-babel/systemjs-babel-node.js',
+      },
+      packages: {
+        sameName: {
+          format: 'esm',
+        },
+      },
+    });
+    instance.buildStatic(module, null, { sourceMaps: true, sourceMapContents: true })
+    .then(function() {
+      done()
+    })
+    .catch(err);
   });
 });
