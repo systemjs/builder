@@ -65,7 +65,7 @@ suite('Source Maps', function() {
   suiteSetup(writeTestOutput);
 
   test('can render inline', function(done) {
-    var module = 'amd-2.js';
+    var module = 'amd-2.js + cjs.js';
 
     var instance = new Builder();
     instance.loadConfigSync(configFile);
@@ -80,9 +80,9 @@ suite('Source Maps', function() {
       assert(lastLine.match(commentPrefix));
       var encoding = lastLine.replace(commentPrefix, "");
       var decoded = JSON.parse(atob(encoding));
-      // not a regular array so tedious
-      assert.equal(1, decoded.sources.length);
-      assert.equal('test/fixtures/test-tree/amd-2.js', decoded.sources[0]);
+      assert.deepEqual(decoded.sources,
+        [ "test/fixtures/test-tree/amd-2.js",
+          "test/fixtures/test-tree/cjs.js" ]);
     })
     .then(done)
     .catch(err);

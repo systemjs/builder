@@ -16,7 +16,7 @@ exports.compile = function (load, opts, plugin) {
     inputSourceMap: load.metadata.sourceMap,
     moduleId: opts.moduleId,
     sourceFileName: path.basename(load.path),
-    sourceMaps: opts.sourceMaps,
+    sourceMaps: !!opts.sourceMaps,
     sourceRoot: sourceRoot,
     plugins: [plugin]
   };
