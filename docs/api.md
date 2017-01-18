@@ -20,14 +20,14 @@ Builder
 
 ### new Builder(baseURL[, configFilePath])
 `baseURL`: Sets the root for the loader  
-`configFilePath`: A systemjs config file conforming to the [systemjs config api] (https:/github.com/systemjs/systemjs/blob/master/docs/config-api.md)  
+`configFilePath`: A systemjs config file conforming to the [systemjs config api] (https://github.com/systemjs/systemjs/blob/master/docs/config-api.md)  
 #### Example
 ```javascript
 new Builder('/scripts', 'config.js');
 ```
 
 ### builder.config(config)
-`config`: An object conforming to the [config api] (https:/github.com/systemjs/systemjs/blob/master/docs/config-api.md)  
+`config`: An object conforming to the [config api] (https://github.com/systemjs/systemjs/blob/master/docs/config-api.md)  
 #### Example
 ```javascript
 builder.config({
@@ -38,7 +38,7 @@ builder.config({
 ```
 
 ### builder.loadConfig(configFilePath)
-`configFilePath`: A systemjs config file conforming to the [systemjs config api] (https:/github.com/systemjs/systemjs/blob/master/docs/config-api.md)  
+`configFilePath`: A systemjs config file conforming to the [systemjs config api] (https://github.com/systemjs/systemjs/blob/master/docs/config-api.md)  
 
 Returns a promise which resolves when config has been loaded  
 #### Example
@@ -49,7 +49,7 @@ builder.loadConfig('config.js').then(() => {
 ### builder.loadConfigSync(configFilePath)
 Synchronous version of `builder.loadConfig()`  
 
-`configFilePath`: A systemjs config file conforming to the [systemjs config api] (https:/github.com/systemjs/systemjs/blob/master/docs/config-api.md)  
+`configFilePath`: A systemjs config file conforming to the [systemjs config api] (https://github.com/systemjs/systemjs/blob/master/docs/config-api.md)  
 #### Example
 ```javascript
 builder.loadConfigSync('config.js');
