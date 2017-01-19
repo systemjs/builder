@@ -12,46 +12,38 @@
     });
   }
 
+  function createModule (bindings) {
+    // __esModule flag extension support
+    var esModule;
+    if (bindings && bindings.__esModule) {
+      esModule = {};
+      for (var p in bindings) {
+        if (bindings.hasOwnProperty(p))
+          esModule[p] = bindings[p];
+      }
+      esModule.default = bindings;
+    }
+    else {
+      esModule = bindings;
+    }
+    return new Module(esModule);
+  }
+
   function Module (bindings) {
     Object.defineProperty(this, BASE_OBJECT, {
       value: bindings
     });
-    Object.getOwnPropertyNames(bindings).forEach(extendNamespace, this);
+    Object.keys(bindings).forEach(extendNamespace, this);
   }
   Module.prototype = Object.create(null);
   if (typeof Symbol !== 'undefined' && Symbol.toStringTag)
     Module.prototype[Symbol.toStringTag] = 'Module';
 
-  function copyNamedExports (exports, moduleObj) {
-    if ((typeof exports === 'object' || typeof exports === 'function') && exports !== global) {
-      var props = Object.getOwnPropertyNames(exports);
-      for (var i = 0; i < props.length; i++)
-        defineOrCopyProperty(moduleObj, exports, props[i]);
-    }
-    moduleObj.default = exports;
-    return moduleObj;
-  }
-
-  function defineOrCopyProperty (targetObj, sourceObj, propName) {
-    // don't trigger getters/setters in environments that support them
-    try {
-      var d;
-      if (d = Object.getOwnPropertyDescriptor(sourceObj, propName)) {
-        // only copy data descriptors
-        if (d.value)
-          targetObj[propName] = d.value;
-      }
-    }
-    catch (e) {
-      // Object.getOwnPropertyDescriptor threw an exception -> not own property
-    }
-  }
-
   var nodeRequire = typeof System != 'undefined' && System._nodeRequire || typeof require != 'undefined' && typeof require.resolve != 'undefined' && typeof process != 'undefined' && process.platform && require;
 
   function getLoad (key) {
     if (key.substr(0, 6) === '@node/')
-      return defineModule(key, new Module(copyNamedExports(nodeRequire(name.substr(6))), {}));
+      return defineModule(key, createModule(nodeRequire(name.substr(6))), {});
     else
       return registry[key];
   }
@@ -231,10 +223,9 @@
         }
       });
       link.execute.call(module.exports, makeDynamicRequire(link.deps, link.depLoads, seen), module.exports, module);
-      copyNamedExports(module.exports, moduleObj);
     }
 
-    var module = load.module = new Module(link.moduleObj);
+    var module = load.module = createModule(link.moduleObj);
 
     if (!link.setters)
       for (var i = 0; i < load.importerSetters.length; i++)
@@ -277,7 +268,7 @@
 
         // register external dependencies
         for (var i = 0; i < depNames.length; i++)
-          defineModule(depNames[i], new Module(copyNamedExports(arguments[i], {})));
+          defineModule(depNames[i], createModule(arguments[i], {}));
 
         // register modules in this bundle
         declare(System);
