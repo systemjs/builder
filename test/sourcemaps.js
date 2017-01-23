@@ -241,7 +241,7 @@ suite('Source Maps', function() {
       });
     });
   });
-  
+
   test('can handle multiple transpiled files with same name', function(done) {
     var module = 'sameName/1/amd.js + sameName/2/amd.js';
 
@@ -255,7 +255,7 @@ suite('Source Maps', function() {
       },
       packages: {
         sameName: {
-          format: 'esm',
+          format: 'amd',
         },
       },
     });
