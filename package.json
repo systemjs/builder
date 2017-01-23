@@ -29,7 +29,8 @@
     "phantomjs": "1.9.18",
     "systemjs-plugin-babel": "0.0.19",
     "typescript": "1.6.2",
-    "unexpected": "^9.11.0"
+    "unexpected": "^9.11.0",
+    "when": "^3.7.5"
   },
   "repository": {
     "type": "git",
