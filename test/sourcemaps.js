@@ -31,14 +31,12 @@ var readExpectation = function(filename) {
   return fs.readFileSync('test/fixtures/sourcemaps-expectations/' + filename).toString().replace(/\n$/, '');
 };
 
-function writeTestOutput(done) {
+function writeTestOutput() {
   var builder = new Builder();
   return builder.loadConfig(configFile)
     .then(function() {
       builder.buildStatic('first.js', 'test/output/output.js', buildOpts);
-    })
-    .then(done)
-    .catch(err);
+    });
 }
 
 function writeSourceMaps(moduleName, transpiler, sourceMapFile) {

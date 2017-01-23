@@ -20,15 +20,33 @@ exports.compile = function (load, opts, plugin) {
     sourceRoot: sourceRoot,
     plugins: [plugin]
   };
-
-  var output = babel.transform(load.source, options);
   
+  var source = load.metadata.originalSource || load.source;
+
+  var output;
+  if (load.metadata.ast) {
+    output = babel.transformFromAst(load.metadata.ast, source, options);
+  } else {
+    output = babel.transform(source, options);
+  }
+
   var sourceMap = output.map;
   if (sourceMap && !sourceMap.sourceRoot) // if input source map doesn't have sourceRoot - add it
     sourceMap.sourceRoot = sourceRoot;
-
+  
   return Promise.resolve({
     source: output.code,
     sourceMap: sourceMap
   });
 };
+
+exports.compileAst = function (load, plugin) {
+  return babel.transform(load.source, {
+      babelrc: false,
+      compact: false,
+      filename: load.path,
+      inputSourceMap: load.metadata.sourceMap,
+      ast: true,
+      plugins: [plugin]
+    });
+}
