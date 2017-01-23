@@ -16,7 +16,7 @@ exports.compile = function(load, opts, loader) {
     json = optimizePackageConfig(json);
 
   return Promise.resolve({
-    source: opts.systemGlobal + '.registerDynamic(' + (opts.anonymous ? '' : '"' + load.name + '", ') + '[], false, function() {\n' +
+    source: opts.systemGlobal + '.registerDynamic(' + (opts.anonymous ? '' : '"' + load.name + '", ') + '[], function() {\n' +
             '  return ' + JSON.stringify(json, null, 2).replace(/\n/g, '\n  ') + ';\n' + 
             '});\n'
   });
