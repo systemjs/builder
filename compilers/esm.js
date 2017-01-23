@@ -94,7 +94,7 @@ exports.compile = function(load, opts, loader) {
       plugins: [[require('babel-plugin-transform-es2015-modules-systemjs'), { systemGlobal: opts.systemGlobal }]],
       filename: load.path,
       //sourceFileName: load.path,
-      sourceMaps: opts.sourceMaps,
+      sourceMaps: !!opts.sourceMaps,
       inputSourceMap: load.metadata.sourceMap,
       moduleIds: !opts.anonymous,
       moduleId: !opts.anonymous && load.name,

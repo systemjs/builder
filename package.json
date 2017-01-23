@@ -1,10 +1,10 @@
 {
   "name": "systemjs-builder",
-  "version": "0.15.34",
+  "version": "0.16.0-alpha.1",
   "description": "SystemJS Build Tool",
   "main": "index.js",
   "dependencies": {
-    "babel-core": "^6.9.0",
+    "babel-core": "^6.18.2",
     "babel-plugin-transform-amd-system-wrapper": "^0.1.0",
     "babel-plugin-transform-cjs-system-wrapper": "^0.3.0",
     "babel-plugin-transform-es2015-modules-systemjs": "^6.6.5",
@@ -27,7 +27,7 @@
     "mocha": "^2.2.5",
     "mocha-phantomjs": "3.5.6",
     "phantomjs": "1.9.18",
-    "systemjs-plugin-babel": "0.0.18",
+    "systemjs-plugin-babel": "0.0.19",
     "typescript": "1.6.2",
     "unexpected": "^9.11.0"
   },
