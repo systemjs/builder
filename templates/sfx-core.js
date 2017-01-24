@@ -146,7 +146,7 @@
     };
   };
 
-  function registerDynamic (key, deps, execute) {
+  function registerDynamic (key, deps, executingRequire, execute) {
     return registry[key] = {
       key: key,
       module: undefined,
@@ -155,27 +155,14 @@
         deps: deps,
         depLoads: undefined,
         declare: undefined,
-        execute: typeof execute === 'boolean' ? dynamicExecuteCompat(deps, execute, arguments[3]) : execute,
+        execute: execute,
+        executingRequire: false,
         moduleObj: {
           default: {},
           __useDefault: true
         },
         setters: undefined
       }
-    };
-  }
-
-  function dynamicExecuteCompat (deps, executingRequire, execute) {
-    return function (require, exports, module) {
-      // evaluate deps first
-      if (!executingRequire)
-        for (var i = 0; i < deps.length; i++)
-          require(deps[i]);
-
-      // then run execution function
-      // also provide backwards compat for no return value
-      // previous 4 argument form of System.register had "this" as global value
-      module.exports = execute.apply(global, arguments) || module.exports;
     };
   }
 
@@ -222,7 +209,10 @@
           return moduleObj.default;
         }
       });
-      link.execute.call(module.exports, makeDynamicRequire(link.deps, link.depLoads, seen), module.exports, module);
+      var require = makeDynamicRequire(link.deps, link.depLoads, seen);
+      var output = link.execute.call(global, require, moduleObj.default, module);
+      if (output !== undefined)
+        moduleObj.default = output;
     }
 
     var module = load.module = createModule(link.moduleObj);
