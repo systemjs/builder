@@ -43,7 +43,7 @@
 
   function getLoad (key) {
     if (key.substr(0, 6) === '@node/')
-      return defineModule(key, createModule(nodeRequire(name.substr(6))), {});
+      return defineModule(key, createModule(nodeRequire(key.substr(6))), {});
     else
       return registry[key];
   }
