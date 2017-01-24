@@ -1,13 +1,9 @@
 SystemJS Build Tool [![Build Status][travis-image]][travis-url] [![Support](https://supporterhq.com/api/b/33df4abbec4d39260f49015d2457eafe/SystemJS)](https://supporterhq.com/support/33df4abbec4d39260f49015d2457eafe/SystemJS)
 ===
 
-_[SystemJS Builder 0.15 release notes](https://github.com/systemjs/builder/releases/tag/0.15.0)_
+_[SystemJS Builder 0.16 release notes](https://github.com/systemjs/builder/releases/tag/0.16.0)_
 
-_As of SystemJS Builder 0.14, `builder.build` and `builder.buildTree` are both `builder.bundle`, while `builder.buildSFX` is now `builder.buildStatic`.
-The previous APIs will continue to work, but display deprecation warnings._
-
-_Note SystemJS Builder 0.11-0.14 correspond to the SystemJS 0.17+ releases which include the breaking change making module names URLs.
-Read the [SystemJS 0.17 release notes](https://github.com/systemjs/systemjs/releases/tag/0.17.0) for more information on this change._
+_Note for SystemJS 0.19 support use SystemJS Builder 0.15_
 
 Provides a single-file build for SystemJS of mixed-dependency module trees.
 
@@ -113,25 +109,25 @@ This bundle file can then be included with a `<script>` tag, and no other depend
 to export a global variable when loaded from a script tag, and this can be configured via `globalName`.  For example
 
 ```javascript
-builder.buildStatic('src/NavBar.js', 'dist/NavBarStaticBuild.js', { 
-  globalName: 'NavBar' 
+builder.buildStatic('src/NavBar.js', 'dist/NavBarStaticBuild.js', {
+  globalName: 'NavBar'
 });
 ```
 
-will cause the output of your module to be assigned to a global variable named `NavBar`.  If you're making a static bundle, while excluding certain dependencies, those dependencies 
-will of course need to have already been loaded on your page, with their own global variables exported.  You can match these global variables up with your needed dependencies 
+will cause the output of your module to be assigned to a global variable named `NavBar`.  If you're making a static bundle, while excluding certain dependencies, those dependencies
+will of course need to have already been loaded on your page, with their own global variables exported.  You can match these global variables up with your needed dependencies
 with `globalDeps`.  For example
 
 ```javascript
-builder.buildStatic('src/NavBar.js - react', 'dist/NavBarStaticBuild.js', { 
-  globalName: 'NavBar', 
-  globalDeps: { 
-    'react': 'React' 
-  } 
+builder.buildStatic('src/NavBar.js - react', 'dist/NavBarStaticBuild.js', {
+  globalName: 'NavBar',
+  globalDeps: {
+    'react': 'React'
+  }
 });
 ```
 
-will create a static build of NavBar—without React—which, when loaded via a script tag, exports an eponymous global variable, and assumes the existence of a React global variable, which will be used for the `react` dependency. 
+will create a static build of NavBar—without React—which, when loaded via a script tag, exports an eponymous global variable, and assumes the existence of a React global variable, which will be used for the `react` dependency.
 
 This would support users with a setup of
 
@@ -154,7 +150,7 @@ builder.buildStatic('src/NavBar.js', 'dist/NavBarStaticBuild.js', {
 
 This would also exclude react but, if react defined any dependencies which NavBar *also* defined, those dependencies would be *included* in the build.
 
-Of course the above explanations involving `globalDeps` and `globalName` only apply to when your end user loads the static file from a script tag.  Since the output is (by default, see below) UMD, a 
+Of course the above explanations involving `globalDeps` and `globalName` only apply to when your end user loads the static file from a script tag.  Since the output is (by default, see below) UMD, a
 script loader like SystemJS or requireJS would process it as configured, or via AMD respectively.
 
 By default, the Traceur or Babel runtime are automatically included in the SFX bundle if needed. To exclude the Babel or Traceur runtime set the `runtime` build option to false:
