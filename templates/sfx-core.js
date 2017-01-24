@@ -12,19 +12,18 @@
     });
   }
 
-  function createModule (bindings) {
-    // __esModule flag extension support
+  function createExternalModule (exports) {
     var esModule;
-    if (bindings && bindings.__esModule) {
+    if (exports && exports.__esModule) {
       esModule = {};
-      for (var p in bindings) {
-        if (bindings.hasOwnProperty(p))
-          esModule[p] = bindings[p];
+      for (var p in exports) {
+        if (Object.hasOwnProperty.call(exports, p))
+          esModule[p] = exports[p];
       }
-      esModule.default = bindings;
+      esModule.default = exports;
     }
     else {
-      esModule = bindings;
+      esModule = { default: exports, __useDefault: true };
     }
     return new Module(esModule);
   }
@@ -43,7 +42,7 @@
 
   function getLoad (key) {
     if (key.substr(0, 6) === '@node/')
-      return defineModule(key, createModule(nodeRequire(key.substr(6))), {});
+      return defineModule(key, createExternalModule(nodeRequire(key.substr(6))), {});
     else
       return registry[key];
   }
@@ -156,7 +155,7 @@
         depLoads: undefined,
         declare: undefined,
         execute: execute,
-        executingRequire: false,
+        executingRequire: executingRequire,
         moduleObj: {
           default: {},
           __useDefault: true
@@ -172,7 +171,11 @@
       for (var i = 0; i < deps.length; i++)
         if (deps[i] === name) {
           var depLoad = depLoads[i];
-          var module = doEvaluate(depLoad, depLoad.linkRecord, seen);
+          var module;
+          if (seen.indexOf(depLoad) === -1)
+            module = doEvaluate(depLoad, depLoad.linkRecord, seen);
+          else
+            module = depLoad.linkRecord.moduleObj;
           return module.__useDefault ? module.default : module;
         }
     };
@@ -202,6 +205,7 @@
       var module = { id: load.key };
       var moduleObj = link.moduleObj;
       Object.defineProperty(module, 'exports', {
+        configurable: true,
         set: function (exports) {
           moduleObj.default = exports;
         },
@@ -210,12 +214,26 @@
         }
       });
       var require = makeDynamicRequire(link.deps, link.depLoads, seen);
+
+      // evaluate deps first
+      if (!link.executingRequire)
+        for (var i = 0; i < link.deps.length; i++)
+          require(link.deps[i]);
+
       var output = link.execute.call(global, require, moduleObj.default, module);
       if (output !== undefined)
         moduleObj.default = output;
+      else if (module.exports !== moduleObj.default)
+        moduleObj.default = module.exports;
+
+      // __esModule flag extension support
+      if (moduleObj.default && moduleObj.default.__esModule)
+        for (var p in moduleObj.default)
+          if (Object.hasOwnProperty.call(moduleObj.default, p) && p !== 'default')
+            moduleObj[p] = moduleObj.default[p];
     }
 
-    var module = load.module = createModule(link.moduleObj);
+    var module = load.module = new Module(link.moduleObj);
 
     if (!link.setters)
       for (var i = 0; i < load.importerSetters.length; i++)
@@ -230,7 +248,7 @@
     Object.freeze(nullContext);
 
   function defineModule (name, module) {
-    registry[name] = {
+    return registry[name] = {
       key: name,
       module: module,
       importerSetters: [],
@@ -258,7 +276,7 @@
 
         // register external dependencies
         for (var i = 0; i < depNames.length; i++)
-          defineModule(depNames[i], createModule(arguments[i], {}));
+          defineModule(depNames[i], createExternalModule(arguments[i], {}));
 
         // register modules in this bundle
         declare(System);
@@ -271,8 +289,13 @@
 
         if (exportDefault)
           return firstLoad.default;
-        else
-          return firstLoad;
+
+        if (firstLoad instanceof Module)
+          Object.defineProperty(firstLoad, '__esModule', {
+            value: true
+          });
+
+        return firstLoad;
       });
     };
   };
