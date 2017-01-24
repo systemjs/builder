@@ -10,11 +10,12 @@ exports.attach = function (loader) {
 
     return systemInstantiate.call(this, load).then(function (result) {
       if (load.metadata.format == 'amd') {
-	  
+
         if (!load.source) load.source = ' ';
 
         var output = compiler.compileAst(load, [require('babel-plugin-transform-amd-system-wrapper').default, { filterMode: true }]);
         load.metadata.ast = output.ast;
+        load.metadata.anonNamed = output.metadata.anonNamed;
 
         var entry = loader.defined[load.name];
         entry.deps = dedupe(output.metadata.amdDeps.concat(load.metadata.deps));
@@ -48,7 +49,7 @@ exports.attach = function (loader) {
         return Promise.all(normalizePromises).then(function (normalizedDeps) {
           entry.normalizedDeps = normalizedDeps;
           entry.originalIndices = group(entry.deps);
-		  
+
           return {
             deps: entry.deps,
             execute: result.execute
@@ -89,6 +90,7 @@ function group(deps) {
 exports.compile = function (load, opts, loader) {
   opts.moduleId = !opts.anonymous && load.name;
   return compiler.compile(load, opts, [require('babel-plugin-transform-amd-system-wrapper').default, {
+    anonNamed: load.metadata.anonNamed,
     map: function (dep) {
       return opts.normalize ? load.depMap[dep] : dep;
     },
