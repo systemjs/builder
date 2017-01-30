@@ -14,6 +14,8 @@
 
   function createExternalModule (exports) {
     var esModule;
+
+    // CJS es module -> extend namespace
     if (exports && exports.__esModule) {
       esModule = {};
       for (var p in exports) {
@@ -22,6 +24,14 @@
       }
       esModule.default = exports;
     }
+
+    // a real ES module or SystemJS ES Module
+    else if (Object.prototype.toString.call(exports) === '[object Module]' ||
+        typeof System !== 'undefined' && System.isModule && System.isModule(exports)) {
+      return exports;
+    }
+
+    // use default representation only
     else {
       esModule = { default: exports, __useDefault: true };
     }
