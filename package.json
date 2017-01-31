@@ -17,7 +17,7 @@
     "mkdirp": "^0.5.1",
     "rollup": "^0.36.3",
     "source-map": "^0.5.3",
-    "systemjs": "^0.19.43",
+    "systemjs": "^0.19.46",
     "traceur": "0.0.105",
     "uglify-js": "^2.6.1"
   },
