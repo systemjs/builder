@@ -1,3 +1,2 @@
-uglifyjs sfx-core.js -cm | sed 's/.$//' > sfx-core.min.js
-uglifyjs amd-helpers.js -cm > amd-helpers.min.js
-uglifyjs global-helpers.js -cm > global-helpers.min.js
+uglifyjs sfx-core.js -cm --screw-ie8 | sed 's/.$//' > sfx-core.min.js
+uglifyjs global-helpers.js -cm --screw-ie8 > global-helpers.min.js

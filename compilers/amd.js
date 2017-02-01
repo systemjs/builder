@@ -98,7 +98,3 @@ exports.compile = function (load, opts, loader) {
 	  deps: load.deps
   }]);
 };
-
-exports.sfx = function (loader) {
-  return require('fs').readFileSync(require('path').resolve(__dirname, '../templates/amd-helpers.min.js')).toString();
-};
