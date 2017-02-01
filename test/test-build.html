@@ -149,7 +149,8 @@
           return System['import']('amd-6a.js');
         })
         .then(function(m) {
-          ok(m.p == 'a');
+          ok(m.p != 'a');
+          ok(window.p == 'a');
           done();
         })
         .catch(done);
