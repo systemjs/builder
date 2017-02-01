@@ -38,7 +38,7 @@
     this(globalName, value);
   }
 
-  loader.set('@@global-helpers', loader.newModule({
+  loader.registry.set('@@global-helpers', loader.newModule({
     prepareGlobal: function (moduleName, exports, globals) {
       // disable module detection
       var curDefine = global.define;
