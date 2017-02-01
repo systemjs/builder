@@ -273,10 +273,12 @@
           _nodeRequire: nodeRequire,
           register: register,
           registerDynamic: registerDynamic,
-          get: function (name) {
-            return registry[name].module;
+          registry: {
+            get: function (name) {
+              return registry[name].module;
+            },
+            set: defineModule
           },
-          set: defineModule,
           newModule: function (module) {
             return new Module(module);
           }
