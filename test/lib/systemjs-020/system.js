@@ -1,5 +1,5 @@
 /*
- * SystemJS v0.20.0-rc.8 Dev
+ * SystemJS v0.20.4 Dev
  */
 (function () {
 'use strict';
@@ -1084,10 +1084,15 @@ function doEvaluate (loader, load, link, registry, state, seen) {
           require(link.dependencies[i]);
 
       err = dynamicExecute(link.execute, require, moduleObj.default, module);
+
+      // pick up defineProperty calls to module.exports when we can
+      if (module.exports !== moduleObj.default)
+        moduleObj.default = module.exports;
+
       // __esModule flag extension support
       if (moduleObj.default && moduleObj.default.__esModule)
         for (var p in moduleObj.default)
-          if (moduleObj.default.hasOwnProperty(p) && p !== 'default')
+          if (Object.hasOwnProperty.call(moduleObj.default, p) && p !== 'default')
             moduleObj[p] = moduleObj.default[p];
     }
   }
@@ -1149,6 +1154,13 @@ function protectedCreateNamespace (bindings) {
     return new ModuleNamespace(bindings);
 
   return new ModuleNamespace({ default: bindings, __useDefault: true });
+}
+
+var hasStringTag;
+function isModule (m) {
+  if (hasStringTag === undefined)
+    hasStringTag = typeof Symbol !== 'undefined' && !!Symbol.toStringTag;
+  return m instanceof ModuleNamespace || hasStringTag && Object.prototype.toString.call(m) == '[object Module]';
 }
 
 var CONFIG = createSymbol('loader-config');
@@ -1651,10 +1663,10 @@ function decanonicalize (config, key) {
   // plugin
   if (parsed) {
     var pluginKey = decanonicalize.call(this, config, parsed.plugin);
-    return combinePluginParts(config.pluginFirst, coreResolve.call(this, config, parsed.argument, undefined, false), pluginKey);
+    return combinePluginParts(config.pluginFirst, coreResolve.call(this, config, parsed.argument, undefined, false, false), pluginKey);
   }
 
-  return coreResolve.call(this, config, key, undefined, false);
+  return coreResolve.call(this, config, key, undefined, false, false);
 }
 
 function normalizeSync (key, parentKey) {
@@ -1677,7 +1689,7 @@ function normalizeSync (key, parentKey) {
   return packageResolveSync.call(this, config, key, parentMetadata.pluginArgument || parentKey, metadata, parentMetadata, !!metadata.pluginKey);
 }
 
-function coreResolve (config, key, parentKey, doMap) {
+function coreResolve (config, key, parentKey, doMap, packageName) {
   var relativeResolved = resolveIfNotPlain(key, parentKey || baseURI);
 
   // standard URL resolution
@@ -1703,7 +1715,11 @@ function coreResolve (config, key, parentKey, doMap) {
   if (key.substr(0, 6) === '@node/')
     return key;
 
-  return applyPaths(config.baseURL, config.paths, key);
+  var trailingSlash = packageName && key[key.length - 1] !== '/';
+  var resolved = applyPaths(config.baseURL, config.paths, trailingSlash ? key + '/' : key);
+  if (trailingSlash)
+    return resolved.substr(0, resolved.length - 1);
+  return resolved;
 }
 
 function packageResolveSync (config, key, parentKey, metadata, parentMetadata, skipExtensions) {
@@ -1719,7 +1735,7 @@ function packageResolveSync (config, key, parentKey, metadata, parentMetadata, s
     }
   }
 
-  var normalized = coreResolve.call(this, config, key, parentKey, true);
+  var normalized = coreResolve.call(this, config, key, parentKey, true, true);
 
   var pkgConfigMatch = getPackageConfigMatch(config, normalized);
   metadata.packageKey = pkgConfigMatch && pkgConfigMatch.packageKey || getMapMatch(config.packages, normalized);
@@ -1760,7 +1776,7 @@ function packageResolve (config, key, parentKey, metadata, parentMetadata, skipE
       return mapped;
 
     // apply map, core, paths, contextual package map
-    var normalized = coreResolve.call(loader, config, key, parentKey, true);
+    var normalized = coreResolve.call(loader, config, key, parentKey, true, true);
 
     var pkgConfigMatch = getPackageConfigMatch(config, normalized);
     metadata.packageKey = pkgConfigMatch && pkgConfigMatch.packageKey || getMapMatch(config.packages, normalized);
@@ -1804,7 +1820,8 @@ function createMeta () {
     encapsulateGlobal: false,
     crossOrigin: undefined,
     cjsRequireDetection: true,
-    cjsDeferDepsExecute: false
+    cjsDeferDepsExecute: false,
+    esModule: false
   };
 }
 
@@ -1838,7 +1855,6 @@ function setMeta (config, key, metadata) {
     var meta = {};
     if (metadata.packageConfig.meta) {
       var bestDepth = 0;
-
       getMetaMatches(metadata.packageConfig.meta, subPath, function (metaPattern, matchMeta, matchDepth) {
         if (matchDepth > bestDepth)
           bestDepth = matchDepth;
@@ -1849,7 +1865,7 @@ function setMeta (config, key, metadata) {
     }
 
     // format
-    if (metadata.packageConfig.format && !metadata.pluginKey)
+    if (metadata.packageConfig.format && !metadata.pluginKey && !metadata.load.loader)
       metadata.load.format = metadata.load.format || metadata.packageConfig.format;
   }
 }
@@ -2506,12 +2522,12 @@ function setConfig (cfg, isEnvConfig) {
       var v = cfg.map[p];
 
       if (typeof v === 'string') {
-        config.map[p] = coreResolve.call(loader, config, v, undefined, false);
+        config.map[p] = coreResolve.call(loader, config, v, undefined, false, false);
       }
 
       // object map
       else {
-        var pkgName = coreResolve.call(loader, config, p, undefined, true);
+        var pkgName = coreResolve.call(loader, config, p, undefined, true, true);
         var pkg = config.packages[pkgName];
         if (!pkg) {
           pkg = config.packages[pkgName] = createPackage();
@@ -2528,7 +2544,7 @@ function setConfig (cfg, isEnvConfig) {
     for (var i = 0; i < cfg.packageConfigPaths.length; i++) {
       var path = cfg.packageConfigPaths[i];
       var packageLength = Math.max(path.lastIndexOf('*') + 1, path.lastIndexOf('/'));
-      var normalized = coreResolve.call(loader, config, path.substr(0, packageLength), undefined, false);
+      var normalized = coreResolve.call(loader, config, path.substr(0, packageLength), undefined, false, false);
       packageConfigPaths[i] = normalized + path.substr(packageLength);
     }
     config.packageConfigPaths = packageConfigPaths;
@@ -2548,11 +2564,8 @@ function setConfig (cfg, isEnvConfig) {
       if (p.match(/^([^\/]+:)?\/\/$/))
         throw new TypeError('"' + p + '" is not a valid package name.');
 
-      var pkgName = coreResolve.call(loader, config, p, undefined, true);
-
-      // allow trailing slash in packages
-      if (pkgName[pkgName.length - 1] === '/')
-        pkgName = pkgName.substr(0, pkgName.length - 1);
+      var pkgName = coreResolve.call(loader, config, p[p.length -1] !== '/' ? p + '/' : p, undefined, true, true);
+      pkgName = pkgName.substr(0, pkgName.length - 1);
 
       setPkgConfig(config.packages[pkgName] = config.packages[pkgName] || createPackage(), cfg.packages[p], pkgName, false, config);
     }
@@ -2570,7 +2583,7 @@ function setConfig (cfg, isEnvConfig) {
         extend(config.meta[p] = config.meta[p] || {}, cfg.meta[p]);
       }
       else {
-        var resolved = coreResolve.call(loader, config, p, undefined, true);
+        var resolved = coreResolve.call(loader, config, p, undefined, true, true);
         extend(config.meta[resolved] = config.meta[resolved] || {}, cfg.meta[p]);
       }
     }
@@ -2586,9 +2599,9 @@ function setConfig (cfg, isEnvConfig) {
       continue;
     if (envConfigNames.indexOf(c) !== -1)
       continue;
-    // warn.call(config, 'Setting custom config option `System.config({ ' + c + ': ... })` is deprecated. Avoid custom config options or set SystemJS.' + c + ' = ... directly.');
 
-    config[c] = cfg[c];
+    // warn.call(config, 'Setting custom config option `System.config({ ' + c + ': ... })` is deprecated. Avoid custom config options or set SystemJS.' + c + ' = ... directly.');
+    loader[c] = cfg[c];
   }
 
   envSet(loader, cfg, function(cfg) {
@@ -2809,11 +2822,6 @@ var formatHelpers = function (loader) {
       factory = deps;
       deps = name;
       name = null;
-
-      if (curMetaDeps) {
-        deps = deps.concat(curMetaDeps);
-        curMetaDeps = undefined;
-      }
     }
 
     if (!(deps instanceof Array)) {
@@ -2825,6 +2833,13 @@ var formatHelpers = function (loader) {
       factory = (function (factory) {
         return function() { return factory; }
       })(factory);
+
+    if (!name) {
+      if (curMetaDeps) {
+        deps = deps.concat(curMetaDeps);
+        curMetaDeps = undefined;
+      }
+    }
 
     // remove system dependencies
     var requireIndex, exportsIndex, moduleIndex;
@@ -2887,7 +2902,7 @@ var formatHelpers = function (loader) {
 
     // anonymous define
     if (!name) {
-      loader.registerDynamic(deps, false, execute);
+      loader.registerDynamic(deps, false, curEsModule ? wrapEsModuleExecute(execute) : execute);
     }
     else {
       loader.registerDynamic(name, deps, false, execute);
@@ -3132,18 +3147,30 @@ function amdGetCJSDeps(source, requireIndex) {
   return deps;
 }
 
+function wrapEsModuleExecute (execute) {
+  return function (require, exports, module) {
+    execute(require, exports, module);
+    Object.defineProperty(module.exports, '__esModule', {
+      value: true
+    });
+  };
+}
+
 // generate anonymous define from singular named define
 var multipleNamedDefines = false;
 var lastNamedDefine;
 var curMetaDeps;
-function clearLastDefine (metaDeps) {
+var curEsModule = false;
+function clearLastDefine (metaDeps, esModule) {
   curMetaDeps = metaDeps;
+  curEsModule = esModule;
   lastNamedDefine = undefined;
   multipleNamedDefines = false;
 }
 function registerLastDefine (loader) {
   if (lastNamedDefine)
-    loader.registerDynamic(curMetaDeps ? lastNamedDefine[0].concat(curMetaDeps) : lastNamedDefine[0], false, lastNamedDefine[1]);
+    loader.registerDynamic(curMetaDeps ? lastNamedDefine[0].concat(curMetaDeps) : lastNamedDefine[0],
+        false, curEsModule ? wrapEsModuleExecute(lastNamedDefine[1]) : lastNamedDefine[1]);
 
   // bundles are an empty module
   else if (multipleNamedDefines)
@@ -3156,6 +3183,13 @@ var supportsScriptLoad = (isBrowser || isWorker) && typeof navigator !== 'undefi
 var nodeRequire;
 if (typeof require !== 'undefined' && typeof process !== 'undefined' && !process.browser)
   nodeRequire = require;
+
+function setMetaEsModule (metadata, moduleValue) {
+  if (metadata.load.esModule && !('__esModule' in moduleValue))
+    Object.defineProperty(moduleValue, '__esModule', {
+      value: true
+    });
+}
 
 function instantiate$1 (key, processAnonRegister) {
   var loader = this;
@@ -3184,7 +3218,7 @@ function instantiate$1 (key, processAnonRegister) {
         warn.call(config, 'scriptLoad not supported for "' + key + '"');
       }
     }
-    else if (metadata.load.scriptLoad !== false && supportsScriptLoad) {
+    else if (metadata.load.scriptLoad !== false && !metadata.load.pluginKey && supportsScriptLoad) {
       // auto script load AMD, global without deps
       if (!metadata.load.deps && !metadata.load.globals &&
           (metadata.load.format === 'system' || metadata.load.format === 'register' || metadata.load.format === 'global' && metadata.load.exports))
@@ -3208,6 +3242,7 @@ function instantiate$1 (key, processAnonRegister) {
           metadata.load.format = 'global';
           var globalValue = getGlobalValue(metadata.load.exports);
           loader.registerDynamic([], false, function () {
+            setMetaEsModule(metadata, globalValue);
             return globalValue;
           });
           processAnonRegister();
@@ -3448,7 +3483,7 @@ function translateAndInstantiate (loader, key, source, metadata, processAnonRegi
         var curDefine = envGlobal.define;
         envGlobal.define = loader.amdDefine;
 
-        clearLastDefine(metadata.load.deps);
+        clearLastDefine(metadata.load.deps, metadata.load.esModule);
 
         var err = evaluate(loader, source, metadata.load.sourceMap, key, metadata.load.integrity, metadata.load.nonce, false);
 
@@ -3512,6 +3547,8 @@ function translateAndInstantiate (loader, key, source, metadata, processAnonRegi
           if (err)
             throw err;
 
+          setMetaEsModule(metadata, exports);
+
           envGlobal.__cjsWrapper = undefined;
           envGlobal.define = define;
         });
@@ -3546,7 +3583,9 @@ function translateAndInstantiate (loader, key, source, metadata, processAnonRegi
           if (err)
             throw err;
 
-          return retrieveGlobal();
+          var output = retrieveGlobal();
+          setMetaEsModule(metadata, output);
+          return output;
         });
         registered = processAnonRegister();
       break;
@@ -3892,6 +3931,7 @@ SystemJSLoader$1.prototype.set = function (key, module) {
 SystemJSLoader$1.prototype.newModule = function (bindings) {
   return new ModuleNamespace(bindings);
 };
+SystemJSLoader$1.prototype.isModule = isModule;
 
 // ensure System.register and System.registerDynamic decanonicalize
 SystemJSLoader$1.prototype.register = function (key, deps, declare) {
@@ -3906,28 +3946,13 @@ SystemJSLoader$1.prototype.registerDynamic = function (key, deps, executingRequi
   return RegisterLoader$1.prototype.registerDynamic.call(this, key, deps, executingRequire, execute);
 };
 
-SystemJSLoader$1.prototype.version = "0.20.0-rc.8 Dev";
+SystemJSLoader$1.prototype.version = "0.20.4 Dev";
 
 var System = new SystemJSLoader$1();
 
 // only set the global System on the global in browsers
-if (isBrowser || isWorker) {
-  envGlobal.SystemJS = System;
-
-  // dont override an existing System global
-  if (!envGlobal.System) {
-    envGlobal.System = System;
-  }
-  // rather just extend or set a System.register on the existing System global
-  else {
-    var register = envGlobal.System.register;
-    envGlobal.System.register = function () {
-      if (register)
-        register.apply(this, arguments);
-      System.register.apply(this, arguments);
-    };
-  }
-}
+if (isBrowser || isWorker)
+  envGlobal.SystemJS = envGlobal.System = System;
 
 if (typeof module !== 'undefined' && module.exports)
   module.exports = System;
