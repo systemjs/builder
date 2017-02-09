@@ -15,14 +15,15 @@
   function createExternalModule (exports) {
     var esModule;
 
-    // CJS es module -> extend namespace
+    // CJS es module -> lift into namespace
     if (exports && exports.__esModule) {
       esModule = {};
       for (var p in exports) {
         if (Object.hasOwnProperty.call(exports, p))
           esModule[p] = exports[p];
       }
-      esModule.default = exports;
+      esModule.__useDefault = false;
+      esModule.__esModule = true;
     }
 
     // a real ES module or SystemJS ES Module
