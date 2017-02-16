@@ -22,7 +22,8 @@
         if (Object.hasOwnProperty.call(exports, p))
           esModule[p] = exports[p];
       }
-      esModule.__useDefault = false;
+      if (esModule.__useDefault)
+        delete esModule.__useDefault;
       esModule.__esModule = true;
     }
 
