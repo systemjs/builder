@@ -16,9 +16,13 @@ var err = function(e) {
 
 var builder = new Builder('test/fixtures/test-tree', 'test/fixtures/test-tree.config.js');
 
+function getCommandPath(command) {
+  return path.resolve('./node_modules/.bin/' + command + (process.platform.match(/^win/) ? '.cmd' : ''));
+}
+
 function testPhantom(html) {
   return new Promise(function(resolve, reject) {
-    spawn(path.resolve('node_modules/.bin/mocha-phantomjs' + (process.platform.match(/^win/) ? '.cmd' : '')), [html], { stdio: 'inherit' })
+    spawn(getCommandPath('mocha-phantomjs'), ['-p', getCommandPath('phantomjs'), html], { stdio: 'inherit' })
     .on('close', function(code) {
       if (code !== 0)
         reject(Error('Phantom test failed ' + html + ' failed.'));
@@ -229,7 +233,10 @@ suite('Bundle Format', function() {
   test('Test AMD format', function() {
     return Promise.resolve()
     .then(function() {
-      return builder.buildStatic('sfx-format-01.js', 'test/output/sfx-amd.js', { format: 'amd' });
+      return builder.buildStatic('sfx-format-01.js', 'test/output/sfx-amd-01.js', { format: 'amd' });
+    })
+    .then(function() {
+      return builder.buildStatic('sfx-format-02.js', 'test/output/sfx-amd-02.js', { format: 'amd' });
     })
     .then(function() {
       return testPhantom('test/test-sfx-amd.html');

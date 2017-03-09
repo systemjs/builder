@@ -19,7 +19,14 @@ require.config({
 
 suite('amd loading', function () {
   test('should load multiple exports', function(done) {
-    require(['sfx-amd'], function(result) {
+    require(['sfx-amd-01'], function(result) {
+      expect(result.default).to.eql({ hello: 'world' });
+      expect(result.basic).to.be.a('function');
+      done();
+    });
+  });
+  test('should load multiple exports', function(done) {
+    require(['sfx-amd-02'], function(result) {
       expect(result.default).to.eql({ hello: 'world' });
       expect(result.basic).to.be.a('function');
       done();
