@@ -233,7 +233,10 @@ suite('Bundle Format', function() {
   test('Test AMD format', function() {
     return Promise.resolve()
     .then(function() {
-      return builder.buildStatic('sfx-format-01.js', 'test/output/sfx-amd.js', { format: 'amd' });
+      return builder.buildStatic('sfx-format-01.js', 'test/output/sfx-amd-01.js', { format: 'amd' });
+    })
+    .then(function() {
+      return builder.buildStatic('sfx-format-02.js', 'test/output/sfx-amd-02.js', { format: 'amd' });
     })
     .then(function() {
       return testPhantom('test/test-sfx-amd.html');
