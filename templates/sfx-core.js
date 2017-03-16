@@ -183,11 +183,17 @@
       for (var i = 0; i < deps.length; i++)
         if (deps[i] === name) {
           var depLoad = depLoads[i];
+          var depLink = depLoad.linkRecord;
           var module;
-          if (seen.indexOf(depLoad) === -1)
-            module = doEvaluate(depLoad, depLoad.linkRecord, seen);
-          else
-            module = depLoad.linkRecord.moduleObj;
+          if (depLink) {
+            if (seen.indexOf(depLoad) === -1)
+              module = doEvaluate(depLoad, depLink, seen);
+            else
+              module = depLink.moduleObj;
+          }
+          else {
+            module = depLoad.module;
+          }
           return module.__useDefault ? module.default : module;
         }
     };
