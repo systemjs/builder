@@ -32,7 +32,7 @@ Circular references and bindings in ES6, CommonJS and AMD all behave exactly as 
 
 Documentation
 ---
-[API Reference] (docs/api.md)
+[API Reference](docs/api.md)
 
 Usage
 ---
