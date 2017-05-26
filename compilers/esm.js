@@ -7,6 +7,7 @@ var createStringLiteralToken = traceurGet('codegeneration/ParseTreeFactory.js').
 var InstantiateModuleTransformer = traceurGet('codegeneration/InstantiateModuleTransformer.js').InstantiateModuleTransformer;
 
 var extend = require('../lib/utils').extend;
+var pick = require('../lib/utils').pick;
 
 // patch pending https://github.com/google/traceur-compiler/pull/2053
 var createUseStrictDirective = traceurGet('codegeneration/ParseTreeFactory.js').createUseStrictDirective;
@@ -45,6 +46,16 @@ function remap(source, map, fileName) {
 }
 exports.remap = remap;
 
+function getBabelDefaultOptions(loader, load) {
+  var props = ['compact'];
+
+  var options = {};
+  extend(options, pick(loader.babelOptions, props));
+  extend(options, pick(load.metadata.babelOptions, props));
+
+  return options;
+}
+
 // override System instantiate to handle esm tracing
 exports.attach = function(loader) {
   var systemInstantiate = loader.instantiate;
@@ -55,8 +66,10 @@ exports.attach = function(loader) {
 
     var depsList = load.metadata.deps.concat([]);
 
+    var babelDefaultOptions = getBabelDefaultOptions(loader, load);
+
     var babel = require('babel-core');
-    var output = babel.transform(load.source, {
+    var output = babel.transform(load.source, extend(babelDefaultOptions, {
       babelrc: false,
       compact: false,
       filename: load.path,
@@ -68,7 +81,7 @@ exports.attach = function(loader) {
           depsList.push(dep);
         return dep;
       }
-    });
+    }));
     // turn back on comments (for some reason!)
     output.ast.comments.forEach(function(comment) {
       comment.ignore = false;
@@ -88,7 +101,9 @@ exports.compile = function(load, opts, loader) {
   if (!load.metadata.originalSource || load.metadata.loader && load.metadata.format == 'esm') {
     var babel = require('babel-core');
 
-    var babelOptions = {
+    var babelDefaultOptions = getBabelDefaultOptions(loader, load);
+
+    var babelOptions = extend(babelDefaultOptions, {
       babelrc: false,
       compact: false,
       plugins: [[require('babel-plugin-transform-es2015-modules-systemjs'), { systemGlobal: opts.systemGlobal }]],
@@ -105,7 +120,7 @@ exports.compile = function(load, opts, loader) {
         else
           return dep;
       }
-    };
+    });
 
     var source = load.metadata.originalSource || load.source;
 
