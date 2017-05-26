@@ -13,30 +13,22 @@
   }
 
   function createExternalModule (exports) {
-    var esModule;
+    // a real ES module or SystemJS ES Module
+    if (typeof System !== 'undefined' && System.isModule ? System.isModule(exports) :
+      Object.prototype.toString.call(exports) === '[object Module]') {
+      return exports;
+    }
+
+    var esModule = { default: exports, __useDefault: exports };
 
     // CJS es module -> lift into namespace
     if (exports && exports.__esModule) {
-      esModule = {};
       for (var p in exports) {
         if (Object.hasOwnProperty.call(exports, p))
           esModule[p] = exports[p];
       }
-      if (esModule.__useDefault)
-        delete esModule.__useDefault;
-      esModule.__esModule = true;
     }
-
-    // a real ES module or SystemJS ES Module
-    else if (Object.prototype.toString.call(exports) === '[object Module]' ||
-        typeof System !== 'undefined' && System.isModule && System.isModule(exports)) {
-      return exports;
-    }
-
-    // use default representation only
-    else {
-      esModule = { default: exports, __useDefault: true };
-    }
+    
     return new Module(esModule);
   }
 
@@ -158,6 +150,7 @@
   };
 
   function registerDynamic (key, deps, executingRequire, execute) {
+    var exports = {};
     return registry[key] = {
       key: key,
       module: undefined,
@@ -169,8 +162,8 @@
         execute: execute,
         executingRequire: executingRequire,
         moduleObj: {
-          default: {},
-          __useDefault: true
+          default: exports,
+          __useDefault: exports
         },
         setters: undefined
       }
@@ -194,7 +187,7 @@
           else {
             module = depLoad.module;
           }
-          return module.__useDefault ? module.default : module;
+          return module.__useDefault || module;
         }
     };
   }
@@ -225,10 +218,10 @@
       Object.defineProperty(module, 'exports', {
         configurable: true,
         set: function (exports) {
-          moduleObj.default = exports;
+          moduleObj.default = moduleObj.__useDefault = exports;
         },
         get: function () {
-          return moduleObj.default;
+          return moduleObj.__useDefault;
         }
       });
       var require = makeDynamicRequire(link.deps, link.depLoads, seen);
@@ -238,17 +231,17 @@
         for (var i = 0; i < link.deps.length; i++)
           require(link.deps[i]);
 
-      var output = link.execute.call(global, require, moduleObj.default, module);
+      var output = link.execute.call(global, require, moduleObj.__useDefault, module);
       if (output !== undefined)
-        moduleObj.default = output;
-      else if (module.exports !== moduleObj.default)
-        moduleObj.default = module.exports;
+        moduleObj.default = moduleObj.__useDefault = output;
+
+      var defaultExport = moduleObj.__useDefault;
 
       // __esModule flag extension support
-      if (moduleObj.default && moduleObj.default.__esModule)
-        for (var p in moduleObj.default)
-          if (Object.hasOwnProperty.call(moduleObj.default, p) && p !== 'default')
-            moduleObj[p] = moduleObj.default[p];
+      if (defaultExports && defaultExports.__esModule)
+        for (var p in defaultExport)
+          if (Object.hasOwnProperty.call(defaultExport, p))
+            moduleObj[p] = defaultExport[p];
     }
 
     var module = load.module = new Module(link.moduleObj);
@@ -308,7 +301,7 @@
             load(mains[i]);
 
         if (exportDefault)
-          return firstLoad.default;
+          return firstLoad.__useDefault;
 
         if (firstLoad instanceof Module)
           Object.defineProperty(firstLoad, '__esModule', {
