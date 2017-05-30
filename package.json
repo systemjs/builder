@@ -19,7 +19,7 @@
     "source-map": "^0.5.3",
     "systemjs": "^0.19.46",
     "traceur": "0.0.105",
-    "uglify-js": "^3.0.13"
+    "uglify-js": "^2.6.1"
   },
   "devDependencies": {
     "babel": "^5.8.38",
