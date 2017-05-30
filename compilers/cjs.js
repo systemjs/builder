@@ -31,6 +31,7 @@ exports.compile = function (load, opts, loader) {
     },
     path: path,
     static: opts.static,
-    systemGlobal: opts.systemGlobal
+    systemGlobal: opts.systemGlobal,
+    esModule: load.metadata.esModule
   }]);
 };

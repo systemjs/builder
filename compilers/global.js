@@ -16,7 +16,8 @@ exports.compile = function (load, opts, loader) {
     exportName: load.metadata.exports,
     globals: normalizedGlobals,
     moduleName: !opts.anonymous && load.name,
-    systemGlobal: opts.systemGlobal
+    systemGlobal: opts.systemGlobal,
+    esModule: load.metadata.esModule
   }]);
 };
 

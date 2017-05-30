@@ -95,6 +95,7 @@ exports.compile = function (load, opts, loader) {
       return opts.normalize ? load.depMap[dep] : dep;
     },
     systemGlobal: opts.systemGlobal,
-	  deps: load.deps
+	  deps: load.deps,
+    esModule: load.metadata.esModule
   }]);
 };
