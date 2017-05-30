@@ -28,7 +28,7 @@
           esModule[p] = exports[p];
       }
     }
-    
+
     return new Module(esModule);
   }
 
@@ -238,7 +238,7 @@
       var defaultExport = moduleObj.__useDefault;
 
       // __esModule flag extension support
-      if (defaultExports && defaultExports.__esModule)
+      if (defaultExport && defaultExport.__esModule)
         for (var p in defaultExport)
           if (Object.hasOwnProperty.call(defaultExport, p))
             moduleObj[p] = defaultExport[p];
