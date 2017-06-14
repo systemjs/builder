@@ -187,7 +187,7 @@
           else {
             module = depLoad.module;
           }
-          return module.__useDefault || module;
+          return '__useDefault' in module ? module.__useDefault : module;
         }
     };
   }
