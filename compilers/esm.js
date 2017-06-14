@@ -1,6 +1,8 @@
 var traceur = require('traceur');
 var traceurGet = require('../lib/utils').traceurGet;
 
+var syntaxDynamicImport = require('babel-plugin-syntax-dynamic-import');
+
 var ParseTreeTransformer = traceurGet('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
 var ModuleSpecifier = traceurGet('syntax/trees/ParseTrees.js').ModuleSpecifier;
 var createStringLiteralToken = traceurGet('codegeneration/ParseTreeFactory.js').createStringLiteralToken;
@@ -63,6 +65,7 @@ exports.attach = function(loader) {
       //sourceFileName: load.path,
       inputSourceMap: load.metadata.sourceMap,
       ast: true,
+      plugins: [syntaxDynamicImport],
       resolveModuleSource: function(dep) {
         if (depsList.indexOf(dep) == -1)
           depsList.push(dep);
@@ -91,7 +94,7 @@ exports.compile = function(load, opts, loader) {
     var babelOptions = {
       babelrc: false,
       compact: false,
-      plugins: [[require('babel-plugin-transform-es2015-modules-systemjs'), { systemGlobal: opts.systemGlobal }]],
+      plugins: [syntaxDynamicImport, [require('babel-plugin-transform-es2015-modules-systemjs'), { systemGlobal: opts.systemGlobal }]],
       filename: load.path,
       //sourceFileName: load.path,
       sourceMaps: !!opts.sourceMaps,
