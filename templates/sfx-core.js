@@ -313,7 +313,7 @@
     };
   };
 
-})(typeof self !== 'undefined' ? self : global)
+})((typeof self !== 'undefined') ? self : (typeof global !== 'undefined') ? global : this)
 /* (['mainModule'], ['external-dep'], false, function($__System) {
   System.register(...);
 })
