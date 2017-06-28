@@ -1,31 +1,12 @@
-var path = require('path');
-var url = require('url');
-var traceur = require('traceur');
+var compiler = require('./compiler');
+
 var traceurGet = require('../lib/utils').traceurGet;
 var ParseTreeTransformer = traceurGet('codegeneration/ParseTreeTransformer.js').ParseTreeTransformer;
-var Script = traceurGet('syntax/trees/ParseTrees.js').Script;
-var parseStatements = traceurGet('codegeneration/PlaceholderParser.js').parseStatements;
 var parseExpression = traceurGet('codegeneration/PlaceholderParser.js').parseExpression;
-var STRING = traceurGet('syntax/TokenType.js').STRING;
-var LiteralExpression = traceurGet('syntax/trees/ParseTrees.js').LiteralExpression;
 var LiteralToken = traceurGet('syntax/LiteralToken.js').LiteralToken;
 var IdentifierExpression = traceurGet('syntax/trees/ParseTrees.js').IdentifierExpression;
 var IdentifierToken = traceurGet('syntax/IdentifierToken.js').IdentifierToken;
 var BindingIdentifier = traceurGet('syntax/trees/ParseTrees.js').BindingIdentifier;
-var createUseStrictDirective = traceurGet('codegeneration/ParseTreeFactory.js').createUseStrictDirective;
-var Promise = require('bluebird');
-
-function hasRemoveUseStrict(list) {
-  for (var i = 0; i < list.length; i++) {
-    if (!list[i].isDirectivePrologue())
-      return false;
-    if (list[i].isUseStrictDirective()) {
-      list.splice(i, 1);
-      return true;
-    }
-  }
-  return false;
-}
 
 // remap require() statements
 function CJSRequireTransformer(requireName, map, mappedRequireName) {
@@ -36,11 +17,11 @@ function CJSRequireTransformer(requireName, map, mappedRequireName) {
   return ParseTreeTransformer.call(this);
 }
 CJSRequireTransformer.prototype = Object.create(ParseTreeTransformer.prototype);
-CJSRequireTransformer.prototype.transformCallExpression = function(tree) {
+CJSRequireTransformer.prototype.transformCallExpression = function (tree) {
   // found a require
   if (tree.operand.identifierToken && tree.operand.identifierToken.value == this.requireName
-      && tree.args.args.length && tree.args.args.length == 1) {
-    
+    && tree.args.args.length && tree.args.args.length == 1) {
+
     var arg = tree.args.args[0];
     var mappedCallExpression;
 
@@ -51,7 +32,7 @@ CJSRequireTransformer.prototype.transformCallExpression = function(tree) {
       // mirror behaviour at https://github.com/systemjs/systemjs/blob/0.19.8/lib/cjs.js#L50 to remove trailing slash
       if (requireModule[requireModule.length - 1] == '/')
         requireModule = requireModule.substr(0, requireModule.length - 1);
-      
+
       var requireModuleMapped = this.map && this.map(requireModule) || requireModule;
 
       this.requires.push(requireModule);
@@ -69,140 +50,52 @@ CJSRequireTransformer.prototype.transformCallExpression = function(tree) {
   return ParseTreeTransformer.prototype.transformCallExpression.call(this, tree);
 };
 
-CJSRequireTransformer.prototype.transformBindingIdentifier = function(tree) {
+CJSRequireTransformer.prototype.transformBindingIdentifier = function (tree) {
   if (tree.identifierToken.value == this.requireName)
     tree = new BindingIdentifier(tree.location, new IdentifierToken(tree.identifierToken.location, this.mappedRequireName));
   return ParseTreeTransformer.prototype.transformBindingIdentifier.call(this, tree);
 };
 
-CJSRequireTransformer.prototype.transformIdentifierExpression = function(tree) {
+CJSRequireTransformer.prototype.transformIdentifierExpression = function (tree) {
   if (tree.identifierToken.value == this.requireName)
     tree = new IdentifierExpression(tree.location, new IdentifierToken(tree.identifierToken.location, this.mappedRequireName));
   return ParseTreeTransformer.prototype.transformIdentifierExpression.call(this, tree);
 };
 exports.CJSRequireTransformer = CJSRequireTransformer;
 
+exports.compile = function (load, opts, loader) {
 
-// convert CommonJS into System.registerDynamic
-function CJSRegisterTransformer(name, deps, address, optimize, globals, systemGlobal) {
-  this.name = name;
-  this.deps = deps;
-  this.address = address;
-  this.usesFilePaths = false;
-  this.optimize = optimize;
-  this.globals = globals;
-  this.systemGlobal = systemGlobal;
-  return ParseTreeTransformer.call(this);
-}
+  opts.moduleId = !opts.anonymous && load.name;
 
-CJSRegisterTransformer.prototype = Object.create(ParseTreeTransformer.prototype);
+  var deps = opts.normalize ? load.deps.map(function (dep) { return load.depMap[dep]; }) : load.deps;
 
-CJSRegisterTransformer.prototype.transformMemberExpression = function(tree) {
-  if (this.optimize && tree.operand.operand && tree.operand.operand.identifierToken && 
-      tree.operand.operand.identifierToken.value == 'process' && 
-      tree.operand.memberName == 'env' && tree.memberName.value == 'NODE_ENV') {
-    return new LiteralExpression(tree.location, new LiteralToken(STRING, '"production"', tree.location));
-  }
-  return tree;
-};
-CJSRegisterTransformer.prototype.transformIdentifierExpression = function(tree) {
-  var value = tree.identifierToken.value;
-  if (value == '__filename' || value == '__dirname')
-    this.usesFilePaths = true;
-  return ParseTreeTransformer.prototype.transformIdentifierExpression.call(this, tree);
-};
-CJSRegisterTransformer.prototype.transformerBindingIdentifier = function(tree) {
-  var value = tree.identifierToken.value;
-  if (value == '__filename' || value == '__dirname')
-    this.usesFilePaths = true;
-  return ParseTreeTransformer.prototype.transformBindingIdentifier.call(this, tree);
-};
-
-CJSRegisterTransformer.prototype.transformScript = function(tree) {
-  tree = ParseTreeTransformer.prototype.transformScript.call(this, tree);
-
-  var scriptItemList = tree.scriptItemList;
-  var nl = '\n    ';
-
-  if (this.usesFilePaths)
-    scriptItemList = parseStatements([
-      "var $__pathVars = " + this.systemGlobal + ".get('@@cjs-helpers').getPathVars(module.id), __filename = $__pathVars.filename, __dirname = $__pathVars.dirname;"
-    ]).concat(scriptItemList);
-
-  var globalExpression = '';
-  if (this.globals) {
-    globalExpression = 'var ';
-    var first = true;
-    for (var g in this.globals) {
-      globalExpression += (first ? '' : ', ') + g + '= $__require("' + this.globals[g] + '")';
-      first = false;
-    }
-    if (first == true)
-      globalExpression = '';
-    globalExpression += ';';
+  // send normalized globals into the transformer
+  var normalizedGlobals;
+  if (load.metadata.globals) {
+    normalizedGlobals = {};
+    for (var g in load.metadata.globals)
+      normalizedGlobals[g] = opts.normalize ? load.depMap[load.metadata.globals[g]] : load.metadata.globals[g];
   }
 
-  var useStrict = hasRemoveUseStrict(scriptItemList) && [createUseStrictDirective()] || [];
-
-  scriptItemList = useStrict.concat(parseStatements([
-    globalExpression + nl
-    + 'var global = this, __define = global.define;' + nl + 'global.define = undefined;'
-  ])).concat(scriptItemList).concat(parseStatements([
-    'global.define = __define;' + nl
-    + 'return module.exports;'
-  ]));
-
-  // wrap everything in System.register
-  return new Script(tree.location, parseStatements([
-    this.systemGlobal + '.registerDynamic(' + (this.name ? '"' + this.name + '", ' : '') + JSON.stringify(this.deps) + ', true, function($__require, exports, module) {\n',
-    '});'], scriptItemList));
-};
-exports.CJSRegisterTransformer = CJSRequireTransformer;
-
-exports.compile = function(load, opts, loader) {
-  var options = { script: true, sourceRoot: true };
-  if (opts.sourceMaps)
-    options.sourceMaps = 'memory';
-  if (opts.lowResSourceMaps)
-    options.lowResolutionSourceMap = true;
-
-  if (load.metadata.sourceMap)
-    options.inputSourceMap = load.metadata.sourceMap;
-
-  var compiler = new traceur.Compiler(options);
-  var tree = compiler.parse(load.source, load.path);
-
-  var transformer;
-
-  var normalize = opts.normalize;
-
-  transformer = new CJSRequireTransformer('require', function(dep) { return opts.normalize ? load.depMap[dep] : dep; }, '$__require');
-  tree = transformer.transformAny(tree);
-
-  var deps = opts.normalize ? load.deps.map(function(dep) { return load.depMap[dep]; }) : load.deps;
-
-  var globals = {};
-  for (var g in load.metadata.globals) {
-    globals[g] = normalize && load.depMap[load.metadata.globals[g]] || load.metadata.globals[g];
+  // remove loader base url from path
+  var path;
+  if (opts.static) {
+    path = load.path;
+    if (path.substr(0, loader.baseURL.length) == loader.baseURL)
+      path = path.substr(loader.baseURL.length);
   }
-  transformer = new CJSRegisterTransformer(!opts.anonymous && load.name, deps, load.path, opts.minify, globals, opts.systemGlobal);
-  tree = transformer.transformAny(tree);
 
-  var output = compiler.write(tree, load.path);
-
-  if (opts.systemGlobal != 'System')
-    output = output.replace(/(^|[^_])System\._nodeRequire/g, function(match, startArg) {
-      return startArg + opts.systemGlobal + '._nodeRequire';
-    });
-
-  return Promise.resolve({
-    source: output,
-    sourceMap: compiler.getSourceMap()
-  });
-};
-
-exports.sfx = function(loader) {
-  return require('fs').readFileSync(require('path').resolve(__dirname, '../templates/cjs-helpers.min.js')).toString();
+  return compiler.compile(load, opts, [require('babel-plugin-transform-cjs-system-wrapper').default, {
+    deps: deps,
+    globals: normalizedGlobals,
+    optimize: opts.production,
+    map: function(dep) {
+      return opts.normalize ? load.depMap[dep] : dep;
+    },
+    path: path,
+    static: opts.static,
+    systemGlobal: opts.systemGlobal
+  }]);
 };
 
 function remap(source, map, fileName) {

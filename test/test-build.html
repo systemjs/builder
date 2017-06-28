@@ -20,7 +20,7 @@
       paths: {
         'traceur-runtime': '../node_modules/traceur/bin/traceur-runtime.js',
         'babel/external-helpers': '../node_modules/babel-core/external-helpers.js',
-        'jquery-cdn': 'https://github.jspm.io/components/jquery@2.1.3/jquery.js',
+        'jquery-cdn': './jquery.js',
         'output/*': './output/*'
       },
       bundles: {
@@ -191,12 +191,70 @@
         .catch(done);
       });
 
+      test('AMD 9', function(done) {
+        System['import']('output/amd-9.js').then(function() {
+          return System['import']('amd-9.js');
+        })
+        .then(function(m) {
+          ok(m.b.b == 'b');
+          ok(m.c == 'c');
+          done();
+        })
+        .catch(done);
+      });
+
+      test('AMD 10', function(done) {
+        System['import']('output/amd-10.js').then(function() {
+          return System['import']('amd-10.js');
+        })
+        .then(function(m) {
+          ok(m.b.b == 'b');
+          ok(m.c == 'c');
+          done();
+        })
+        .catch(done);
+      });
+
+      test('AMD 11', function(done) {
+        System['import']('output/amd-11.js').then(function() {
+          return System['import']('amd-11.js');
+        })
+        .then(function(m) {
+          ok(m.b.b == 'b');
+          ok(m.c == 'c');
+          done();
+        })
+        .catch(done);
+      });
+
+      test('AMD 12', function(done) {
+        System['import']('output/amd-12.js').then(function() {
+          return System['import']('amd-12.js');
+        })
+        .then(function(m) {
+          ok(m.a == 'a');
+          done();
+        })
+        .catch(done);
+      });
+
       test('CJS Globals', function(done) {
         System['import']('output/cjs-globals.js').then(function() {
           return System['import']('cjs-globals.js');
         })
         .then(function(m) {
           ok(m == 'Buffer');
+          done();
+        })
+        .catch(done);
+      });
+
+      test('CJS require.resolve', function(done) {
+        System['import']('output/cjs-resolve.js').then(function(m) {
+          return System['import']('cjs-resolve.js');
+        })
+        .then(function(m) {
+          ok(m.substr(m.length - 27, 27) == 'fixtures/test-tree/first.js');
           done();
         })
         .catch(done);

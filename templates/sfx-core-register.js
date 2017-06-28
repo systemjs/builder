@@ -138,18 +138,22 @@
   function getESModule(exports) {
     var esModule = {};
     // don't trigger getters/setters in environments that support them
-    if (typeof exports == 'object' || typeof exports == 'function') {
+    if ((typeof exports == 'object' || typeof exports == 'function') && exports !== global) {
       if (getOwnPropertyDescriptor) {
-        var d;
-        for (var p in exports)
-          if (d = Object.getOwnPropertyDescriptor(exports, p))
-            defineProperty(esModule, p, d);
+        for (var p in exports) {
+          // The default property is copied to esModule later on
+          if (p === 'default')
+            continue;
+          defineOrCopyProperty(esModule, exports, p);
+        }
       }
       else {
         var hasOwnProperty = exports && exports.hasOwnProperty;
         for (var p in exports) {
-          if (!hasOwnProperty || exports.hasOwnProperty(p))
-            esModule[p] = exports[p];
+          // The default property is copied to esModule later on
+          if (p === 'default' || (hasOwnProperty && !exports.hasOwnProperty(p)))
+            continue;
+          esModule[p] = exports[p];
         }
       }
     }
@@ -158,6 +162,20 @@
       value: true
     });
     return esModule;
+  }
+
+  function defineOrCopyProperty(targetObj, sourceObj, propName) {
+    try {
+      var d;
+      if (d = Object.getOwnPropertyDescriptor(sourceObj, propName))
+        defineProperty(targetObj, propName, d);
+    }
+    catch (ex) {
+      // Object.getOwnPropertyDescriptor threw an exception, fall back to normal set property
+      // we dont need hasOwnProperty here because getOwnPropertyDescriptor would have returned undefined above
+      targetObj[propName] = sourceObj[propName];
+      return false;
+    }
   }
 
   /*
@@ -207,7 +225,7 @@
 
     // node core modules
     if (name.substr(0, 6) == '@node/')
-      return nodeRequire(name.substr(6));
+      return modules[name] = getESModule(nodeRequire(name.substr(6)));
 
     var entry = defined[name];
 
@@ -233,7 +251,7 @@
     return modules[name] = entry.declarative ? entry.module.exports : entry.esModule;
   };
 
-  return function(mains, depNames, declare) {
+  return function(mains, depNames, exportDefault, declare) {
     return function(formatDetect) {
       formatDetect(function(deps) {
         // register external dependencies
@@ -253,7 +271,7 @@
           for (var i = 1; i < mains.length; i++)
             load(mains[i]);
 
-        if (firstLoad.__useDefault)
+        if (exportDefault)
           return firstLoad['default'];
         else
           return firstLoad;

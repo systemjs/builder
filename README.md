@@ -1,5 +1,7 @@
-SystemJS Build Tool [![Build Status][travis-image]][travis-url]
+SystemJS Build Tool [![Build Status][travis-image]][travis-url] [![Support](https://supporterhq.com/api/b/33df4abbec4d39260f49015d2457eafe/SystemJS)](https://supporterhq.com/support/33df4abbec4d39260f49015d2457eafe/SystemJS)
 ===
+
+_[SystemJS Builder 0.15 release notes](https://github.com/systemjs/builder/releases/tag/0.15.0)_
 
 _As of SystemJS Builder 0.14, `builder.build` and `builder.buildTree` are both `builder.bundle`, while `builder.buildSFX` is now `builder.buildStatic`.
 The previous APIs will continue to work, but display deprecation warnings._
@@ -31,6 +33,10 @@ define(function() {
 Will build the module `app` into a bundle containing both `app` and `jquery` defined through `System.register` calls.
 
 Circular references and bindings in ES6, CommonJS and AMD all behave exactly as they should, including maintaining execution order.
+
+Documentation
+---
+[API Reference] (docs/api.md)
 
 Usage
 ---
@@ -103,9 +109,55 @@ To make a bundle that is independent of the SystemJS loader entirely, we can mak
 builder.buildStatic('myModule.js', 'outfile.js', options);
 ```
 
-This bundle file can then be included with a `<script>` tag, and no other dependencies would need to be included in the page. 
+This bundle file can then be included with a `<script>` tag, and no other dependencies would need to be included in the page. You'll likely want your module
+to export a global variable when loaded from a script tag, and this can be configured via `globalName`.  For example
 
-By default, Traceur or Babel runtime are automatically included in the SFX bundle if needed. To exclude the Babel or Traceur runtime set the `runtime` build option to false:
+```javascript
+builder.buildStatic('src/NavBar.js', 'dist/NavBarStaticBuild.js', { 
+  globalName: 'NavBar' 
+});
+```
+
+will cause the output of your module to be assigned to a global variable named `NavBar`.  If you're making a static bundle, while excluding certain dependencies, those dependencies 
+will of course need to have already been loaded on your page, with their own global variables exported.  You can match these global variables up with your needed dependencies 
+with `globalDeps`.  For example
+
+```javascript
+builder.buildStatic('src/NavBar.js - react', 'dist/NavBarStaticBuild.js', { 
+  globalName: 'NavBar', 
+  globalDeps: { 
+    'react': 'React' 
+  } 
+});
+```
+
+will create a static build of NavBar—without React—which, when loaded via a script tag, exports an eponymous global variable, and assumes the existence of a React global variable, which will be used for the `react` dependency. 
+
+This would support users with a setup of
+
+```javascript
+<script src='path/to/react.min.js'></script>
+<script src='path/to/NavBarStaticBuild.js'></script>
+```
+
+Note that another way of excluding `react` would be with `externals`.
+
+```javascript
+builder.buildStatic('src/NavBar.js', 'dist/NavBarStaticBuild.js', {
+  externals: ['react'],
+  globalName: 'NavBar',
+  globalDeps: {
+    'react': 'React'
+  }
+});
+```
+
+This would also exclude react but, if react defined any dependencies which NavBar *also* defined, those dependencies would be *included* in the build.
+
+Of course the above explanations involving `globalDeps` and `globalName` only apply to when your end user loads the static file from a script tag.  Since the output is (by default, see below) UMD, a 
+script loader like SystemJS or requireJS would process it as configured, or via AMD respectively.
+
+By default, the Traceur or Babel runtime are automatically included in the SFX bundle if needed. To exclude the Babel or Traceur runtime set the `runtime` build option to false:
 
 ```javascript
 builder.buildStatic('myModule.js', 'outfile.js', { runtime: false });
@@ -133,7 +185,7 @@ jquery.js
 module.exports = window.jQuery;
 ```
 
-### Minfication & Source Maps
+### Minification & Source Maps
 
 As well as an `options.config` parameter, it is also possible to specify minification and source maps options:
 
@@ -141,7 +193,7 @@ As well as an `options.config` parameter, it is also possible to specify minific
 builder.bundle('myModule.js', 'outfile.js', { minify: true, sourceMaps: true, config: cfg });
 ```
 
-Compile time with source maps can also be improved with the `lowResSourceMaps` option:
+Compile time with source maps can also be improved with the `lowResSourceMaps` option, where the mapping granularity is per-line instead of per-character:
 
 ```javascript
 builder.bundle('myModule.js', 'outfile.js', { sourceMaps: true, lowResSourceMaps: true });
@@ -155,6 +207,12 @@ builder.bundle('myModule.js', 'outfile.js', { sourceMaps: true, lowResSourceMaps
 ```javascript
 builder.bundle('myModule.js', 'outfile.js', { minify: true, mangle: false, globalDefs: { DEBUG: false } });
 ```
+
+#### SourceMap Options
+
+* `sourceMaps`, Either boolean value (enable/disable) or string value `'inline'` which will inline the SourceMap data as Base64 data URI right in the generated output file (never use in production). *(Default is `false`)*
+* `sourceMapContents`, Boolean value that determines if original sources shall be directly included in the SourceMap. Using inline source contents generates truely self contained SourceMaps which will not need to load the external original source files during debugging. *(Default is `false`; when using `sourceMaps='inline'` it defaults `true`)*
+
 
 ### In-Memory Builds
 
@@ -213,8 +271,6 @@ The `fetch` function should return a string.
 
 Both `builder.build` and `builder.buildStatic` support bundle arithmetic expressions. This allows for the easy construction of custom bundles.
 
-**NOTE**: SFX Bundles can only use addition and wildcard arithmetic.
-
 There is also a `builder.trace` for building direct trace tree objects, which can be directly passed into `builder.bundle` or `builder.buildStatic`.
 
 #### Example - Arithmetic Expressions
@@ -259,6 +315,14 @@ builder.bundle('app/**/* - [app/**/*]', 'dependencies.js', { minify: true, sourc
 
 The above means _take the tree of app and all its dependencies, and subtract just the modules in app_, thus leaving us with just the tree of dependencies of the app package.
 
+#### Example - Multiple Common Bundles
+
+Parentheses are supported, so the following would bundle everything in common with `page1` and `page2`, and also everything in common between `page3` and `page4`:
+
+```javascript
+builder.bundle('(app/page1.js & app/page2.js) + (app/page3.js & app/page4.js)', 'common.js');
+```
+
 #### Example - Direct Trace API
 
 Instead of using the arithmetic syntax, we can construct the trace ourselves.
@@ -276,7 +340,7 @@ Promise.all([builder.trace('app/first.js'), builder.trace('app/second.js')])
 .then(function(trees) {
   var commonTree = builder.intersectTrees(trees[0], trees[1]);
   return Promise.all([
-    builder.bundle(commonTree, 'shared-bundle.js')
+    builder.bundle(commonTree, 'shared-bundle.js'),
     builder.bundle(builder.subtractTrees(trees[0], commonTree), 'first-bundle.js'),
     builder.bundle(builder.subtractTrees(trees[1], commonTree), 'second-bundle.js')
   ]);

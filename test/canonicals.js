@@ -17,7 +17,7 @@ suite('Canonical Names', function() {
   });
 
   test('Exact beats wildcard', function() {
-    assert.equal(builder.getCanonicalName(baseURL + 'node_modules/babel-core/browser.js'), 'babel');
+    assert.equal(builder.getCanonicalName(baseURL + 'node_modules/babel/node_modules/babel-core/browser.js'), 'babel');
   });
 
   test('Wildcard extensions', function() {
@@ -27,6 +27,18 @@ suite('Canonical Names', function() {
   test('Wildcard extensions with a plugin', function() {
     builder.loader.defaultJSExtensions = true;
     assert.equal(builder.getCanonicalName('cjs'), 'cjs');
-    assert.equal(builder.getCanonicalName(baseURL + 'test/dummy/file.jade!' + baseURL + 'test/fixtures/test-tree/jade.js'), 'file.jade!jade');
+    assert.equal(builder.getCanonicalName(baseURL + 'test/dummy/file.jade!' + baseURL + 'test/fixtures/test-tree/jade.js'), 'file.jade!jade.js');
   });
+
+  test('Trailing / canonical', function() {
+    builder.loader.defaultJSExtensions = false;
+    builder.config({
+      paths: {
+        'trailing/': 'src/'
+      }
+    });
+    assert.equal(builder.getCanonicalName(baseURL + 'src/asdf'), 'trailing/asdf');
+    assert.equal(builder.getCanonicalName(baseURL + 'src/'), 'trailing/');
+    assert.equal(builder.getCanonicalName(baseURL + 'src'), 'trailing');
+  })
 });

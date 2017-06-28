@@ -145,12 +145,15 @@
           return output;
       }
     };
+    
+    // NB we should never output anonymomus in SFX though!
 
     // anonymous define
     if (!name) {
       // already defined anonymously -> throw
-      if (lastModule.anonDefine)
-        throw new TypeError('Multiple defines for anonymous module');
+      if (lastModule.anonDefine && !lastModule.anonDefine.name)
+        throw new Error('Multiple anonymous defines in module ' + name);
+
       lastModule.anonDefine = define;
     }
     // named define
@@ -161,61 +164,26 @@
       // define('jquery')
       // still loading anonymously
       // because it is done widely enough to be useful
-      if (!lastModule.anonDefine && !lastModule.isBundle) {
+      if (!lastModule.anonDefine && !lastModule.isBundle)
         lastModule.anonDefine = define;
-      }
       // otherwise its a bundle only
-      else {
-        // if there is an anonDefine already (we thought it could have had a single named define)
-        // then we define it now
-        // this is to avoid defining named defines when they are actually anonymous
-        if (lastModule.anonDefine && lastModule.anonDefine.name)
-          loader.registerDynamic(lastModule.anonDefine.name, lastModule.anonDefine.deps, false, lastModule.anonDefine.execute);
-
+      else if (lastModule.anonDefine && lastModule.anonDefine.name)
         lastModule.anonDefine = null;
-      }
 
       // note this is now a bundle
       lastModule.isBundle = true;
 
       // define the module through the register registry
-      loader.registerDynamic(name, define.deps, false, define.execute);
+      loader.registerDynamic(define.name, define.deps, false, define.execute);
     }
   }
   define.amd = {};
-
-  // adds define as a global (potentially just temporarily)
-  function createDefine(loader) {
-    lastModule.anonDefine = null;
-    lastModule.isBundle = false;
-
-    // ensure no NodeJS environment detection
-    var oldModule = __global.module;
-    var oldExports = __global.exports;
-    var oldDefine = __global.define;
-
-    __global.module = undefined;
-    __global.exports = undefined;
-    __global.define = define;
-
-    return function() {
-      __global.define = oldDefine;
-      __global.module = oldModule;
-      __global.exports = oldExports;
-    };
-  }
 
   var lastModule = {
     isBundle: false,
     anonDefine: null
   };
 
-  loader.set('@@amd-helpers', loader.newModule({
-    createDefine: createDefine,
-    require: require,
-    define: define,
-    lastModule: lastModule
-  }));
   loader.amdDefine = define;
   loader.amdRequire = require;
 })(typeof self != 'undefined' ? self : global);

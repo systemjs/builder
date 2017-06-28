@@ -1,26 +1,32 @@
 {
   "name": "systemjs-builder",
-  "version": "0.14.15",
+  "version": "0.15.36",
   "description": "SystemJS Build Tool",
   "main": "index.js",
   "dependencies": {
-    "bluebird": "^3.0.6",
+    "babel-core": "^6.9.0",
+    "babel-plugin-transform-cjs-system-wrapper": "^0.3.0",
+    "babel-plugin-transform-es2015-modules-systemjs": "^6.6.5",
+    "babel-plugin-transform-global-system-wrapper": "0.0.1",
+    "babel-plugin-transform-system-register": "0.0.1",
+    "bluebird": "^3.3.4",
+    "data-uri-to-buffer": "0.0.4",
     "es6-template-strings": "^2.0.0",
-    "glob": "^6.0.1",
+    "glob": "^7.0.3",
     "mkdirp": "^0.5.1",
-    "rollup": "^0.24.0",
+    "rollup": "^0.36.3",
     "source-map": "^0.5.3",
-    "systemjs": "systemjs/systemjs#master",
-    "traceur": "0.0.95",
-    "uglify-js": "^2.6.1"
+    "systemjs": "^0.19.43",
+    "traceur": "0.0.105",
+    "uglify-es": "https://github.com/mishoo/UglifyJS2#harmony"
   },
   "devDependencies": {
-    "babel-core": "^5.8.22",
+    "babel": "^5.8.38",
     "chai": "^3.0.0",
-    "es6-module-loader": "^0.17.9",
     "mocha": "^2.2.5",
     "mocha-phantomjs": "3.5.6",
     "phantomjs": "1.9.18",
+    "systemjs-plugin-babel": "0.0.19",
     "typescript": "1.6.2",
     "unexpected": "^9.11.0"
   },
@@ -29,7 +35,8 @@
     "url": "http://github.com/systemjs/builder.git"
   },
   "scripts": {
-    "test": "mkdir -p test/output && ./node_modules/.bin/mocha"
+    "test": "mocha",
+    "update-expectations": "UPDATE_EXPECTATIONS=1 mocha"
   },
   "author": "",
   "license": "MIT",

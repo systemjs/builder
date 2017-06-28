@@ -69,5 +69,17 @@ suite('Test builder.loadConfig', function() {
     }).then(done, done);
 
   });
+  
+  test('builder.loadConfig makes require available to config code',  function(done) {
+    var configFile = 'test/output/builderConfig.js';
+    var builder = new Builder();
+    fs.writeFileSync(configFile, 'var m = require("module"); System.config({baseURL:"base"});');
+    builder.loadConfig(configFile).then(function() {
+
+      assert.match(builder.loader.baseURL, /base\/$/, 'builder baseURL set');
+
+    }).then(done, done);
+
+  });
 
 });
