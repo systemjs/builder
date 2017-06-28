@@ -81,7 +81,8 @@ Concatenate all modules in the tree or module tree expression and optionally wri
 
 `tree`: A tree object as returned from builder.trace(), or one of the arithmetic functions  
 `expression`: A [module tree expression](#module-tree-expressions)  
-`moduleNames`: An array of exact, unnormalized module names  
+`moduleNames`: An array of exact, unnormalized module names \
+**Important**: The module names in `expression` or `moduleNames` should only be `/` separated (On Windows, do NOT use `\` as your path separator for this argument). The module names are specified in URL space; in particular, they are not file-paths. \
 `outfile`: The file to write out the bundle to  
 `options`: Additional bundle options as outlined below  
 
@@ -112,7 +113,8 @@ builder.bundle('moduleA.js', { minify:true }).then((bundle) => {
 Similar to builder.bundle() but builds a self-executing bundle  
 
 `tree`: A tree object as returned from builder.trace(), or one of the arithmetic functions  
-`expression`: A [module tree expression](#module-tree-expressions)  
+`expression`: A [module tree expression](#module-tree-expressions) \
+**Important**: The module names in `expression` or `moduleNames` should only be `/` separated (On Windows, do NOT use `\` as your path separator for this argument). The module names are specified in URL space; in particular, they are not file-paths. \
 `outfile`: The file to write out the bundle to  
 `options`: Additional bundle options as outlined in `builder.bundle()`  
 
@@ -127,7 +129,8 @@ builder.buildStatic('moduleA.js').then((sfxBundle) => {
 ### builder.trace(expression)
 Creates the module tree object represented by `expression`  
 
-`expression`: A [module tree expression](#module-tree-expressions)  
+`expression`: A [module tree expression](#module-tree-expressions) \
+**Important**: The module names in `expression` should only be `/` separated (On Windows, do NOT use `\` as your path separator for this argument). The module names are specified in URL space; in particular, they are not file-paths. 
 
 Returns a promise which resolves with the module tree 
 
