@@ -18,7 +18,7 @@
     "source-map": "^0.5.3",
     "systemjs": "^0.19.43",
     "traceur": "0.0.105",
-    "uglify-js": "~2.7.5"
+    "uglify-es": "https://github.com/mishoo/UglifyJS2#harmony"
   },
   "devDependencies": {
     "babel": "^5.8.38",
