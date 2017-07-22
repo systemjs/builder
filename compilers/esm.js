@@ -6,6 +6,8 @@ var ModuleSpecifier = traceurGet('syntax/trees/ParseTrees.js').ModuleSpecifier;
 var createStringLiteralToken = traceurGet('codegeneration/ParseTreeFactory.js').createStringLiteralToken;
 var InstantiateModuleTransformer = traceurGet('codegeneration/InstantiateModuleTransformer.js').InstantiateModuleTransformer;
 
+var extend = require('../lib/utils').extend;
+
 // patch pending https://github.com/google/traceur-compiler/pull/2053
 var createUseStrictDirective = traceurGet('codegeneration/ParseTreeFactory.js').createUseStrictDirective;
 InstantiateModuleTransformer.prototype.__proto__.moduleProlog = function() {
@@ -51,14 +53,27 @@ exports.attach = function(loader) {
     if (!loader.builder || load.metadata.format != 'esm' || load.metadata.originalSource)
       return systemInstantiate.call(this, load);
 
-    var compiler = new traceur.Compiler({ script: false, sourceRoot: true });
-    load.metadata.parseTree = compiler.parse(load.source, load.path);
     var depsList = load.metadata.deps.concat([]);
-    var extractDependencyTransformer = new TraceurImportNormalizeTransformer(function(dep) {
-      if (depsList.indexOf(dep) == -1)
-        depsList.push(dep);
+
+    var babel = require('babel-core');
+    var output = babel.transform(load.source, {
+      babelrc: false,
+      compact: false,
+      filename: load.path,
+      //sourceFileName: load.path,
+      inputSourceMap: load.metadata.sourceMap,
+      ast: true,
+      resolveModuleSource: function(dep) {
+        if (depsList.indexOf(dep) == -1)
+          depsList.push(dep);
+        return dep;
+      }
     });
-    extractDependencyTransformer.transformAny(load.metadata.parseTree);
+    // turn back on comments (for some reason!)
+    output.ast.comments.forEach(function(comment) {
+      comment.ignore = false;
+    });
+    load.metadata.ast = output.ast;
 
     return Promise.resolve({
       deps: depsList,
@@ -69,116 +84,59 @@ exports.attach = function(loader) {
 
 var versionCheck = true;
 
-// helper functions used by trace
-exports.parse = function(source) {
-  var compiler = new traceur.Compiler({ script: false, sourceRoot: true });
-  return compiler.parse(source);
-};
-
-exports.getDeps = function(tree) {
-  var deps = [];
-  var transformer = new TraceurImportNormalizeTransformer(function(dep) {
-    deps.push(dep);
-  });
-  transformer.transformAny(tree);
-  return deps;
-};
-
 exports.compile = function(load, opts, loader) {
-  var normalize = opts.normalize;
-  var options;
+  if (!load.metadata.originalSource || load.metadata.loader && load.metadata.format == 'esm') {
+    var babel = require('babel-core');
 
-  // transpiler used was a plugin transpiler
-  if (!load.metadata.originalSource) {
-    var compiler = new traceur.Compiler({
-      script: false,
-      sourceRoot: true,
-      moduleName: !opts.anonymous,
+    var babelOptions = {
+      babelrc: false,
+      compact: false,
+      plugins: [[require('babel-plugin-transform-es2015-modules-systemjs'), { systemGlobal: opts.systemGlobal }]],
+      filename: load.path,
+      //sourceFileName: load.path,
+      sourceMaps: !!opts.sourceMaps,
       inputSourceMap: load.metadata.sourceMap,
-      sourceMaps: opts.sourceMaps && load.path && 'memory',
-      lowResolutionSourceMap: opts.lowResSourceMaps
-    });
+      moduleIds: !opts.anonymous,
+      moduleId: !opts.anonymous && load.name,
+      code: true,
+      resolveModuleSource: function(dep) {
+        if (opts.normalize)
+          return load.depMap[dep];
+        else
+          return dep;
+      }
+    };
 
-    var tree = load.metadata.parseTree || compiler.parse(load.source, load.path);
+    var source = load.metadata.originalSource || load.source;
 
-    if (opts.normalize) {
-      var transformer = new TraceurImportNormalizeTransformer(function(dep) {
-        return load.depMap[dep];
-      });
-      tree = transformer.transformAny(tree);
-    }
+    var output;
+    if (load.metadata.ast)
+      output = babel.transformFromAst(load.metadata.ast, source, babelOptions);
+    else
+      output = babel.transform(source, babelOptions);
 
-    var errorReporter = new CollectingErrorReporter();
-    tree.moduleName = load.name;
-    var transformer = new InstantiateModuleTransformer(new UniqueIdentifierGenerator(), errorReporter, compiler.options_);
-
-    tree = transformer.transformAny(tree, load.name);
-
-    compiler.throwIfErrors(errorReporter);
-
-    var outputSource = compiler.write(tree, load.path);
-
+    // NB this can be removed with merging of ()
     if (opts.systemGlobal != 'System')
-      outputSource = outputSource.replace(/System\.register\(/, opts.systemGlobal + '.register(');
+      output.code = output.code.replace(/(\s|^)System\.register\(/, '$1' + opts.systemGlobal + '.register(');
+
+    // for some reason Babel isn't respecting sourceFileName...
+    if (output.map && !load.metadata.sourceMap)
+      output.map.sources[0] = load.path;
 
     return Promise.resolve({
-      source: outputSource,
-      sourceMap: compiler.getSourceMap()
+      source: output.code,
+      sourceMap: output.map
     });
   }
-
 
   // ... legacy transpilation, to be deprecated with internal transpilation layer
-
-  // load.metadata.originalSource set by esm layer to allow plugin -> esm
-  var source = load.metadata.originalSource || load.source;
-
-  // plugin to esm -> ONLY do traceur instantiate conversion, and nothing else
-  if (load.metadata.loader && load.metadata.format == 'esm') {
-    var compiler = new traceur.Compiler({
-      script: false,
-      sourceRoot: true,
-      moduleName: !opts.anonymous,
-      inputSourceMap: load.metadata.sourceMap,
-      sourceMaps: opts.sourceMaps && 'memory',
-      lowResolutionSourceMap: opts.lowResSourceMaps
-    });
-
-    var tree = load.metadata.parseTree || compiler.parse(load.source, load.path);
-
-    if (opts.normalize) {
-      var transformer = new TraceurImportNormalizeTransformer(function(dep) {
-        return load.depMap[dep];
-      });
-      tree = transformer.transformAny(tree);
-    }
-
-    var errorReporter = new CollectingErrorReporter();
-    tree.moduleName = load.name;
-    var transformer = new InstantiateModuleTransformer(new UniqueIdentifierGenerator(), errorReporter, compiler.options_);
-
-    tree = transformer.transformAny(tree, load.name);
-
-    compiler.throwIfErrors(errorReporter);
-
-    var outputSource = compiler.write(tree, load.path);
-
-    if (opts.systemGlobal != 'System')
-      outputSource = outputSource.replace(/System\.register\(/, opts.systemGlobal + '.register(');
-
-    return Promise.resolve({
-      source: outputSource,
-      sourceMap: compiler.getSourceMap()
-    });
-  }
-
-  return Promise.resolve(global[loader.transpiler == 'typescript' ? 'ts' : loader.transpiler] || loader.import(loader.transpiler))
+  return Promise.resolve(global[loader.transpiler == 'typescript' ? 'ts' : loader.transpiler] || loader.pluginLoader.import(loader.transpiler))
   .then(function(transpiler) {
     if (transpiler.__useDefault)
       transpiler = transpiler['default'];
 
     if (transpiler.Compiler) {
-      options = loader.traceurOptions || {};
+      var options = loader.traceurOptions || {};
       options.modules = 'instantiate';
       options.script = false;
       options.sourceRoot = true;
@@ -194,10 +152,10 @@ exports.compile = function(load, opts, loader) {
 
       var compiler = new transpiler.Compiler(options);
 
-      var tree = compiler.parse(source, load.path);
+      var tree = compiler.parse(load.source, load.path);
 
       var transformer = new TraceurImportNormalizeTransformer(function(dep) {
-        return normalize ? load.depMap[dep] : dep;
+        return opts.normalize ? load.depMap[dep] : dep;
       });
 
       tree = transformer.transformAny(tree);
@@ -219,16 +177,16 @@ exports.compile = function(load, opts, loader) {
       if (options.target === undefined)
         options.target = transpiler.ScriptTarget.ES5;
       options.module = transpiler.ModuleKind.System;
-      
-      var transpileOptions = { 
-        compilerOptions: options, 
-        renamedDependencies: load.depMap, 
-        fileName: load.path, 
-        moduleName: !opts.anonymous && load.name 
+
+      var transpileOptions = {
+        compilerOptions: options,
+        renamedDependencies: load.depMap,
+        fileName: load.path,
+        moduleName: !opts.anonymous && load.name
       };
-      
-      var transpiled = transpiler.transpileModule(source, transpileOptions);
-      
+
+      var transpiled = transpiler.transpileModule(load.source, transpileOptions);
+
       return Promise.resolve({
         source: transpiled.outputText,
         sourceMap: transpiled.sourceMapText
@@ -241,8 +199,8 @@ exports.compile = function(load, opts, loader) {
           console.log('Warning - using Babel ' + babelVersion + '. This version of SystemJS builder is designed to run against Babel 5.');
         versionCheck = false;
       }
-        
-      options = loader.babelOptions || {};
+
+      var options = extend({}, loader.babelOptions || {});
       options.modules = 'system';
       if (opts.sourceMaps)
         options.sourceMap = true;
@@ -262,12 +220,12 @@ exports.compile = function(load, opts, loader) {
       else if (transpiler.version.match(/^5\.[01234]\./))
         options.metadataUsedHelpers = true;
 
-      if (normalize)
+      if (opts.normalize)
         options.resolveModuleSource = function(dep) {
           return load.depMap[dep] || dep;
         };
 
-      var output = transpiler.transform(source, options);
+      var output = transpiler.transform(load.source, options);
 
       var usedHelpers = output.usedHelpers || output.metadata && output.metadata.usedHelpers;
 

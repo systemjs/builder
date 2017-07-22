@@ -3,7 +3,9 @@
 });
 var p = 5;
 
-function q() {}
-
 if (false)
   var window = 5;
+
+function q(preprocessedTokens, eval) {
+  eval();
+}

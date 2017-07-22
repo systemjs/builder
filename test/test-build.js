@@ -1,6 +1,7 @@
 var Builder = require('../index');
 var inline = require('../lib/output').inlineSourceMap;
 var fs = require('fs');
+var path = require('path');
 var spawn = require('child_process').spawn;
 if (process.argv[2] == 'typescript')
   global.ts = require('typescript');
@@ -17,7 +18,7 @@ var builder = new Builder('test/fixtures/test-tree', 'test/fixtures/test-tree.co
 
 function testPhantom(html) {
   return new Promise(function(resolve, reject) {
-    spawn('node_modules/.bin/mocha-phantomjs', [html], { stdio: 'inherit' })
+    spawn(path.resolve('node_modules/.bin/mocha-phantomjs' + (process.platform.match(/^win/) ? '.cmd' : '')), [html], { stdio: 'inherit' })
     .on('close', function(code) {
       if (code !== 0)
         reject(Error('Phantom test failed ' + html + ' failed.'));
@@ -132,8 +133,28 @@ function doTests(transpiler) {
       })
 
       .then(function() {
+        return builder.bundle('amd-9.js', 'test/output/amd-9.js');
+      })
+
+      .then(function() {
+        return builder.bundle('amd-10.js', 'test/output/amd-10.js');
+      })
+
+      .then(function() {
+        return builder.bundle('amd-11.js', 'test/output/amd-11.js');
+      })
+
+      .then(function() {
+        return builder.bundle('amd-12.js', 'test/output/amd-12.js');
+      })
+
+      .then(function() {
         builder.loader.config({ paths: { 'output/*': './test/output/*' } });
         return builder.bundle('cjs-globals.js - output/amd-8.js', 'test/output/cjs-globals.js');
+      })
+
+      .then(function() {
+        return builder.bundle('cjs-resolve.js', 'test/output/cjs-resolve.js');
       })
 
       .then(function() {
@@ -178,6 +199,13 @@ function doTests(transpiler) {
     });
   });
 }
+
+suite('Basics', function() {
+  test('Circular map config', function() {
+    builder.reset();
+    return builder.bundle('lodash');
+  });
+});
 
 suite('Test tree builds - Traceur', function() {
 

@@ -5,3 +5,4 @@ test/output
 test/output.js
 test/output.js.map
 dist
+.idea/

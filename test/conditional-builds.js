@@ -8,7 +8,7 @@ suite('Conditional Builds', function() {
   test('Package environment traces all conditional variations', function() {
     return builder.trace('pkg/env-condition')
     .then(function(tree) {
-      assert.deepEqual(Object.keys(tree).sort(), ['pkg/#:./env-condition', 'pkg/lib/env-condition-browser.js', 'pkg/lib/env-condition.js'].sort());
+      assert.deepEqual(Object.keys(tree).sort(), ['pkg/#:./env-condition', 'pkg/env-condition-browser.js', 'pkg/env-condition.js'].sort());
     });
   });
 
@@ -20,6 +20,7 @@ suite('Conditional Builds', function() {
   });
 
   test('Boolean conditional', function() {
+    // This can be updated to just #?browser
     return builder.trace('interpolated-1.js#?|browser')
     .then(function(tree) {
       assert.deepEqual(Object.keys(tree).sort(), ['interpolated-1.js#?@system-env|browser', 'interpolated-1.js', 'interpolate-1-dep.js'].sort());
@@ -31,19 +32,19 @@ suite('Conditional Builds', function() {
     .then(function(tree) {
       assert.deepEqual(Object.keys(tree), ['interpolated-1.js#?@system-env|browser']);
     })
-  })
+  });
 
-  test('traceAllConditionals false', function() {
-    return builder.trace('pkg/env-condition + interpolated-#{conditions.js|test}.js', { traceAllConditionals: false })
+  test('More conditions', function() {
+    return builder.trace('pkg/env-condition + interpolated-#{conditions.js|test}.js')
     .then(function(tree) {
-      assert.deepEqual(Object.keys(tree).sort(), ['interpolated-#{conditions.js|test}.js', 'pkg/#:./env-condition', 'conditions.js'].sort());
+      assert.deepEqual(Object.keys(tree).sort(), ['conditions.js', 'interpolate-1-dep.js', 'interpolated-1.js', 'interpolated-2.js', 'pkg/env-condition-browser.js', 'pkg/env-condition.js', 'interpolated-#{conditions.js|test}.js', 'pkg/#:./env-condition'].sort());
     });
   });
 
   test('Browser:false tracing', function() {
     return builder.trace('pkg/env-condition + interpolated-#{conditions.js|test}.js', { browser: false })
     .then(function(tree) {
-      assert.deepEqual(Object.keys(tree).sort(), ['pkg/#:./env-condition', 'pkg/lib/env-condition.js', 'interpolated-#{conditions.js|test}.js', 'conditions.js', 'interpolated-1.js', 'interpolate-1-dep.js', 'interpolated-2.js'].sort())
+      assert.deepEqual(Object.keys(tree).sort(), ['pkg/#:./env-condition', 'pkg/env-condition.js', 'interpolated-#{conditions.js|test}.js', 'conditions.js', 'interpolated-1.js', 'interpolate-1-dep.js', 'interpolated-2.js'].sort())
     });
   });
 
@@ -55,9 +56,9 @@ suite('Conditional Builds', function() {
   });
 
   test('Environment tracing', function() {
-    return builder.trace('pkg/env-condition + interpolated-#{conditions.js|test}.js', { traceConditionsOnly: true })
-    .then(function(tree) {
-      assert.deepEqual(Object.keys(tree), ['conditions.js']);
+    return builder.traceConditionalEnv('pkg/env-condition + interpolated-#{conditions.js|test}.js')
+    .then(function(conditions) {
+      assert.deepEqual(conditions, { 'conditions.js|test': ['1', '2'], '@system-env|browser': [true, false] });
     });
   });
 
@@ -76,6 +77,36 @@ suite('Conditional Builds', function() {
   test('Build including all conditional variations', function() {
     return builder.bundle('pkg/env-condition + interpolated-#{conditions.js|test}.js', 'test/output/conditional-build.js', { sourceMaps: true })
     .then(function(output) {
+      assert(output.source.indexOf('"interpolated-2.js"') != -1);
+      assert(output.source);
+    });
+  });
+
+  test('Bundle conditional inlining', function() {
+    return builder.bundle('interpolated-#{conditions.js|test}.js', {
+      inlineConditions: true,
+      conditions: {
+        'conditions.js|test': '2'
+      }
+    })
+    .then(function(output) {
+      assert(output.source.indexOf('interpolated-#{') == -1);
+      assert(output.source.indexOf('"interpolated-2.js"') != -1);
+      assert(output.source);
+    });
+  });
+
+  test('Selective conditional inlining', function() {
+    return builder.bundle('custom-conditions.js + interpolated-#{conditions.js|test}.js', {
+      inlineConditions: {
+        'conditions.js|test': '2'
+      }
+    })
+    .then(function(output) {
+      assert(output.modules.indexOf('conditions.js') == -1);
+      assert(output.modules.indexOf('ENV.js') != -1);
+      assert(output.source.indexOf('interpolated-#{') == -1);
+      assert(output.source.indexOf('"interpolated-2.js"') != -1);
       assert(output.source);
     });
   });
