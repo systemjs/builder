@@ -235,13 +235,18 @@
       if (output !== undefined)
         moduleObj.default = moduleObj.__useDefault = output;
 
-      var defaultExport = moduleObj.__useDefault;
+      if (module.exports !== moduleObj.__useDefault)
+        moduleObj.default = moduleObj.__useDefault = module.exports;
+
+      var moduleDefault = moduleObj.default;
 
       // __esModule flag extension support
-      if (defaultExport && defaultExport.__esModule)
-        for (var p in defaultExport)
-          if (Object.hasOwnProperty.call(defaultExport, p))
-            moduleObj[p] = defaultExport[p];
+      if (moduleDefault && moduleDefault.__esModule) {
+        for (var p in moduleDefault)
+          if (Object.hasOwnProperty.call(moduleDefault, p))
+            moduleObj[p] = moduleDefault[p];
+      }
+
     }
 
     var module = load.module = new Module(link.moduleObj);
