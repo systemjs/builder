@@ -226,22 +226,18 @@
       });
       var require = makeDynamicRequire(link.deps, link.depLoads, seen);
 
-      // evaluate deps first
-      if (!link.executingRequire)
-        for (var i = 0; i < link.deps.length; i++)
-          require(link.deps[i]);
+      if (module.exports !== moduleObj.__useDefault)
+        moduleObj.default = moduleObj.__useDefault = module.exports;
 
-      var output = link.execute.call(global, require, moduleObj.__useDefault, module);
-      if (output !== undefined)
-        moduleObj.default = moduleObj.__useDefault = output;
-
-      var defaultExport = moduleObj.__useDefault;
+      var moduleDefault = moduleObj.default;
 
       // __esModule flag extension support
-      if (defaultExport && defaultExport.__esModule)
-        for (var p in defaultExport)
-          if (Object.hasOwnProperty.call(defaultExport, p))
-            moduleObj[p] = defaultExport[p];
+      if (moduleDefault && moduleDefault.__esModule) {
+        for (var p in moduleDefault)
+          if (Object.hasOwnProperty.call(moduleDefault, p))
+            moduleObj[p] = moduleDefault[p];
+      }
+
     }
 
     var module = load.module = new Module(link.moduleObj);
