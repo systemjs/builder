@@ -226,18 +226,24 @@
       });
       var require = makeDynamicRequire(link.deps, link.depLoads, seen);
 
-      if (module.exports !== moduleObj.__useDefault)
+      // evaluate deps first
+      if (!link.executingRequire)
+        for (var i = 0; i < link.deps.length; i++)
+          require(link.deps[i]);
+
+      var output = link.execute.call(global, require, moduleObj.__useDefault, module);
+      if (output !== undefined)
+        moduleObj.default = moduleObj.__useDefault = output;
+      else if (module.exports !== moduleObj.__useDefault)
         moduleObj.default = moduleObj.__useDefault = module.exports;
 
-      var moduleDefault = moduleObj.default;
+      var moduleDefault = moduleObj.__useDefault;
 
       // __esModule flag extension support
-      if (moduleDefault && moduleDefault.__esModule) {
+      if (moduleDefault && moduleDefault.__esModule)
         for (var p in moduleDefault)
           if (Object.hasOwnProperty.call(moduleDefault, p))
             moduleObj[p] = moduleDefault[p];
-      }
-
     }
 
     var module = load.module = new Module(link.moduleObj);
