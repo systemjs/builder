@@ -103,4 +103,4 @@
       };
     }
   }));
-})(typeof self != 'undefined' ? self : global);
+})((typeof self !== 'undefined') ? self : (typeof global !== 'undefined') ? global : this)
