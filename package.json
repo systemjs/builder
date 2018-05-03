@@ -1,6 +1,6 @@
 {
   "name": "systemjs-builder",
-  "version": "0.16.12",
+  "version": "0.16.12-rollup-ugprade",
   "description": "SystemJS Build Tool",
   "main": "index.js",
   "dependencies": {
@@ -16,7 +16,7 @@
     "es6-template-strings": "^2.0.0",
     "glob": "^7.0.3",
     "mkdirp": "^0.5.1",
-    "rollup": "^0.36.3",
+    "rollup": "^0.58.2",
     "source-map": "^0.5.3",
     "systemjs": "^0.19.46",
     "traceur": "0.0.105",
