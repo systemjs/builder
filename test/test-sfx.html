@@ -6,12 +6,11 @@
     <div id="mocha">
   <script>
     window.$ = { jquery: 1 };
+    window.DEBUG = false;
   </script>
   <script src="output/sfx.js"></script>
   <script>
     mocha.setup('tdd');
-
-    DEBUG = false;
 
     function assert(assertion, msg) {
       if (!assertion)
