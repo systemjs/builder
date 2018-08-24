@@ -243,3 +243,21 @@ suite('Bundle Format', function() {
     });
   });
 });
+
+suite('Test ES6 minification', function() {
+  test('ES6 syntax minify, unmangled', function() {
+    builder.reset();
+    return builder.bundle('class-def.js', { minify: true , mangle: false })
+    .then(function(output) {
+      assert.match(output.source, /class Foo{constructor\(\){/, 'source contains literal class');
+    });
+  });
+
+  test('ES6 syntax minify, mangled', function() {
+    builder.reset();
+    return builder.bundle('class-def.js', { minify: true , mangle: true })
+    .then(function(output) {
+      assert.match(output.source, /class \w{constructor\(\){/, 'source contains literal class, mangled');
+    });
+  });
+});
