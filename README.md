@@ -1,7 +1,7 @@
 SystemJS Build Tool [![Build Status][travis-image]][travis-url] [![Support](https://supporterhq.com/api/b/33df4abbec4d39260f49015d2457eafe/SystemJS)](https://supporterhq.com/support/33df4abbec4d39260f49015d2457eafe/SystemJS)
 ===
 
-**This project has been deprecated as of SystemJS 2.0. It will continue to support SystemJS 0.21 legacy builds though.**
+**This project has been deprecated as of SystemJS 2.0. It will continue to support SystemJS 0.21 legacy builds though. Instead, [Rollup code splitting builds](https://rollupjs.org/guide/en#experimental-code-splitting) are encouraged.**
 
 _[SystemJS Builder 0.16 release notes](https://github.com/systemjs/builder/releases/tag/0.16.0)_
 
