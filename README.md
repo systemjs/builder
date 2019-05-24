@@ -345,6 +345,30 @@ Promise.all([builder.trace('app/first.js'), builder.trace('app/second.js')])
 });
 ```
 
+#### Options
+
+A full list of options and their corresponding defaults is provided below:
+
+```javascript
+entryPoints: [],
+normalize: true,
+anonymous: false,
+systemGlobal: 'System',
+buildConfig: false,
+inlinePlugins: true,
+static: false,
+// encodeNames' default is true for static builds:
+encodeNames: undefined,
+sourceMaps: false,
+lowResSourceMaps: false,
+// runtime's default is true for static builds:
+runtime: false,
+format: 'global',
+globalDeps: {},
+globalName: null,
+minify: false
+```
+
 License
 ---
 
